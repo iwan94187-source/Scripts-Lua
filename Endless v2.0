@@ -1,0 +1,813 @@
+local players = game:GetService("Players")
+local player = players.LocalPlayer
+local playerGui = player.PlayerGui
+
+local runService=game:GetService("RunService")
+
+-- Create a Main-Menu
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "BlackGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+local screenGuiTem = Instance.new("ScreenGui")
+screenGuiTem.Name = "temGui"
+screenGuiTem.ResetOnSpawn = false
+screenGuiTem.Parent = playerGui
+
+local IsOpen = false -- حالة الزر
+
+-- زر التحكم بتشغيل واغلاق الفريم
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size=UDim2.new(0,50,0,50)
+closeBtn.Position=UDim2.new(0,0,0,0)
+closeBtn.BackgroundColor=BrickColor.new("Black")
+closeBtn.TextColor3=Color3.new(0.886275, 0.027451, 1)
+closeBtn.Text="⁇"
+closeBtn.TextScaled=true
+closeBtn.Parent=screenGui
+
+
+local function UIcorner(ui) 
+	local uiCorner = Instance.new("UICorner")
+	uiCorner.CornerRadius = UDim.new(0, 10)
+	uiCorner.Parent = ui
+
+	-- 4. إطار خارجي رمادي خفيف للتمييز (اختياري)
+	local uiStroke = Instance.new("UIStroke")
+	uiStroke.Color = Color3.fromRGB(40, 40, 40)
+	uiStroke.Thickness = 1.5
+	uiStroke.Parent = ui
+	return uiCorner
+end 
+
+-- انشاء الفريم
+local frame = Instance.new("Frame")
+frame.Name = "MainFrame"
+frame.Size = UDim2.new(0, 400, 0, 300) -- الحجم: 300 عرض × 200 ارتفاع
+frame.Position = UDim2.new(0.5, -250, 0.5, -200)
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- لون أسود خالص
+frame.BorderSizePixel = 0
+frame.Visible = false
+frame.Active=true
+frame.Draggable = true -- يجعل النافذة قابلة للسحب
+frame.Parent = screenGui
+
+-- انشاء عنوانا للفريم
+local lbl = Instance.new("TextLabel")
+lbl.Size=UDim2.new(1,0,0.1,0)
+lbl.BackgroundTransparency=1
+lbl.TextXAlignment=Enum.TextXAlignment.Left
+lbl.Text="Endless v2.0"
+lbl.TextScaled=true
+lbl.TextColor=BrickColor.new("White")
+lbl.Parent=frame
+
+
+-- انشاء الازرار داخل الفريم
+local pBtn = Instance.new("TextButton")
+pBtn.Size=UDim2.new(0,100,0,40)
+pBtn.Position=UDim2.new(0,0,0.1,0)
+pBtn.TextColor=BrickColor.new("White")
+pBtn.BackgroundColor=BrickColor.new("Royal purple")
+pBtn.TextSize=15
+pBtn.Text="Player"
+pBtn.Parent=frame
+
+local uniBtn = Instance.new("TextButton")
+uniBtn.Size=UDim2.new(0,100,0,40)
+uniBtn.Position=UDim2.new(0,0,0.2,0)
+uniBtn.TextColor=BrickColor.new("White")
+uniBtn.BackgroundColor=BrickColor.new("Royal purple")
+uniBtn.TextSize=15
+uniBtn.Text="Universal"
+uniBtn.Parent=frame
+
+local function NewScroll()
+	local scrollFrame = Instance.new("ScrollingFrame")
+	scrollFrame.Size=UDim2.new(0.75,0,0.9,0)
+	scrollFrame.Position=UDim2.new(0.25,0,0.1,0)
+	scrollFrame.BackgroundColor=BrickColor.new("Black")
+	scrollFrame.Visible=false
+	scrollFrame.Parent=frame
+
+	return scrollFrame
+end
+
+local oldfog = nil
+
+local pScrollFrame = NewScroll()
+
+local function newBtn(name, pos) 
+	local spd = Instance.new("TextButton")
+	spd.Size=UDim2.new(0.3,0,0.05,0)
+	spd.Position=pos
+	spd.TextColor=BrickColor.new("White")
+	spd.BackgroundColor=BrickColor.new("Really red")
+	spd.TextSize=15
+	spd.Text=name
+	spd.Parent=pScrollFrame
+	return spd
+end
+
+local function newScrollbtn(pos) 
+	local scl = Instance.new("TextBox")
+	scl.Size=UDim2.new(0.7,0,0.05,0)
+	scl.Position=pos
+	scl.TextColor=BrickColor.new("White")
+	scl.BackgroundColor3=Color3.new(0.486275, 0, 0.729412)
+	scl.TextSize=15
+	scl.Text="Number"
+	scl.Parent=pScrollFrame
+	return scl
+end
+
+-- Speed-Button
+local speedState = false
+local speedBtn = newBtn("Speed", UDim2.new(0,0,0,0))
+local speedTxtbox = newScrollbtn(UDim2.new(0.3,0,0,0))
+
+-- Jump-Button
+local jumpState = false
+local jumpBtn = newBtn("Jump", UDim2.new(0,0,0.055,0))
+local jumpTxtbox = newScrollbtn(UDim2.new(0.3,0,0.055,0))
+
+-- Hiphight-Button
+local hipState = false
+local hipBtn = newBtn("Height", UDim2.new(0,0,0.11,0))
+local hipTxtbox = newScrollbtn(UDim2.new(0.3,0,0.11,0))
+
+local uniScrollFrame = NewScroll()
+
+local function newBtns(name, pos)
+	local btn=Instance.new("TextButton")
+	btn.Size=UDim2.new(1,0,0.05,0)
+	btn.Position=pos
+	btn.TextColor=BrickColor.new("White")
+	btn.BackgroundColor=BrickColor.new("Royal purple")
+	btn.TextSize=15
+	btn.TextStrokeTransparency=0
+	btn.Text=name
+	btn.Parent=uniScrollFrame
+	return btn
+end
+noclipBtn=newBtns("Noclip",UDim2.new())
+espPlayerBtn=newBtns("Esp Players",UDim2.new(0,0,0.11,0))
+fakeFloorBtn=newBtns("Fake floor",UDim2.new(0,0,0.155,0))
+
+local function spectatebtns(name, pos)
+	local spc=Instance.new("TextButton")
+	spc.Size=UDim2.new(0.5,0,0.05,0)
+	spc.Position=pos
+	spc.TextColor=BrickColor.new("White")
+	spc.BackgroundColor=BrickColor.new("Royal purple")
+	spc.TextSize=15
+	spc.TextStrokeTransparency=0
+	spc.Text=name
+	spc.Parent=uniScrollFrame
+	return spc
+end
+
+local spectateCam1 = spectatebtns("Spectate 1", UDim2.new(0,0,0.055,0))
+local spectateCam2 = spectatebtns("Spectate 2", UDim2.new(0.5,0,0.055,0))
+
+
+
+
+UIcorner(frame)
+UIcorner(pBtn)
+UIcorner(uniBtn)
+
+-- حدث الضغط على الزر
+closeBtn.MouseButton1Click:Connect(function()
+	IsOpen=not IsOpen
+	if IsOpen then 
+		closeBtn.Text="X"
+		closeBtn.TextColor=BrickColor.new("White")
+	else 
+		closeBtn.Text="⁇"
+		closeBtn.TextColor=BrickColor.new("Royal purple")
+	end
+	frame.Visible=IsOpen
+end)
+
+
+local btnTag = nil
+
+
+local function SetBtnState(scroll) 
+	for _, with in ipairs(frame:GetChildren()) do 
+		if with:IsA("ScrollingFrame") then 
+			if with ~= scroll then with.Visible=false	
+			end
+		end
+	end
+	scroll.Visible=true
+end
+
+pBtn.MouseButton1Click:Connect(function()
+	SetBtnState(pScrollFrame)
+end)
+
+uniBtn.MouseButton1Click:Connect(function()
+	SetBtnState(uniScrollFrame)
+end)
+
+runService.Stepped:Connect(function()
+	local human =player.Character and player.Character:FindFirstChild("Humanoid")
+	if human then 
+		if speedState then 
+			if tonumber(speedTxtbox.Text) then
+				human.WalkSpeed=speedTxtbox.Text
+			end
+
+		end
+
+		if jumpState then 
+			if tonumber(jumpTxtbox.Text) then
+				human.UseJumpPower=true
+				human.JumpPower=jumpTxtbox.Text
+			end
+		end
+
+		if hipState then 
+			if tonumber(hipTxtbox.Text) then
+				human.HipHeight=hipTxtbox.Text
+			end
+
+		end
+	end
+end)
+
+speedBtn.MouseButton1Click:Connect(function()
+	speedState=not speedState
+	if speedState then speedBtn.BackgroundColor=BrickColor.new("Bright green")
+	else speedBtn.BackgroundColor=BrickColor.new("Really red") end
+end)
+
+jumpBtn.MouseButton1Click:Connect(function()
+	jumpState=not jumpState
+	if jumpState then jumpBtn.BackgroundColor=BrickColor.new("Bright green")
+	else jumpBtn.BackgroundColor=BrickColor.new("Really red") end
+end)
+
+hipBtn.MouseButton1Click:Connect(function()
+	hipState=not hipState
+	if hipState then hipBtn.BackgroundColor=BrickColor.new("Bright green")
+	else hipBtn.BackgroundColor=BrickColor.new("Really red") end
+end)
+
+noclipBtn.MouseButton1Click:Connect(function()
+	task.spawn(function()
+
+		local IsOn = false
+
+		-- الإطار الرئيسي (الخلفية)
+		local frame = Instance.new("Frame")
+		frame.Size = UDim2.new(0, 200, 0, 110)
+		frame.Position = UDim2.new(0.3, 0, 0.15, 0)
+		frame.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+		frame.Active = true
+		frame.Draggable = true -- يجعل النافذة قابلة للسحب!
+		frame.Parent = screenGuiTem
+
+		local frameCorner = Instance.new("UICorner")
+		frameCorner.CornerRadius = UDim.new(0, 10)
+		frameCorner.Parent = frame
+
+		local frameStroke = Instance.new("UIStroke")
+		frameStroke.Color = Color3.fromRGB(50, 50, 50)
+		frameStroke.Thickness = 1.5
+		frameStroke.Parent = frame
+
+		-- العنوان
+		local txt = Instance.new("TextLabel")
+		txt.Size = UDim2.new(1, 0, 0, 40)
+		txt.BackgroundTransparency = 1
+		txt.Text = "NoClip"
+		txt.TextScaled = true
+		txt.TextColor3 = Color3.fromRGB(255, 255, 255)
+		txt.Font = Enum.Font.GothamBold
+		txt.Parent = frame
+
+		-- الزر
+		local btn = Instance.new("TextButton")
+		btn.Size = UDim2.new(0, 140, 0, 35)
+		btn.Position = UDim2.new(0.15, 0, 0.5, 0)
+		btn.Text = "OFF"
+		btn.TextScaled = true
+		btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+		btn.Font = Enum.Font.GothamBold
+		btn.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+		btn.Parent = frame
+
+		local btnCorner = Instance.new("UICorner")
+		btnCorner.CornerRadius = UDim.new(0, 8)
+		btnCorner.Parent = btn
+
+		-- 🎨 تفاعلات الماوس (Hover & Click Effects)
+		local colorOff = Color3.fromRGB(220, 50, 50)
+		local colorOn = Color3.fromRGB(50, 200, 90)
+
+		runService.Stepped:Connect(function()
+			local character = player.Character
+			if not character then return end
+			local humanoid = character:FindFirstChild("Humanoid")
+			if IsOn and humanoid and not humanoid.Sit then
+				for _, body in ipairs(character:GetChildren()) do 
+					if body:IsA("BasePart") then 
+						body.CanCollide=false
+					end
+				end
+			end
+		end)
+
+		btn.MouseButton1Click:Connect(function()
+			local character = player.Character
+			if not character then return end
+			IsOn = not IsOn
+			if IsOn then 
+				btn.Text = "ON"
+				btn.BackgroundColor3 = colorOn
+			else
+				btn.Text = "OFF"
+				btn.BackgroundColor3 = colorOff
+
+				for _, body in ipairs(character:GetChildren()) do 
+					if body:IsA("BasePart") then 
+						body.CanCollide=true
+					end
+				end
+			end
+		end)
+	end)
+end)
+
+spectateCam1.MouseButton1Click:Connect(function()
+	task.spawn(function()
+		local cam = workspace.CurrentCamera
+		local runService = game:GetService("RunService")
+		local IsOn = false
+
+		-- إنشاء الشاشة الرئيسية
+
+		-- الإطار الرئيسي (الخلفية)
+		local frame = Instance.new("Frame")
+		frame.Size = UDim2.new(0, 200, 0, 110)
+		frame.Position = UDim2.new(0.3, 0, 0.15, 0)
+		frame.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+		frame.Active = true
+		frame.Draggable = true -- يجعل النافذة قابلة للسحب!
+		frame.Parent = screenGuiTem
+
+		local frameCorner = Instance.new("UICorner")
+		frameCorner.CornerRadius = UDim.new(0, 10)
+		frameCorner.Parent = frame
+
+		local frameStroke = Instance.new("UIStroke")
+		frameStroke.Color = Color3.fromRGB(50, 50, 50)
+		frameStroke.Thickness = 1.5
+		frameStroke.Parent = frame
+
+		-- العنوان
+		local txt = Instance.new("TextLabel")
+		txt.Size = UDim2.new(1, 0, 0, 40)
+		txt.BackgroundTransparency = 1
+		txt.Text = "Spectate"
+		txt.TextScaled = true
+		txt.TextColor3 = Color3.fromRGB(255, 255, 255)
+		txt.Font = Enum.Font.GothamBold
+		txt.Parent = frame
+
+		local btn = Instance.new("TextButton")
+		btn.Size = UDim2.new(0, 140, 0, 35)
+		btn.Position = UDim2.new(0.15, 0, 0.5, 0)
+		btn.Text = "OFF"
+		btn.TextScaled = true
+		btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+		btn.Font = Enum.Font.GothamBold
+		btn.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+		btn.Parent = frame
+
+		local btnCorner = Instance.new("UICorner")
+		btnCorner.CornerRadius = UDim.new(0, 8)
+		btnCorner.Parent = btn
+		-- 🎨 تفاعلات الماوس (Hover & Click Effects)
+
+		local colorOff = Color3.fromRGB(220, 50, 50)
+		local colorOn = Color3.fromRGB(50, 200, 90)
+
+		local spectateFrame = Instance.new("Frame")
+		spectateFrame.Size=UDim2.new(1,0,0,300)
+		spectateFrame.Position=UDim2.new(0,0,0.7,0)
+		spectateFrame.BackgroundTransparency=1
+		spectateFrame.Visible=false
+		spectateFrame.Parent=screenGui
+
+		local plrUser = Instance.new("TextLabel")
+		plrUser.Size=UDim2.new(0.2,0,0.2,0)
+		plrUser.Position=UDim2.new(0.4,0,0,0)
+		plrUser.BackgroundTransparency=0.8
+		plrUser.Text="Player"
+		plrUser.TextColor=BrickColor.new("White")
+		plrUser.TextScaled=true
+		plrUser.Parent=spectateFrame
+
+		local R_way = Instance.new("TextButton")
+		R_way.Size=UDim2.new(0.05,0,0.2,0)
+		R_way.Position=UDim2.new(0.7,0,0,0)
+		R_way.BackgroundTransparency=0.8
+		R_way.Text=">"
+		R_way.TextColor=BrickColor.new("White")
+		R_way.TextScaled=true
+		R_way.Parent=spectateFrame
+
+		local L_way = Instance.new("TextButton")
+		L_way.Size=UDim2.new(0.05,0,0.2,0)
+		L_way.Position=UDim2.new(0.25,0,0)
+		L_way.BackgroundTransparency=0.8
+		L_way.Text="<"
+		L_way.TextColor=BrickColor.new("White")
+		L_way.TextScaled=true
+		L_way.Parent=spectateFrame
+
+		local playersChange = nil
+		local playersTag = {}
+		local maxTag = nil
+		local tag = 1
+
+		btn.MouseButton1Click:Connect(function()
+			playersTag={}
+			IsOn = not IsOn
+			if IsOn then 
+				tag=1
+				for _, player in ipairs(players:GetPlayers()) do	
+					playersTag[#playersTag+1] = player
+				end
+				maxTag=#playersTag
+				btn.Text = "ON"
+				btn.BackgroundColor3 = colorOn
+			else
+				local human = player.Character and player.Character:FindFirstChild("Humanoid")
+				if human then 
+					cam.CameraSubject=human
+				end
+				btn.Text = "OFF"
+				btn.BackgroundColor3 = colorOff
+			end
+			print(playersTag)
+			spectateFrame.Visible=IsOn
+		end)
+
+		R_way.MouseButton1Click:Connect(function()
+			if tag < maxTag then 
+				tag+=1
+			end
+		end)
+
+		L_way.MouseButton1Click:Connect(function()
+			if tag > 1 then 
+				tag-=1
+			end
+		end)
+
+		runService.Heartbeat:Connect(function()
+			if #playersTag > 0 then 
+				local p =  playersTag[tag]
+
+				plrUser.Text=p.Name
+
+				local human = p.Character and p.Character:FindFirstChild("Humanoid")
+				if human then 
+					cam.CameraSubject=human
+				end
+
+			else 
+				local human = player.Character and player.Character:FindFirstChild("Humanoid")
+				if human then 
+					cam.CameraSubject=human
+				end
+			end
+		end)
+
+		players.PlayerRemoving:Connect(function(playerRemoved)
+			if IsOn and maxTag > 0 then 
+				for index, rem in ipairs(playersTag) do 
+					if rem == playerRemoved then 
+						table.remove(playersTag, index)
+						maxTag-=1
+
+						if tag > maxTag then tag -= 1 end 
+					end
+				end
+			end
+		end)
+	end)
+end)
+
+spectateCam2.MouseButton1Click:Connect(function()
+	task.spawn(function()
+		local cam = workspace.CurrentCamera
+
+		local runService = game:GetService("RunService")
+
+		local IsOn = false
+		local default = "Username"
+		-- إنشاء الشاشة الرئيسية
+
+		-- الإطار الرئيسي (الخلفية)
+		local frame = Instance.new("Frame")
+		frame.Size = UDim2.new(0, 200, 0, 110)
+		frame.Position = UDim2.new(0.3, 0, 0.15, 0)
+		frame.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+		frame.Active = true
+		frame.Draggable = true -- يجعل النافذة قابلة للسحب!
+		frame.Parent = screenGuiTem
+
+		local frameCorner = Instance.new("UICorner")
+		frameCorner.CornerRadius = UDim.new(0, 10)
+		frameCorner.Parent = frame
+
+		local frameStroke = Instance.new("UIStroke")
+		frameStroke.Color = Color3.fromRGB(50, 50, 50)
+		frameStroke.Thickness = 1.5
+		frameStroke.Parent = frame
+
+		-- العنوان
+		local txt = Instance.new("TextBox")
+		txt.Size = UDim2.new(1, 0, 0, 40)
+		txt.BackgroundTransparency = 1
+		txt.Text = default
+		txt.TextScaled = true
+		txt.TextColor3 = Color3.fromRGB(255, 255, 255)
+		txt.Font = Enum.Font.GothamBold
+		txt.Parent = frame
+
+		-- الزر
+		local btn = Instance.new("TextButton")
+		btn.Size = UDim2.new(0, 140, 0, 35)
+		btn.Position = UDim2.new(0.15, 0, 0.5, 0)
+		btn.Text = "OFF"
+		btn.TextScaled = true
+		btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+		btn.Font = Enum.Font.GothamBold
+		btn.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+		btn.Parent = frame
+
+		local btnCorner = Instance.new("UICorner")
+		btnCorner.CornerRadius = UDim.new(0, 8)
+		btnCorner.Parent = btn
+
+		-- 🎨 تفاعلات الماوس (Hover & Click Effects)
+		local colorOff = Color3.fromRGB(220, 50, 50)
+		local colorOn = Color3.fromRGB(50, 200, 90)
+
+		local function GetPlayer()
+			local user=nil
+
+			for _, player in ipairs(players:GetPlayers()) do 
+				local pName = player.Name:lower()
+				local Intxt = txt.Text:lower()
+				if string.sub(pName, 1, #Intxt) == Intxt and Intxt ~= "" then 
+					user=player
+					print(player.Name.." was spectated!")
+				end
+			end
+			return user
+		end
+
+
+		btn.MouseButton1Click:Connect(function()
+
+			IsOn = not IsOn
+			if IsOn then 
+				btn.Text = "ON"
+				btn.BackgroundColor3 = colorOn
+
+				local user = GetPlayer()
+				if user then 
+					local targetHuman = user.Character and user.Character:FindFirstChild("Humanoid")
+
+					if not targetHuman then return end
+					cam.CameraSubject=targetHuman
+				end
+			else
+				btn.Text = "OFF"
+				btn.BackgroundColor3 = colorOff
+
+				local human = player.Character and player.Character:FindFirstChild("Humanoid")
+				if not human then return end
+				cam.CameraSubject=human
+			end
+		end)
+
+		txt:GetPropertyChangedSignal("Text"):Connect(function()
+			if not IsOn then return end 
+			local user = GetPlayer()
+			if user then 
+				local targetHuman = user.Character and user.Character:FindFirstChild("Humanoid")
+
+				if not targetHuman then return end
+				cam.CameraSubject=targetHuman
+			end
+		end)
+	end)
+end)
+
+espPlayerBtn.MouseButton1Click:Connect(function()
+	task.spawn(function()
+		local IsOn = false
+
+		-- إنشاء الشاشة الرئيسية
+
+		-- الإطار الرئيسي (الخلفية)
+		local frame = Instance.new("Frame")
+		frame.Size = UDim2.new(0, 200, 0, 110)
+		frame.Position = UDim2.new(0.3, 0, 0.15, 0)
+		frame.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+		frame.Active = true
+		frame.Draggable = true -- يجعل النافذة قابلة للسحب!
+		frame.Parent = screenGuiTem
+
+		local frameCorner = Instance.new("UICorner")
+		frameCorner.CornerRadius = UDim.new(0, 10)
+		frameCorner.Parent = frame
+
+		local frameStroke = Instance.new("UIStroke")
+		frameStroke.Color = Color3.fromRGB(50, 50, 50)
+		frameStroke.Thickness = 1.5
+		frameStroke.Parent = frame
+
+		-- العنوان
+		local txt = Instance.new("TextLabel")
+		txt.Size = UDim2.new(1, 0, 0, 40)
+		txt.BackgroundTransparency = 1
+		txt.Text = "ESP"
+		txt.TextScaled = true
+		txt.TextColor3 = Color3.fromRGB(255, 255, 255)
+		txt.Font = Enum.Font.GothamBold
+		txt.Parent = frame
+
+		-- الزر
+		local btn = Instance.new("TextButton")
+		btn.Size = UDim2.new(0, 140, 0, 35)
+		btn.Position = UDim2.new(0.15, 0, 0.5, 0)
+		btn.Text = "OFF"
+		btn.TextScaled = true
+		btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+		btn.Font = Enum.Font.GothamBold
+		btn.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+		btn.Parent = frame
+
+		local btnCorner = Instance.new("UICorner")
+		btnCorner.CornerRadius = UDim.new(0, 8)
+		btnCorner.Parent = btn
+
+		-- 🎨 تفاعلات الماوس (Hover & Click Effects)
+		local colorOff = Color3.fromRGB(220, 50, 50)
+		local colorOn = Color3.fromRGB(50, 200, 90)
+
+		local playersEsp = {}
+
+		local function newPlayer(plr)
+			plr.CharacterAdded:Connect(function(character)
+				if IsOn then 
+					local highlight = Instance.new("Highlight")
+					highlight.Parent=character
+					playersEsp[#playersEsp+1] = highlight
+				end
+			end)
+		end
+
+		for _, player in ipairs(players:GetPlayers()) do 
+			newPlayer(player)
+		end
+
+
+		btn.MouseButton1Click:Connect(function()
+			IsOn = not IsOn
+			if IsOn then 
+
+				for _, player in ipairs(players:GetPlayers()) do 
+					if player and player ~= players.LocalPlayer then 
+						local character=player.Character
+
+						if not character then continue end
+
+						local highlight = Instance.new("Highlight")
+						highlight.Parent=character
+						playersEsp[#playersEsp+1] = highlight
+
+					end	
+				end
+				btn.Text = "ON"
+				btn.BackgroundColor3 = colorOn
+
+			else
+				btn.Text = "OFF"
+				btn.BackgroundColor3 = colorOff
+				if playersEsp then 
+					for index = 1 ,#playersEsp do 
+						playersEsp[index]:Destroy()
+					end
+					playersEsp={}
+				end
+			end
+		end)
+
+		players.PlayerAdded:Connect(function(player)
+			newPlayer(player)
+		end)
+	end)
+end)
+
+fakeFloorBtn.MouseButton1Click:Connect(function()
+	task.spawn(function()
+
+		local IsApply=false
+
+		local Oldfloor = nil
+		local oldPos = nil
+
+		-- الإطار الرئيسي (الخلفية)
+		local frame = Instance.new("Frame")
+		frame.Size = UDim2.new(0, 200, 0, 110)
+		frame.Position = UDim2.new(0.3, 0, 0.15, 0)
+		frame.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+		frame.Active = true
+		frame.Draggable = true -- يجعل النافذة قابلة للسحب!
+		frame.Parent = screenGuiTem
+
+		local frameCorner = Instance.new("UICorner")
+		frameCorner.CornerRadius = UDim.new(0, 10)
+		frameCorner.Parent = frame
+
+		local frameStroke = Instance.new("UIStroke")
+		frameStroke.Color = Color3.fromRGB(50, 50, 50)
+		frameStroke.Thickness = 1.5
+		frameStroke.Parent = frame
+		-- العنوان
+		local txt = Instance.new("TextLabel")
+		txt.Size = UDim2.new(1, 0, 0, 40)
+		txt.BackgroundTransparency = 1
+		txt.Text = "Fake Floor"
+		txt.TextScaled = true
+		txt.TextColor3 = Color3.fromRGB(255, 255, 255)
+		txt.Font = Enum.Font.GothamBold
+		txt.Parent = frame
+
+		-- الزر
+		local btn = Instance.new("TextButton")
+		btn.Size = UDim2.new(0, 140, 0, 35)
+		btn.Position = UDim2.new(0.15, 0, 0.5, 0)
+		btn.Text = "OFF"
+		btn.TextScaled = true
+		btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+		btn.Font = Enum.Font.GothamBold
+		btn.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+		btn.Parent = frame
+
+		local btnCorner = Instance.new("UICorner")
+		btnCorner.CornerRadius = UDim.new(0, 8)
+		btnCorner.Parent = btn
+
+		-- 🎨 تفاعلات الماوس (Hover & Click Effects)
+		local colorOff = Color3.fromRGB(220, 50, 50)
+		local colorOn = Color3.fromRGB(50, 200, 90)
+
+		btn.MouseButton1Click:Connect(function()
+
+			local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+			local human = player.Character and player.Character:FindFirstChild("Humanoid")
+			if not root or not human then return end
+
+			IsApply=not IsApply
+			if IsApply then 
+				local floor=Instance.new("Part")
+				floor.Size = Vector3.new(512,floor.Size.Y,512)
+				floor.Position = root.Position - Vector3.new(0,4.75,0)
+				floor.Transparency=1
+				floor.Anchored=true
+
+				floor.Parent=workspace
+
+				Oldfloor = floor
+				oldPos=Oldfloor.Position.Y
+				btn.Text = "ON"
+			else
+				Oldfloor:Destroy()
+				btn.Text = "OFF"
+			end
+		end)
+
+		runsService.Stepped:Connect(function()
+			local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+			local human = player.Character and player.Character:FindFirstChild("Humanoid")
+			if not root or not human then return end
+
+			if IsApply then 
+				Oldfloor.Position = Vector3.new(root.Position.X,oldPos,root.Position.Z)
+			end
+		end)
+	end)
+end)
