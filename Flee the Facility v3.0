@@ -1,0 +1,335 @@
+-- Get-Player Info
+local players=game:GetService("Players")
+local player=players.LocalPlayer
+local playerGui = player.PlayerGui
+
+local light = game:GetService("Lighting")
+
+local runService=game:GetService("RunService")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.ResetOnSpawn=false
+screenGui.Parent=playerGui
+
+-- Get Folders that be Ingnore
+local BC = workspace:WaitForChild("BeastCave")
+local FTF = workspace:WaitForChild("FTFLobbySummer26")
+local LC = workspace:WaitForChild("LobbyCave")
+local LO = workspace:WaitForChild("LobbyInteractiveObjects")
+
+local function UIcorner(ui, lTop, rTop, lBtm, rBtm) 
+	local uiCorner = Instance.new("UICorner")
+	uiCorner.TopLeftRadius = UDim.new(0, rTop)
+	uiCorner.TopRightRadius = UDim.new(0,lTop)
+	uiCorner.BottomLeftRadius = UDim.new(0, rBtm)
+	uiCorner.BottomRightRadius = UDim.new(0,lBtm)
+	uiCorner.Parent = ui
+
+	-- 4. إطار خارجي رمادي خفيف للتمييز (اختياري)
+	local uiStroke = Instance.new("UIStroke")
+	uiStroke.Color = Color3.fromRGB(40, 40, 40)
+	uiStroke.Thickness = 1.5
+	uiStroke.Parent = ui
+	return uiCorner
+end 
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 250, 0, 250)
+frame.Position = UDim2.new(0.3, 0, 0.15, 0)
+frame.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+frame.Active = true
+frame.Draggable = true -- يجعل النافذة قابلة للسحب!
+frame.Parent = screenGui
+
+local frameTitle = Instance.new("TextLabel")
+frameTitle.Size=UDim2.new(1,0,0.1,0)
+frameTitle.Text="Flee the Facility"
+frameTitle.TextXAlignment=Enum.TextXAlignment.Left
+frameTitle.TextColor=BrickColor.new("White")
+frameTitle.BackgroundColor=BrickColor.new("Dark grey")
+frameTitle.TextXAlignment=Enum.TextXAlignment.Left
+frameTitle.TextScaled=true
+frameTitle.Parent=frame
+
+local firstFrame = Instance.new("Frame")
+firstFrame.Size = UDim2.new(1, 0, 0.8, 0)
+firstFrame.Position = UDim2.new(0, 0, 0.1, 0)
+firstFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+firstFrame.BackgroundTransparency=1
+firstFrame.Visible=false
+firstFrame.Parent = frame
+
+local secondFrame = Instance.new("Frame")
+secondFrame.Size = UDim2.new(1, 0, 0.8, 0)
+secondFrame.Position = UDim2.new(0, 0, 0.1, 0)
+secondFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+secondFrame.BackgroundTransparency=1
+secondFrame.Visible=true
+secondFrame.Parent = frame
+
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size=UDim2.new(0,25,0,25)
+closeBtn.Position=UDim2.new(0,0,0,0)
+closeBtn.BackgroundColor=BrickColor.new("Dark grey")
+closeBtn.Text="X"
+closeBtn.TextColor=BrickColor.new("White")
+closeBtn.Parent=screenGui
+
+local IsSwich=false
+local swichBtn = Instance.new("TextButton")
+swichBtn.Size=UDim2.new(0,25,0,25)
+swichBtn.Position=UDim2.new(0.9,0,0.9,0)
+swichBtn.BackgroundColor=BrickColor.new("Dark grey")
+swichBtn.TextColor=BrickColor.new("White")
+swichBtn.Text=">"
+swichBtn.Parent=frame
+
+local restBtn = Instance.new("TextButton")
+restBtn.Size=UDim2.new(0,25,1,0)
+restBtn.Position=UDim2.new(0.9)
+restBtn.BackgroundColor=BrickColor.new("Really red")
+restBtn.Text="Rest"
+restBtn.TextScaled=true
+restBtn.TextColor=BrickColor.new("White")
+restBtn.Parent=frameTitle
+
+UIcorner(frame, 10, 10, 10, 10)
+UIcorner(frameTitle, 10, 10, 0,0)
+UIcorner(restBtn, 10,0,0,0)
+UIcorner(swichBtn, 0, 10,10,0)
+
+local function newBtn(name, pos, parent)
+	local btn = Instance.new("TextButton")
+	btn.Size=UDim2.new(1,0,0,25)
+	btn.Position=UDim2.new(0,0,pos,0)
+	btn.Text=name
+	btn.TextScaled=true
+	btn.TextXAlignment="Left"
+	btn.TextColor=BrickColor.new("White")
+	btn.BackgroundColor3=Color3.new(0.164706, 0.164706, 0.164706)
+	btn.Parent=parent
+	return btn
+end
+
+local function newTrem(parent)
+	local trem = Instance.new("TextLabel")
+	trem.Size = UDim2.new(0,25,1,0)
+	trem.Position=UDim2.new(0.9,0,0,0)
+	trem.BackgroundTransparency=1
+	trem.Text="🔴"
+	trem.TextScaled=true
+	trem.Parent=parent
+	return trem
+end
+
+local espPlayerState = false
+local espPlayerBtn = newBtn("ESP Players", 0.1, firstFrame)
+local espPlayerTrem = newTrem(espPlayerBtn)
+
+local espComputerState = false
+local espComputerBtn = newBtn("ESP Computers", 0.25, firstFrame)
+local espComputerTrem = newTrem(espComputerBtn)
+
+local sprintPower = 22
+local sprintState = false
+local sprintBtn = newBtn("Sprint", 0.1, secondFrame)
+local sprintTerm = newTrem(sprintBtn)
+
+local noclipState = false
+local noclipBtn = newBtn("Noclip", 0.25, secondFrame)
+local noclipTrem = newTrem(noclipBtn)
+
+local brightnessState = false
+local brightnessBtn = newBtn("FullBrightness", 0.40, secondFrame)
+local brightnessTrem = newTrem(brightnessBtn)
+
+local function newHighlight(char, clr)
+	local high = Instance.new("Highlight")
+	high.FillColor=Color3.new(clr)
+	high.OutlineColor= clr
+	high.Parent=char
+end
+
+for _,player in ipairs(players:GetPlayers()) do 
+	player.CharacterAdded:Connect(function(character)
+		if espPlayerState then 
+			newHighlight(character, Color3.new(1, 1, 1))
+		end
+	end)
+end
+closeBtn.MouseButton1Click:Connect(function()
+	frame.Visible=not frame.Visible
+	if frame.Visible then closeBtn.Text="X"
+	else closeBtn.Text="O"
+	end
+end)
+
+restBtn.MouseButton1Click:Connect(function()
+	local human = player.Character and player.Character:FindFirstChild("Humanoid")
+	if human then 
+		human.Health=0
+	end
+end)
+
+
+
+sprintBtn.MouseButton1Click:Connect(function()
+	sprintState=not sprintState
+	if sprintState then sprintTerm.Text="🟢"
+	else sprintTerm.Text="🔴" end
+end)
+
+
+noclipBtn.MouseButton1Click:Connect(function()
+	noclipState=not noclipState
+	if noclipState then noclipTrem.Text="🟢"
+	else noclipTrem.Text="🔴" end
+end)
+
+brightnessBtn.MouseButton1Click:Connect(function()
+	brightnessState=not brightnessState
+	if brightnessState then brightnessTrem.Text="🟢"
+	else brightnessTrem.Text="🔴" end
+end)
+
+espPlayerBtn.MouseButton1Click:Connect(function()
+	espPlayerState=not espPlayerState
+	if espPlayerState then 
+		for _,player in ipairs(players:GetPlayers()) do 
+			local char = player.Character
+			if char and player~=players.LocalPlayer then 
+				newHighlight(char, Color3.new(1, 1, 1))
+			end
+		end
+		espPlayerTrem.Text="🟢"
+	else 
+		for _,player in ipairs(players:GetPlayers()) do 
+			local char = player.Character
+			if char then 
+				for _, item in ipairs(char:GetChildren()) do 
+					if item:IsA("Highlight") then item:Destroy() end
+				end
+			end
+		end
+		espPlayerTrem.Text="🔴"
+	end
+end)
+
+local mapTag = nil 
+local tag = {}
+
+local folderMaps = {
+	"BeastCave", 
+	"FTFLobbySummer26", 
+	"LobbyCave", 
+	"LobbyInteractiveObjects"
+}
+
+espComputerBtn.MouseButton1Click:Connect(function()
+	espComputerState=not espComputerState
+
+	if espComputerState then 
+
+		espComputerTrem.Text="🟢"
+	else 
+		if #tag > 0 then 
+			for index = 1, #tag do 
+				for _,item in ipairs(tag[index]:GetChildren()) do 
+					if item:IsA("Highlight") then item:Destroy() end
+				end
+			end
+			tag={}
+		end
+		espComputerTrem.Text="🔴"
+	end
+end)
+
+swichBtn.MouseButton1Click:Connect(function()
+	IsSwich=not IsSwich
+	secondFrame.Visible=not IsSwich
+	firstFrame.Visible=IsSwich
+	if IsSwich then 
+		swichBtn.Text="<"
+	else
+		swichBtn.Text=">"
+	end
+end)
+players.PlayerAdded:Connect(function(plr)
+	plr.CharacterAdded:Connect(function(char)
+		newHighlight(char, Color3.new(1, 1, 1))
+	end)
+end)
+
+runService.Heartbeat:Connect(function()
+	if sprintState then 
+		local human = player.Character and player.Character:FindFirstChild("Humanoid")
+		if human then 
+			human.WalkSpeed=sprintPower
+		end
+	end
+	
+	if noclipState then 
+		local character = player.Character
+		if character then 
+			for _, body in ipairs(character:GetChildren()) do 
+				if body:IsA("BasePart") then body.CanCollide=false end
+			end
+		end
+	end
+	
+	if brightnessState then 
+		light.Brightness = 10
+		light.GlobalShadows=false
+		local fog = light:FindFirstChild("Atmosphere")
+		if fog then fog.Density=0 end
+	else 
+		light.GlobalShadows=true
+	end
+	
+	if espPlayerState then 
+		for _, player in ipairs(players:GetPlayers()) do 
+			local char = player.Character
+			if char and char:FindFirstChild("Hammer") then  
+				for _, item in ipairs(char:GetChildren()) do 
+					if item:IsA("Highlight") then item.OutlineColor=Color3.new(1, 0, 0) end
+				end
+			end
+		end
+	end
+	
+	if espComputerState then 
+		tag={}
+		for _, item in ipairs(workspace:GetChildren()) do 
+			if item:IsA("Folder") then 
+				for index = 1, #folderMaps do 
+					if item.Name ~= "BeastCave" and item.Name ~= "FTFLobbySummer26" and item.Name ~= "LobbyCave" and item.Name ~= "LobbyInteractiveObjects" then 
+						mapTag=item
+						break
+					end
+				end
+			end
+		end
+		if mapTag then 
+			for _, item in ipairs(mapTag:GetChildren()) do 
+				if item.Name == "ComputerTable" then tag[#tag+1] = item end
+			end
+			print(true)
+			if #tag>0 then 
+				for index = 1, #tag do 
+					for _, item in ipairs(tag[index]:GetChildren()) do 
+						if item:IsA("Highlight") then item:Destroy() end
+					end
+					local target = tag[index] and tag[index]:FindFirstChild("Screen")
+					if target then
+						if target.BrickColor == BrickColor.new("Bright blue") then 
+							newHighlight(tag[index], Color3.new(0, 0, 1))
+						else 
+							newHighlight(tag[index], Color3.new(0, 0.666667, 0)) 
+						end
+					end
+				end
+			end
+			print(tag)
+		end
+	end
+end)
