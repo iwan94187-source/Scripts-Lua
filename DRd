@@ -8,7 +8,30 @@ ff.Name="Upgrades"
 ff.Parent=player
 
 local UpFolder = player:WaitForChild("Upgrades")
-local ballsFolder = workspace:FindFirstChild("Balls")
+local ballsFolder = nil
+
+for _, folder in ipairs(workspace:GetChildren()) do 
+	if folder:IsA("Folder") and folder.Name == "Lobby" then 
+		local hasSubFolder = false
+
+		-- فحص هل يحتوي على مجلدات فرعية؟
+		for _, item in ipairs(folder:GetChildren()) do 
+			if item:IsA("Folder") then
+				hasSubFolder = true
+				break
+			end
+		end
+
+		-- إذا لم يكن يحتوي على مجلد فرعي، إذن هذا هو المجلد المطلوب!
+		if not hasSubFolder then
+			ballsFolder = folder
+			break -- التوقف عن البحث في بقية الـ Workspace
+		end
+	end
+end
+
+print(ballsFolder) --> سيطبع كائن المجلد أو nil لو لم يطابق الشروط
+
 
 if not ballsFolder then
 	warn("⚠️ لم يتم العثور على مجلد الكرات Folder'Ball'")
@@ -21,7 +44,7 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.ResetOnSpawn=false
 screenGui.Parent=playerGui
 
-local HITBOX_RADIUS = 25       -- نطاق منطقة الحماية (Hitbox) من مركز الشخصية
+local HITBOX_RADIUS = 30       -- نطاق منطقة الحماية (Hitbox) من مركز الشخصية
 local PUSH_FORCE = 550        -- قوة الدفع (تزداد كلما اقتربت الكرة أكثر)
 local MAX_ESCAPE_VELOCITY = 100 -- الحد الأقصى لسرعة الهروب لمنع الطيران اللانهائي
 
@@ -53,7 +76,7 @@ frame.Parent = screenGui
 
 local frameTitle = Instance.new("TextLabel")
 frameTitle.Size=UDim2.new(1,0,0.1,0)
-frameTitle.Text="Dodge or die v2.5"
+frameTitle.Text="Dodge or die"
 frameTitle.TextXAlignment=Enum.TextXAlignment.Left
 frameTitle.TextColor=BrickColor.new("White")
 frameTitle.BackgroundColor3=Color3.fromRGB(24, 24, 24)
@@ -140,24 +163,39 @@ local jumpState=false
 local jumpBtn=newallBtn("Jump", 0.11, upgradeScroll)
 local jumpBox = newBox(0.11,upgradeScroll)
 
-local orbState = false
-local orbBtn = Instance.new("TextButton")
-orbBtn.Size=UDim2.new(1,0,0.05,0)
-orbBtn.Position=UDim2.new(0,0,0,0)
-orbBtn.Text="Dodge Aura"
-orbBtn.TextSize=10
-orbBtn.TextColor=BrickColor.new("White")
-orbBtn.BackgroundColor=BrickColor.new("Royal purple")
-orbBtn.TextXAlignment="Left"
-orbBtn.Parent=unScroll
+local function newBtn2(name, pos, parent)
+	local btn = Instance.new("TextButton")
+	btn.Size=UDim2.new(1,0,0.05,0)
+	btn.Position=UDim2.new(0,0,pos,0)
+	btn.Text=name
+	btn.TextSize=10
+	btn.TextColor=BrickColor.new("White")
+	btn.BackgroundColor=BrickColor.new("Royal purple")
+	btn.TextXAlignment="Left"
+	btn.Parent=parent
+	return btn
+end
 
-local orbTrem = Instance.new("TextLabel")
-orbTrem.Size = UDim2.new(0,25,1,0)
-orbTrem.Position=UDim2.new(0.8,0,0,0)
-orbTrem.BackgroundTransparency=1
-orbTrem.Text="🔴"
-orbTrem.TextSize = 10
-orbTrem.Parent=orbBtn
+local function newTerm(parent)
+	local term = Instance.new("TextLabel")
+	term.Size = UDim2.new(0,25,1,0)
+	term.Position=UDim2.new(0.8,0,0,0)
+	term.BackgroundTransparency=1
+	term.Text="🔴"
+	term.TextSize = 10
+	term.Parent=parent
+	return term
+end
+
+local orbState = false
+local orbBtn = newBtn2("Dodge Aura", 0, unScroll)
+local orbTrem = newTerm(orbBtn)
+
+local voidState = false
+local voidBtn = newBtn2("Void", 0.05, unScroll)
+local voidTerm = newTerm(voidBtn)
+
+
 
 closeBtn.MouseButton1Click:Connect(function()
 	IsOpen=not IsOpen
@@ -209,6 +247,12 @@ orbBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
+voidBtn.MouseButton1Click:Connect(function()
+	voidState=not voidState
+	if voidState then voidTerm.Text="🟢"
+	else voidTerm.Text="🔴"
+	end
+end)
 
 runService.Heartbeat:Connect(function(deltaTime)
 	if speedState then 
@@ -289,6 +333,17 @@ runService.Heartbeat:Connect(function(deltaTime)
 			end
 
 			hrp.AssemblyLinearVelocity = targetVelocity
+		end
+	end
+
+	if voidState then 
+		local map = workspace:FindFirstChild("CurrentMap")
+		if map then 
+			for _, item in ipairs(map:GetChildren()) do 
+				if item.Name == "Wall" or item.Name == "WALL" then 
+					item.CanCollide=false
+				end
+			end
 		end
 	end
 end)
