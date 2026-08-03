@@ -21,16 +21,16 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.ResetOnSpawn=false
 screenGui.Parent=playerGui
 
-local HITBOX_RADIUS = 15       -- نطاق منطقة الحماية (Hitbox) من مركز الشخصية
-local PUSH_FORCE = 500        -- قوة الدفع (تزداد كلما اقتربت الكرة أكثر)
+local HITBOX_RADIUS = 25       -- نطاق منطقة الحماية (Hitbox) من مركز الشخصية
+local PUSH_FORCE = 550        -- قوة الدفع (تزداد كلما اقتربت الكرة أكثر)
 local MAX_ESCAPE_VELOCITY = 100 -- الحد الأقصى لسرعة الهروب لمنع الطيران اللانهائي
 
-local function UIcorner(ui) 
+local function UIcorner(ui, lTop, rTop, lBtm, rBtm) 
 	local uiCorner = Instance.new("UICorner")
-	uiCorner.TopLeftRadius = UDim.new(0, 10)
-	uiCorner.TopRightRadius = UDim.new(0,10)
-	uiCorner.BottomLeftRadius = UDim.new(0, 10)
-	uiCorner.BottomRightRadius = UDim.new(0,10)
+	uiCorner.TopLeftRadius = UDim.new(0, rTop)
+	uiCorner.TopRightRadius = UDim.new(0,lTop)
+	uiCorner.BottomLeftRadius = UDim.new(0, rBtm)
+	uiCorner.BottomRightRadius = UDim.new(0,lBtm)
 	uiCorner.Parent = ui
 
 	-- 4. إطار خارجي رمادي خفيف للتمييز (اختياري)
@@ -48,6 +48,8 @@ frame.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
 frame.Active = true
 frame.Draggable = true -- يجعل النافذة قابلة للسحب!
 frame.Parent = screenGui
+
+
 
 local frameTitle = Instance.new("TextLabel")
 frameTitle.Size=UDim2.new(1,0,0.1,0)
@@ -96,6 +98,11 @@ local upgradeScroll=newScrollFrame()
 local unBtn = newBtn("Universal", 0.2)
 local unScroll=newScrollFrame()
 
+UIcorner(frame, 10,10,10,10)
+UIcorner(frameTitle, 10,10,0,0)
+UIcorner(upgradeScroll, 0,0,10,0)
+UIcorner(unScroll, 0,0,10,0)
+
 local function newallBtn(name, pos, parent)
 	local btn = Instance.new("TextButton")
 	btn.Size=UDim2.new(0.3,0,0.05,0)
@@ -140,7 +147,7 @@ orbBtn.Position=UDim2.new(0,0,0,0)
 orbBtn.Text="Dodge Aura"
 orbBtn.TextSize=10
 orbBtn.TextColor=BrickColor.new("White")
-orbBtn.BackgroundColor=BrickColor.new("Dark grey")
+orbBtn.BackgroundColor=BrickColor.new("Royal purple")
 orbBtn.TextXAlignment="Left"
 orbBtn.Parent=unScroll
 
