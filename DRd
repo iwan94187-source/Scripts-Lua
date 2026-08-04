@@ -413,39 +413,64 @@ infDodgeBtn.MouseButton1Click:Connect(function()
 			if v_u_39 then
 				local v_u_40 = v_u_39:FindFirstChild("HumanoidRootPart")
 				local v_u_41 = v_u_39:WaitForChild("Humanoid")
-				local function v_u_65(p38)
-    local v_u_39 = v_u_20.Character
-    if v_u_39 then
-        local v_u_40 = v_u_39:FindFirstChild("HumanoidRootPart")
-        local v_u_41 = v_u_39:WaitForChild("Humanoid")
-        if v_u_40 and v_u_41 then
-            
-            -- [1] تجاوز قيود السيرفر المحلية على الـ Humanoid
-            if v_u_41:GetState() == Enum.HumanoidStateType.Physics or v_u_41:GetState() == Enum.HumanoidStateType.FallingDown then
-                v_u_41:ChangeState(Enum.HumanoidStateType.GettingUp)
-            end
-            
-            -- [2] إجبار السرعة المباشرة بدون فحص Tag الـ Downed أو Shrunk
-            local v42 = 0
-            local v43 = v_u_20:FindFirstChild("Upgrades")
-            if v43 and v43:FindFirstChild("Dashes") and typeof(v43.Dashes.Value) == "number" then
-                v42 = v43.Dashes.Value
-            end
-
-            -- تفعيل أقوى سرعة اندفاع (سواء بالجو أو الأرض)
-            local v47 = v42 + 115 
-            
-            local v49 = v_u_40.AssemblyLinearVelocity
-            local v52 = p38.X * v47
-            local v53 = v49.Y
-            local v54 = p38.Z * v47
-            
-            -- تطبيق الاندفاع
-            v_u_40.AssemblyLinearVelocity = Vector3.new(v52, v53, v54)
-
-        end
-    end
-end
+				if v_u_40 and v_u_41 then
+					if not v_u_5:HasTag(v_u_39, "Downed") then
+						local v42 = 0
+						local v43 = v_u_20:FindFirstChild("Upgrades")
+						if v43 then
+							local v44 = v43:FindFirstChild("Dashes")
+							if v44 then
+								local v45 = v44.Value
+								if typeof(v45) == "number" then
+									v42 = v44.Value
+								end
+							end
+						end
+						local v_u_46 = v42 + 55
+						local v47 = v42 + 115
+						if v_u_5:HasTag(v_u_39, "Shrunk") then
+							v47 = v47 * 0.6
+						end
+						local v48 = v_u_41:GetState()
+						
+						local v49 = v_u_40.AssemblyLinearVelocity
+						local v50 = v_u_41:GetState()
+						local v51 = (v_u_41.FloorMaterial == Enum.Material.Air or (v50 == Enum.HumanoidStateType.Jumping or v50 == Enum.HumanoidStateType.Freefall)) and true or v50 == Enum.HumanoidStateType.FallingDown
+						local v52 = p38.X * v47
+						local v53 = v49.Y
+						local v54 = p38.Z * v47
+						v_u_40.AssemblyLinearVelocity = Vector3.new(v52, v53, v54)
+						if not v51 then
+							local v_u_55 = os.clock()
+							task.spawn(function()
+								-- upvalues: (copy) v_u_55, (copy) v_u_39, (copy) v_u_40, (copy) v_u_41, (ref) v_u_46
+								while os.clock() - v_u_55 < 0.2 do
+									task.wait()
+									if not (v_u_39.Parent and v_u_40.Parent) then
+										return
+									end
+									if v_u_41.FloorMaterial == Enum.Material.Air then
+										local v56 = v_u_40.AssemblyLinearVelocity
+										local v57 = v56.X
+										local v58 = v56.Z
+										local v59 = Vector3.new(v57, 0, v58)
+										if v_u_46 < v59.Magnitude then
+											local v60 = v59.Unit * v_u_46
+											local v61 = v_u_40
+											local v62 = v60.X
+											local v63 = v56.Y
+											local v64 = v60.Z
+											v61.AssemblyLinearVelocity = Vector3.new(v62, v63, v64)
+										end
+										return
+									end
+								end
+							end)
+						end
+					end
+				else
+					return
+				end
 			else
 				return
 			end
@@ -814,5 +839,5 @@ runService.Heartbeat:Connect(function(deltaTime)
 			end
 		end
 	end
-	
+
 end)
