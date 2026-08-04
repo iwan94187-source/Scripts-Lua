@@ -199,6 +199,10 @@ local infDodgeState = false
 local infDodgeBtn = newBtn2("Infinity Dodge", 0.1, unScroll)
 local infDodgeTerm = newTerm(infDodgeBtn)
 
+local invState = false
+local invBtn = newBtn2("Invisible", 0.15, unScroll)
+local invTerm = newTerm(invBtn)
+
 
 closeBtn.MouseButton1Click:Connect(function()
 	IsOpen=not IsOpen
@@ -432,7 +436,9 @@ infDodgeBtn.MouseButton1Click:Connect(function()
 							v47 = v47 * 0.6
 						end
 						local v48 = v_u_41:GetState()
-						
+						if (v_u_41.FloorMaterial == Enum.Material.Air or (v48 == Enum.HumanoidStateType.Jumping or v48 == Enum.HumanoidStateType.Freefall)) and true or v48 == Enum.HumanoidStateType.FallingDown then
+							v47 = v_u_46 or v47
+						end
 						local v49 = v_u_40.AssemblyLinearVelocity
 						local v50 = v_u_41:GetState()
 						local v51 = (v_u_41.FloorMaterial == Enum.Material.Air or (v50 == Enum.HumanoidStateType.Jumping or v50 == Enum.HumanoidStateType.Freefall)) and true or v50 == Enum.HumanoidStateType.FallingDown
@@ -747,6 +753,17 @@ infDodgeBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
+invBtn.MouseButton1Click:Connect(function()
+	invState=not invState
+	if invState then 
+		invTerm.Text="🟢"
+	else 
+		local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		if hrp then hrp.Position = Vector3.new(-136,172,0.6) end
+		invTerm.Text="🔴"
+	end
+end)
+
 runService.Heartbeat:Connect(function(deltaTime)
 	if speedState then 
 		if tonumber(speedBox.Text) then 
@@ -836,6 +853,17 @@ runService.Heartbeat:Connect(function(deltaTime)
 				if item.Name == "Wall" or item.Name == "WALL" then 
 					item.CanCollide=false
 				end
+			end
+		end
+	end
+	
+	if invState then 
+		local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		local map = workspace:FindFirstChild("CurrentMap")
+		if hrp and map then 
+			local ground = map:FindFirstChild("baseplate")
+			if ground then 
+				hrp.CFrame=ground.CFrame
 			end
 		end
 	end
