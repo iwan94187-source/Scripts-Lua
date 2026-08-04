@@ -132,7 +132,7 @@ local espComputerBtn = newBtn("ESP Computers", 0.25, firstFrame)
 local espComputerTrem = newTrem(espComputerBtn)
 
 local crawlState = false
-local crawlBtn = newBtn("Crawl (Beast)", 0.25, firstFrame)
+local crawlBtn = newBtn("Crawl (Beast)", 0.40, firstFrame)
 local crawlTerm = newTrem(crawlBtn)
 
 local sprintPower = 22
