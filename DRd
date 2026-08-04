@@ -861,7 +861,7 @@ runService.Heartbeat:Connect(function(deltaTime)
 		local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 		local map = workspace:FindFirstChild("CurrentMap")
 		if hrp and map then 
-			local ground = map:FindFirstChild("baseplate")
+			local ground = map:FindFirstChild("Baseplate")
 			if ground then 
 				hrp.CFrame=ground.CFrame
 			end
