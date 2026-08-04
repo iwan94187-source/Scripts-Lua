@@ -3,6 +3,7 @@ local players=game:GetService("Players")
 local player=players.LocalPlayer
 local playerGui = player.PlayerGui
 
+local replicate = game:GetService("ReplicatedStorage")
 local light = game:GetService("Lighting")
 
 local runService=game:GetService("RunService")
@@ -12,10 +13,10 @@ screenGui.ResetOnSpawn=false
 screenGui.Parent=playerGui
 
 -- Get Folders that be Ingnore
-local BC = workspace:WaitForChild("BeastCave")
-local FTF = workspace:WaitForChild("FTFLobbySummer26")
-local LC = workspace:WaitForChild("LobbyCave")
-local LO = workspace:WaitForChild("LobbyInteractiveObjects")
+--local BC = workspace:WaitForChild("BeastCave")
+--local FTF = workspace:WaitForChild("FTFLobbySummer26")
+--local LC = workspace:WaitForChild("LobbyCave")
+--local LO = workspace:WaitForChild("LobbyInteractiveObjects")
 
 local function UIcorner(ui, lTop, rTop, lBtm, rBtm) 
 	local uiCorner = Instance.new("UICorner")
@@ -129,6 +130,10 @@ local espPlayerTrem = newTrem(espPlayerBtn)
 local espComputerState = false
 local espComputerBtn = newBtn("ESP Computers", 0.25, firstFrame)
 local espComputerTrem = newTrem(espComputerBtn)
+
+local crawlState = false
+local crawlBtn = newBtn("Crawl (Beast)", 0.25, firstFrame)
+local crawlTerm = newTrem(crawlBtn)
 
 local sprintPower = 22
 local sprintState = false
@@ -244,6 +249,46 @@ espComputerBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
+local currentCrawlTrack = nil
+
+crawlBtn.MouseButton1Click:Connect(function()
+	crawlState = not crawlState
+	local char = player.Character
+	local human = char and char:FindFirstChildOfClass("Humanoid")
+	local animator = human and human:FindFirstChildOfClass("Animator")
+	local animFolder = replicate:FindFirstChild("Animations")
+
+	if crawlState then 
+		-- تفعيل الزحف
+		if human then 
+			human.HipHeight = -2
+		end
+
+		if animator and animFolder then 
+			local crawlAnim = animFolder:FindFirstChild("AnimCrawl")
+			if crawlAnim then 
+				-- تحميل الأنيميشن وتشغيله
+				currentCrawlTrack = animator:LoadAnimation(crawlAnim)
+				currentCrawlTrack:Play()
+			end
+		end
+
+		crawlTerm.Text = "🟢"
+	else 
+		-- إيقاف الزحف
+		if human then 
+			human.HipHeight = 0 -- إرجاع الارتفاع الطبيعي
+		end
+
+		if currentCrawlTrack then 
+			currentCrawlTrack:Stop() -- إيقاف الأنيميشن المحمل
+			currentCrawlTrack = nil
+		end
+
+		crawlTerm.Text = "🔴"
+	end
+end)
+
 swichBtn.MouseButton1Click:Connect(function()
 	IsSwich=not IsSwich
 	secondFrame.Visible=not IsSwich
@@ -267,7 +312,7 @@ runService.Heartbeat:Connect(function()
 			human.WalkSpeed=sprintPower
 		end
 	end
-	
+
 	if noclipState then 
 		local character = player.Character
 		if character then 
@@ -276,7 +321,7 @@ runService.Heartbeat:Connect(function()
 			end
 		end
 	end
-	
+
 	if brightnessState then 
 		light.Brightness = 10
 		light.GlobalShadows=false
@@ -285,7 +330,7 @@ runService.Heartbeat:Connect(function()
 	else 
 		light.GlobalShadows=true
 	end
-	
+
 	if espPlayerState then 
 		for _, player in ipairs(players:GetPlayers()) do 
 			local char = player.Character
@@ -296,7 +341,7 @@ runService.Heartbeat:Connect(function()
 			end
 		end
 	end
-	
+
 	if espComputerState then 
 		tag={}
 		for _, item in ipairs(workspace:GetChildren()) do 
