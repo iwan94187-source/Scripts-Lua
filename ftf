@@ -135,6 +135,13 @@ local crawlState = false
 local crawlBtn = newBtn("Crawl (Beast)", 0.40, firstFrame)
 local crawlTerm = newTrem(crawlBtn)
 
+local MIN_ZOOM = 0.5 
+local MAX_ZOOM = 500
+
+local ZoomCamState = false
+local ZoomCamBtn = newBtn("Zoom (Beast)", 0.55,firstFrame)
+local ZoomCamTerm = newTrem(ZoomCamBtn)
+
 local sprintPower = 22
 local sprintState = false
 local sprintBtn = newBtn("Sprint", 0.1, secondFrame)
@@ -289,6 +296,11 @@ crawlBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
+ZoomCamBtn.MouseButton1Click:Connect(function()
+	ZoomCamState=not ZoomCamState
+	if ZoomCamState then ZoomCamTerm.Text="🟢" else ZoomCamTerm.Text="🔴" end
+end)
+
 swichBtn.MouseButton1Click:Connect(function()
 	IsSwich=not IsSwich
 	secondFrame.Visible=not IsSwich
@@ -375,6 +387,23 @@ runService.Heartbeat:Connect(function()
 				end
 			end
 			print(tag)
+		end
+	end
+	
+	if ZoomCamState then
+		-- 1. كسر حظر التصغير (MaxZoom)
+		if player.CameraMaxZoomDistance < MAX_ZOOM then
+			player.CameraMaxZoomDistance = MAX_ZOOM
+		end
+
+		-- 2. كسر حظر التقريب وتجاوز الإجبار القسري (MinZoom)
+		if player.CameraMinZoomDistance ~= MIN_ZOOM then
+			player.CameraMinZoomDistance = MIN_ZOOM
+		end
+
+		-- 3. التأكد من أن نمط الكاميرا يسمح بالتقريب والتصغير الحر
+		if player.CameraMode == Enum.CameraMode.LockFirstPerson then
+			player.CameraMode = Enum.CameraMode.Classic
 		end
 	end
 end)
