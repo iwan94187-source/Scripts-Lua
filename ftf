@@ -396,11 +396,20 @@ runService.Heartbeat:Connect(function()
 		if mapTag then 
 			for _, item in ipairs(mapTag:GetChildren()) do 
 				if item.Name == "ComputerTable" then tag[#tag+1] = item 
-				elseif item.Name == "Barriers" and crawlState then   
-					local ventFolder = item:FindFirstChild("VentBlocks")
-					if ventFolder then 
-						for _, vent in ipairs(ventFolder:GetChildren()) do 
-							vent:Destroy()
+				elseif crawlState then
+					if item.Name == "Barriers" then   
+						local ventFolder = item:FindFirstChild("VentBlocks")
+						if ventFolder then 
+							for _, vent in ipairs(ventFolder:GetChildren()) do 
+								vent:Destroy()
+							end
+						end
+					else 
+						local ventFolder = mapTag:FindFirstChild("VentBlock")
+						if ventFolder then 
+							for _, vent in ipairs(ventFolder:GetChildren()) do 
+								vent:Destroy()
+							end
 						end
 					end
 				end
