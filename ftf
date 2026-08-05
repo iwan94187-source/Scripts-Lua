@@ -312,47 +312,40 @@ swichBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-local RemoteEvent = replicate:WaitForChild("RemoteEvent")
+-- 1. إعداد الـ Metatable Hook للتحكم بالإشارة
+local rawMeta = getrawmetatable(game)
+local oldNamecall = rawMeta.__namecall
+setreadonly(rawMeta, false)
 
--- تطبيق الـ Hook لمنع إرسال الفشل عند الخطأ
-if not getgenv().NoMissHookInstalled then
-	getgenv().NoMissHookInstalled = true
+rawMeta.__namecall = newcclosure(function(self, ...)
+	local method = getnamecallmethod()
+	local args = {...}
 
-	local originalNamecall
-	originalNamecall = hookmetamethod(game, "__namecall", function(self, ...)
-		local method = getnamecallmethod()
-		local args = {...}
-
-		-- الفحص والتأكد: هل الزر مفعّل؟ وهل الاستدعاء موجه لـ RemoteEvent الخاص باللعبة؟
-		if noMissState and self == RemoteEvent and method == "FireServer" then
-			local actionType = tostring(args[1])
-			local actionResult = args[2]
-
-			-- 1. اعتراض SetTimingResult إذا كانت النتيجة false (خطأ في الدائرة)
-			if actionType == "SetTimingResult" and actionResult == false then
-				return nil -- يمنع وصول الإشارة للسيرفر نهائياً (لا ينفجر الحاسوب)
-			end
-
-			-- 2. حماية إضافية: اعتراض أي إشارة توقيت أخرى يحسبها الموديول كفشل
-			if (actionType:find("Timing") or actionType:find("Action")) and (actionResult == false or actionResult == 0) then
-				return nil -- حجب الفشل
+	-- التحقق من استدعاء FireServer
+	if method == "FireServer" then
+		-- إذا كان الاستدعاء خاص بـ SetPlayerMinigameResult
+		if args[1] == "SetPlayerMinigameResult" then
+			-- الفحص يتم فقط إذا كان الزر مفعل (noMissState = true)
+			if noMissState and args[2] == false then
+				args[2] = true -- تحويل الفشل إلى نجاح
+				return oldNamecall(self, unpack(args))
 			end
 		end
+	end
 
-		return originalNamecall(self, ...)
-	end)
-end
+	return oldNamecall(self, ...)
+end)
 
--- ربط التفعيل والإيقاف بزر noMissBtn
+setreadonly(rawMeta, true)
+
+-- 2. ربط التفعيل والإيقاف بزر الواجهة (noMissBtn)
 noMissBtn.MouseButton1Click:Connect(function()
 	noMissState = not noMissState
 
 	if noMissState then 
 		if noMissTerm then noMissTerm.Text = "🟢" end
-		-- السكربت الآن يحجب أي إشارة فشل من الخروج للسيرفر
 	else 
 		if noMissTerm then noMissTerm.Text = "🔴" end
-		-- عند الإيقاف، ترجع اللعبة لترسل الأخطاء طبيعياً وتنفجر الحواسيب إذا أخطأت
 	end
 end)
 
