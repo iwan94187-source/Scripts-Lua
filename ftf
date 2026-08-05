@@ -314,39 +314,45 @@ end)
 
 local RemoteEvent = replicate:WaitForChild("RemoteEvent")
 
-local originalNamecall = nil
+-- تطبيق الـ Hook لمنع إرسال الفشل عند الخطأ
+if not getgenv().NoMissHookInstalled then
+	getgenv().NoMissHookInstalled = true
 
--- 1. تثبيت الـ Hook المرة الأولى فقط في البيئة
-if not getgenv().RemoteHooked then
-	getgenv().RemoteHooked = true
-
+	local originalNamecall
 	originalNamecall = hookmetamethod(game, "__namecall", function(self, ...)
 		local method = getnamecallmethod()
 		local args = {...}
 
-		-- تحقق صريح: هل الزر مفعّل؟ وهل الاستدعاء هو إرسال خطأ في الدائرة؟
+		-- الفحص والتأكد: هل الزر مفعّل؟ وهل الاستدعاء موجه لـ RemoteEvent الخاص باللعبة؟
 		if noMissState and self == RemoteEvent and method == "FireServer" then
-			if args[1] == "SetTimingResult" and args[2] == false then
-				-- هنا يتم حجب الخطأ تماماً وطالما noMissState = true
-				return nil
+			local actionType = tostring(args[1])
+			local actionResult = args[2]
+
+			-- 1. اعتراض SetTimingResult إذا كانت النتيجة false (خطأ في الدائرة)
+			if actionType == "SetTimingResult" and actionResult == false then
+				return nil -- يمنع وصول الإشارة للسيرفر نهائياً (لا ينفجر الحاسوب)
+			end
+
+			-- 2. حماية إضافية: اعتراض أي إشارة توقيت أخرى يحسبها الموديول كفشل
+			if (actionType:find("Timing") or actionType:find("Action")) and (actionResult == false or actionResult == 0) then
+				return nil -- حجب الفشل
 			end
 		end
 
-		-- إذا كانت noMissState = false يمر الكود فوراً بدون أي تدخل
 		return originalNamecall(self, ...)
 	end)
 end
 
--- 2. زر التشغيل والإيقاف (تفعيل وتجميد التحقق)
+-- ربط التفعيل والإيقاف بزر noMissBtn
 noMissBtn.MouseButton1Click:Connect(function()
 	noMissState = not noMissState
 
 	if noMissState then 
 		if noMissTerm then noMissTerm.Text = "🟢" end
-		-- الآن أصبح التحقق ومنع الأخطاء نشطاً داخل الـ Hook
+		-- السكربت الآن يحجب أي إشارة فشل من الخروج للسيرفر
 	else 
 		if noMissTerm then noMissTerm.Text = "🔴" end
-		-- الآن تم تجميد التحقق بالكامل وتمر الأخطاء بشكل طبيعي
+		-- عند الإيقاف، ترجع اللعبة لترسل الأخطاء طبيعياً وتنفجر الحواسيب إذا أخطأت
 	end
 end)
 
