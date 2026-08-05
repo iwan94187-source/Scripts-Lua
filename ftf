@@ -259,7 +259,6 @@ local currentCrawlTrack = nil
 
 crawlBtn.MouseButton1Click:Connect(function()
 	crawlState = not crawlState
-	local mapX = nil
 	local char = player.Character
 	local human = char and char:FindFirstChildOfClass("Humanoid")
 	local animator = human and human:FindFirstChildOfClass("Animator")
@@ -405,9 +404,6 @@ runService.Heartbeat:Connect(function()
 			end
 		end
 		if mapTag then 
-			if crawlState then
-				destroyVentBlocks(mapTag)
-			end	
 			
 			for _, item in ipairs(mapTag:GetChildren()) do 
 				if item.Name == "ComputerTable" then tag[#tag+1] = item end
@@ -431,6 +427,22 @@ runService.Heartbeat:Connect(function()
 				end
 			end
 			print(tag)
+		end
+	end
+	
+	if crawlState then 
+		-- 1. البحث عن مجلد الخريطة الرئيسي
+		local currentMap = nil
+		for _, item in ipairs(workspace:GetChildren()) do 
+			if item:IsA("Folder") and not table.find(folderMaps, item.Name) then 
+				currentMap = item
+				break
+			end
+		end
+
+		-- 2. تدمير كافة قطع VentBlock داخل الخريطة فوراً
+		if currentMap then
+			destroyVentBlocks(currentMap)
 		end
 	end
 	
