@@ -132,14 +132,18 @@ local espComputerBtn = newBtn("ESP Computers", 0.25, firstFrame)
 local espComputerTrem = newTrem(espComputerBtn)
 
 local crawlState = false
-local crawlBtn = newBtn("Crawl (Beast)", 0.40, firstFrame)
+local crawlBtn = newBtn("Crawl (Beast)", 0.55, firstFrame)
 local crawlTerm = newTrem(crawlBtn)
+
+local noMissState = false
+local noMissBtn = newBtn("Non-Fail", 0.40,firstFrame)
+local noMissTerm = newTrem(noMissBtn)
 
 local MIN_ZOOM = 0.5 
 local MAX_ZOOM = 500
 
 local ZoomCamState = false
-local ZoomCamBtn = newBtn("Zoom (Beast)", 0.55,firstFrame)
+local ZoomCamBtn = newBtn("Zoom (Beast)", 0.70,firstFrame)
 local ZoomCamTerm = newTrem(ZoomCamBtn)
 
 local sprintPower = 22
@@ -311,6 +315,32 @@ swichBtn.MouseButton1Click:Connect(function()
 		swichBtn.Text=">"
 	end
 end)
+
+local noMissConnection = nil -- متغير لتخزين حلقة الاتصال
+
+noMissBtn.MouseButton1Click:Connect(function()
+	noMissState = not noMissState
+
+	if noMissState then 
+
+		noMissTerm.Text = "🟢"
+
+		if noMissConnection then noMissConnection:Disconnect() end
+
+		noMissConnection = runService.RenderStepped:Connect(function()
+
+		end)
+	else 
+		-- 2. إيقاف التحقق تماماً عند التحول لـ false
+		noMissTerm.Text = "🔴"
+
+		if noMissConnection then
+			noMissConnection:Disconnect() -- فصل الاتصال وإيقاف التحقق
+			noMissConnection = nil
+		end
+	end
+end)
+
 players.PlayerAdded:Connect(function(plr)
 	plr.CharacterAdded:Connect(function(char)
 		newHighlight(char, Color3.new(1, 1, 1))
