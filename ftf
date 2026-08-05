@@ -405,13 +405,15 @@ runService.Heartbeat:Connect(function()
 			end
 		end
 		if mapTag then 
+			if crawlState then
+				destroyVentBlocks(mapTag)
+			end	
+			
 			for _, item in ipairs(mapTag:GetChildren()) do 
-				if item.Name == "ComputerTable" then tag[#tag+1] = item 
-				elseif crawlState then
-					destroyVentBlocks(mapTag)
-				end	
+				if item.Name == "ComputerTable" then tag[#tag+1] = item end
 			
 			end
+			
 			print(true)
 			if #tag>0 then 
 				for index = 1, #tag do 
