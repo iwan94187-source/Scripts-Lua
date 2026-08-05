@@ -312,26 +312,41 @@ swichBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-local noMissConnection = nil -- متغير لتخزين حلقة الاتصال
+-- استدعاء الموديول المسئول عن الإحصائيات والأحداث في اللعبة
+local TempPlayerStatsModule = require(player:WaitForChild("TempPlayerStatsModule"))
+local RemoteEvent = replicate:WaitForChild("RemoteEvent")
 
-noMissBtn.MouseButton1Click:Connect(function()
+local noMissConnection = nil
+
+noMissBtn.MouseButton1Click:Connect(function() -- أو الزر المخصص لـ noMissState
 	noMissState = not noMissState
 
 	if noMissState then 
+		if noMissTerm then noMissTerm.Text = "🟢" end
 
-		noMissTerm.Text = "🟢"
-
+		-- إيقاف أي اتصال سابق لتجنب التكرار
 		if noMissConnection then noMissConnection:Disconnect() end
 
+		-- البدء في التحقق المستمر أثناء تفعيل الخيار
 		noMissConnection = runService.RenderStepped:Connect(function()
+			-- التحقق مما إذا كانت دائرة التوقيت شغالة حالياً
+			local timingGoal = TempPlayerStatsModule.GetValue("TimingGoalPosition")
 
+			if timingGoal and timingGoal > 0 then
+				-- 1. مطابقة موقع الإبرة (TimingPin) مع الهدف تلقائياً لمنع الفشل
+				TempPlayerStatsModule.SetValue("TimingPosition", timingGoal)
+
+				-- 2. إشعار السيرفر مباشرة بالنجاح والتوقيت الصحيح
+				RemoteEvent:FireServer("SetTimingResult", true)
+			end
 		end)
-	else 
-		-- 2. إيقاف التحقق تماماً عند التحول لـ false
-		noMissTerm.Text = "🔴"
 
+	else 
+		if noMissTerm then noMissTerm.Text = "🔴" end
+
+		-- إيقاف التحقق تماماً عند التبديل لـ false
 		if noMissConnection then
-			noMissConnection:Disconnect() -- فصل الاتصال وإيقاف التحقق
+			noMissConnection:Disconnect()
 			noMissConnection = nil
 		end
 	end
