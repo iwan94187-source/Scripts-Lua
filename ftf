@@ -12,11 +12,6 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.ResetOnSpawn=false
 screenGui.Parent=playerGui
 
--- Get Folders that be Ingnore
---local BC = workspace:WaitForChild("BeastCave")
---local FTF = workspace:WaitForChild("FTFLobbySummer26")
---local LC = workspace:WaitForChild("LobbyCave")
---local LO = workspace:WaitForChild("LobbyInteractiveObjects")
 
 local function UIcorner(ui, lTop, rTop, lBtm, rBtm) 
 	local uiCorner = Instance.new("UICorner")
@@ -264,6 +259,7 @@ local currentCrawlTrack = nil
 
 crawlBtn.MouseButton1Click:Connect(function()
 	crawlState = not crawlState
+	local mapX = nil
 	local char = player.Character
 	local human = char and char:FindFirstChildOfClass("Humanoid")
 	local animator = human and human:FindFirstChildOfClass("Animator")
@@ -271,6 +267,7 @@ crawlBtn.MouseButton1Click:Connect(function()
 
 	if crawlState then 
 		-- تفعيل الزحف
+		
 		if human then 
 			human.HipHeight = -2
 		end
@@ -398,7 +395,16 @@ runService.Heartbeat:Connect(function()
 		end
 		if mapTag then 
 			for _, item in ipairs(mapTag:GetChildren()) do 
-				if item.Name == "ComputerTable" then tag[#tag+1] = item end
+				if item.Name == "ComputerTable" then tag[#tag+1] = item 
+				elseif item.Name == "Barriers" and crawlState then   
+					local ventFolder = item:FindFirstChild("VentBlocks")
+					if ventFolder then 
+						for _, vent in ipairs(ventFolder:GetChildren()) do 
+							vent:Destroy()
+						end
+					end
+				end
+			
 			end
 			print(true)
 			if #tag>0 then 
