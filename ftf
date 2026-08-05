@@ -312,43 +312,41 @@ swichBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- استدعاء الموديول المسئول عن الإحصائيات والأحداث في اللعبة
-local TempPlayerStatsModule = require(player:WaitForChild("TempPlayerStatsModule"))
 local RemoteEvent = replicate:WaitForChild("RemoteEvent")
 
-local noMissConnection = nil
+local originalNamecall = nil
 
-noMissBtn.MouseButton1Click:Connect(function() -- أو الزر المخصص لـ noMissState
+-- 1. تثبيت الـ Hook المرة الأولى فقط في البيئة
+if not getgenv().RemoteHooked then
+	getgenv().RemoteHooked = true
+
+	originalNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+		local method = getnamecallmethod()
+		local args = {...}
+
+		-- تحقق صريح: هل الزر مفعّل؟ وهل الاستدعاء هو إرسال خطأ في الدائرة؟
+		if noMissState and self == RemoteEvent and method == "FireServer" then
+			if args[1] == "SetTimingResult" and args[2] == false then
+				-- هنا يتم حجب الخطأ تماماً وطالما noMissState = true
+				return nil
+			end
+		end
+
+		-- إذا كانت noMissState = false يمر الكود فوراً بدون أي تدخل
+		return originalNamecall(self, ...)
+	end)
+end
+
+-- 2. زر التشغيل والإيقاف (تفعيل وتجميد التحقق)
+noMissBtn.MouseButton1Click:Connect(function()
 	noMissState = not noMissState
 
 	if noMissState then 
 		if noMissTerm then noMissTerm.Text = "🟢" end
-
-		-- إيقاف أي اتصال سابق لتجنب التكرار
-		if noMissConnection then noMissConnection:Disconnect() end
-
-		-- البدء في التحقق المستمر أثناء تفعيل الخيار
-		noMissConnection = runService.RenderStepped:Connect(function()
-			-- التحقق مما إذا كانت دائرة التوقيت شغالة حالياً
-			local timingGoal = TempPlayerStatsModule.GetValue("TimingGoalPosition")
-
-			if timingGoal and timingGoal > 0 then
-				-- 1. مطابقة موقع الإبرة (TimingPin) مع الهدف تلقائياً لمنع الفشل
-				TempPlayerStatsModule.SetValue("TimingPosition", timingGoal)
-
-				-- 2. إشعار السيرفر مباشرة بالنجاح والتوقيت الصحيح
-				RemoteEvent:FireServer("SetTimingResult", true)
-			end
-		end)
-
+		-- الآن أصبح التحقق ومنع الأخطاء نشطاً داخل الـ Hook
 	else 
 		if noMissTerm then noMissTerm.Text = "🔴" end
-
-		-- إيقاف التحقق تماماً عند التبديل لـ false
-		if noMissConnection then
-			noMissConnection:Disconnect()
-			noMissConnection = nil
-		end
+		-- الآن تم تجميد التحقق بالكامل وتمر الأخطاء بشكل طبيعي
 	end
 end)
 
