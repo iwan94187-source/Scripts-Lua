@@ -1,0 +1,514 @@
+local players=game:GetService("Players")
+local player=players.LocalPlayer
+local playerGui = player.PlayerGui
+local PathfindingService = game:GetService("PathfindingService")
+
+local runService = game:GetService("RunService")
+local lightService = game:GetService("Lighting")
+
+local escapeLineState = true
+
+local MIN_THICKNESS = 0.05
+local MAX_THICKNESS = 0.5
+local MAX_DISTANCE = 150
+local ELEVATION_OFFSET = 5
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.ResetOnSpawn=false
+screenGui.Parent=playerGui
+
+local blk_color = Color3.fromRGB(24,24,24)
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 250, 0, 250)
+frame.Position = UDim2.new(0.3, 0, 0.15, 0)
+frame.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+frame.Active = true
+frame.Draggable = true -- يجعل النافذة قابلة للسحب!
+frame.Parent = screenGui
+
+local frameTitle = Instance.new("TextLabel")
+frameTitle.Size=UDim2.new(1,0,0.1,0)
+frameTitle.Text="SEWER SCREAMS V4.0"
+frameTitle.TextXAlignment=Enum.TextXAlignment.Left
+frameTitle.TextColor=BrickColor.new("White")
+frameTitle.BackgroundColor3=blk_color
+frameTitle.TextXAlignment=Enum.TextXAlignment.Center
+frameTitle.TextSize=10
+frameTitle.Parent=frame
+
+local IsOpen = true
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size=UDim2.new(0,25,0,25)
+closeBtn.Position=UDim2.new(0,0,0,0)
+closeBtn.BackgroundColor=BrickColor.new("Dark grey")
+closeBtn.Text="x"
+closeBtn.TextColor=BrickColor.new("White")
+closeBtn.Parent=screenGui
+
+local nextState = false
+local nextBtn = Instance.new("TextButton")
+nextBtn.Size=UDim2.new(0.1,0,0.1,0)
+nextBtn.Position=UDim2.new(0.9,0,0.9)
+nextBtn.BackgroundColor=BrickColor.new("Dark grey")
+nextBtn.TextColor=BrickColor.new("White")
+nextBtn.TextScaled=true
+nextBtn.Text=">"
+nextBtn.Parent=frame
+
+local function newFrame() 
+	local frm = Instance.new("Frame")
+	frm.Size=UDim2.new(1,0,0.8,0)
+	frm.Position=UDim2.new(0,0,0.1,0)
+	frm.BackgroundTransparency=1
+	frm.Parent=frame
+	return frm
+end
+
+local function newBtn(name,pos,parent)
+	local btn = Instance.new("TextButton")
+	btn.Size=UDim2.new(1,0,0.1,0)
+	btn.Position=UDim2.new(0,0,pos,0)
+	btn.BackgroundColor=BrickColor.new("Black")
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextScaled=true
+	btn.Parent=parent
+	return btn
+end
+
+local function newTrem(parent)
+	local trem = Instance.new("TextLabel")
+	trem.Size = UDim2.new(0,25,1,0)
+	trem.Position=UDim2.new(0.85,0,0,0)
+	trem.BackgroundTransparency=1
+	trem.Text="🔴"
+	trem.TextScaled=true
+	trem.Parent=parent
+	return trem
+end
+
+
+local frame_1 = newFrame()
+frame_1.Visible=true
+
+local frame_2 = newFrame()
+frame_2.Visible=false
+
+local speedState=false
+local speedBtn = newBtn("Speed",0,frame_1)
+speedBtn.Size=UDim2.new(0.3,0,0.1,0)
+speedBtn.BackgroundColor=BrickColor.new("Really red")
+
+local speedBox = Instance.new("TextBox")
+speedBox.Size=UDim2.new(0.7,0,0.1,0)
+speedBox.Position=UDim2.new(0.3,0,0,0)
+speedBox.BackgroundColor=BrickColor.new("Black")
+speedBox.TextColor=BrickColor.new("White")
+speedBox.TextScaled=true
+speedBox.Text="Number"
+speedBox.Parent=frame_1
+
+local lightState = false
+local lightBtn = newBtn(" Brightness", 0.15,frame_1)
+local lightTerm = newTrem(lightBtn)
+lightBtn.TextXAlignment="Left"
+
+local fullZoomState = false
+local fullZoomBtn = newBtn(" maxZoom", 0.30,frame_1)
+local fullZoomTerm = newTrem(fullZoomBtn)
+fullZoomBtn.TextXAlignment="Left"
+
+local espPlayersState = false
+local espPlayersBtn = newBtn(" ESP Players", 0.45,frame_1)
+local espPlayersTerm = newTrem(espPlayersBtn)
+espPlayersBtn.TextXAlignment="Left"
+
+local espBlockerState = false
+local espBlockerBtn = newBtn(" ESP Blocker",0,frame_2)
+espBlockerBtn.TextXAlignment=Enum.TextXAlignment.Left
+local espBlockerTerm = newTrem(espBlockerBtn)
+
+local espMonstersState = false
+local espMonstersBtn = newBtn(" ESP Clowns",0.15,frame_2)
+espMonstersBtn.TextXAlignment=Enum.TextXAlignment.Left
+local espMonstersTerm = newTrem(espMonstersBtn)
+
+local espBalloonState = false
+local espBalloonBtn = newBtn(" ESP Balloons",0.30,frame_2)
+espBalloonBtn.TextXAlignment=Enum.TextXAlignment.Left
+local espBalloonTerm = newTrem(espBalloonBtn)
+
+local escapeLineState = false
+local escapeLineBtn = newBtn(" Blocker-Indication",0.45,frame_2)
+escapeLineBtn.TextXAlignment=Enum.TextXAlignment.Left
+local escapeLineTerm = newTrem(escapeLineBtn)
+
+local lineFolder = workspace:FindFirstChild("PathLinesFolder") or Instance.new("Folder")
+lineFolder.Name = "PathLinesFolder"
+lineFolder.Parent = workspace
+
+-- 2. إعدادات خوارزمية المسار
+local path = PathfindingService:CreatePath({
+	AgentRadius = 1.0,
+	AgentHeight = 3.0,
+	AgentCanJump = true,
+	WaypointSpacing = 1.5
+})
+
+-- 3. دالة جلب الهدف
+local function getTargetPart()
+	local folder = workspace:FindFirstChild("Generated")
+	if folder then
+		local exit = folder:FindFirstChild("Exit")
+		if exit then
+			local exitBlockerGroup = exit:FindFirstChild("ExitBlocker")
+			if exitBlockerGroup then
+				if exitBlockerGroup:IsA("BasePart") then
+					return exitBlockerGroup
+				else
+					return exitBlockerGroup:FindFirstChild("ExitBlocker") or exitBlockerGroup:FindFirstChildWhichIsA("BasePart")
+				end
+			end
+		end
+	end
+	return nil
+end
+
+-- 4. تنظيف قطع الخطوط
+local function clearLines()
+	lineFolder:ClearAllChildren()
+end
+
+-- 5. رسم قطعة خط بين نقطتين
+local function createSegment(startPos, endPos, thickness)
+	local distance = (startPos - endPos).Magnitude
+	if distance < 0.1 then return end
+
+	local line = Instance.new("Part")
+	line.Name = "PathSegment"
+	line.Anchored = true
+	line.CanCollide = false
+	line.CastShadow = false
+	line.Material = Enum.Material.Neon
+	line.Color = Color3.fromRGB(0, 255, 0)
+	line.Size = Vector3.new(thickness, thickness, distance)
+	line.CFrame = CFrame.new((startPos + endPos) / 2, endPos)
+	line.Parent = lineFolder
+end
+
+-- 6. حلقة التحديث والمتابعة
+local lastCheck = 0
+local waypoints = {}
+local isPathValid = false
+
+nextBtn.MouseButton1Click:Connect(function()
+	nextState=not nextState
+	if nextState then 
+		nextBtn.Text="<"
+	else 
+		nextBtn.Text=">"
+	end
+	frame_1.Visible,frame_2.Visible=not nextState,nextState
+end)
+
+speedBtn.MouseButton1Click:Connect(function()
+	speedState=not speedState
+	if speedState then 
+		speedBtn.BackgroundColor=BrickColor.new("Bright green")
+	else
+		speedBtn.BackgroundColor=BrickColor.new("Really red")
+	end
+end)
+
+lightBtn.MouseButton1Click:Connect(function()
+	lightState=not lightState
+	if lightState then 
+		lightTerm.Text="🟢"
+	else
+		lightTerm.Text="🔴"
+	end
+end)
+
+fullZoomBtn.MouseButton1Click:Connect(function()
+	fullZoomState=not fullZoomState
+	if fullZoomState then 
+		fullZoomTerm.Text="🟢"
+	else
+		fullZoomTerm.Text="🔴"
+	end
+end)
+
+local function newHighlight(parent)
+	local outline = Instance.new("Highlight")
+	outline.OutlineColor=Color3.new(0, 0.333333, 1)
+	outline.FillColor=Color3.new(0.333333, 0.666667, 1)
+	outline.Parent=parent
+	return outline
+end
+
+for _, plr in ipairs(players:GetPlayers()) do 
+	if plr ~= player then 
+		plr.CharacterAdded:Connect(function(char)
+			if espPlayersState then 
+				local hold = false
+				for _, item in ipairs(char:GetChildren()) do 
+					if item:IsA("Highlight") then hold=true end
+				end
+				if not hold then newHighlight(char) end
+			end
+		end)
+	end
+end
+espPlayersBtn.MouseButton1Click:Connect(function()
+	espPlayersState=not espPlayersState
+	if espPlayersState then 
+		for _, plr in ipairs(players:GetPlayers()) do 
+			if espPlayersState and plr ~= player then 
+				local char = plr.Character
+				local hold = false
+				if char then 
+					for _, item in ipairs(char:GetChildren()) do 
+						if item:IsA("Highlight") then hold=true end
+					end
+					if not hold then newHighlight(char) end
+				end
+			end
+		end
+		espPlayersTerm.Text="🟢"
+	else
+		for _, plr in ipairs(players:GetPlayers()) do 
+			if plr ~= player then 
+				local char = plr.Character
+				if char then 
+					for _, item in ipairs(char:GetChildren()) do 
+						if item:IsA("Highlight") then item:Destroy() end
+					end
+				end
+			end
+		end
+		espPlayersTerm.Text="🔴"
+	end
+end)
+
+players.PlayerAdded:Connect(function(plr)
+	plr.CharacterAdded:Connect(function(char)
+		if espPlayersState then 
+			local hold = false
+			for _, item in ipairs(char:GetChildren()) do 
+				if item:IsA("Highlight") then hold=true end
+			end
+			if not hold then newHighlight(char) end
+		end
+	end)
+end)
+
+local blockerOutline = Instance.new("Highlight")
+blockerOutline.OutlineColor=Color3.fromRGB(85, 255, 0)
+blockerOutline.FillColor=Color3.fromRGB(85, 255, 127)
+
+local function clawnOutline()
+	local outline = Instance.new("Highlight")
+	outline.OutlineColor=Color3.fromRGB(255, 0, 0)
+	outline.FillColor=Color3.fromRGB(255, 39, 39)
+	return outline
+end
+local function balloonOutline()
+	local outline = Instance.new("Highlight")
+	outline.OutlineColor=Color3.fromRGB(170, 0, 255)
+	outline.FillColor=Color3.fromRGB(170, 85, 255)
+	return outline
+end
+
+
+espBlockerBtn.MouseButton1Click:Connect(function()
+	espBlockerState=not espBlockerState
+	if espBlockerState then 
+		espBlockerTerm.Text="🟢"
+	else
+		blockerOutline.Parent=nil
+		espBlockerTerm.Text="🔴"
+	end
+end)
+
+espMonstersBtn.MouseButton1Click:Connect(function()
+	espMonstersState=not espMonstersState
+	if espMonstersState then 
+		espMonstersTerm.Text="🟢"
+	else
+		espMonstersTerm.Text="🔴"
+	end
+end)
+
+espBalloonBtn.MouseButton1Click:Connect(function()
+	espBalloonState=not espBalloonState
+	if espBalloonState then 
+		espBalloonTerm.Text="🟢"
+	else
+		espBalloonTerm.Text="🔴"
+	end
+end)
+
+escapeLineBtn.MouseButton1Click:Connect(function()
+	escapeLineState=not escapeLineState
+	if escapeLineState then 
+		escapeLineTerm.Text="🟢"
+	else
+		escapeLineTerm.Text="🔴"
+	end
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+	IsOpen=not IsOpen
+	if IsOpen then 
+		frame.Visible=true
+		closeBtn.Text="x"
+	else 
+		frame.Visible=false
+		closeBtn.Text="o"
+	end
+end)
+
+runService.Heartbeat:Connect(function()
+	if speedState then 
+		local human = player.Character and player.Character:FindFirstChild("Humanoid")
+		if human and tonumber(speedBox.Text) then 
+			human.WalkSpeed=speedBox.Text
+		end
+	end
+
+	if lightState then 
+		lightService.Ambient=Color3.fromRGB(170, 255, 255)
+		lightService.Brightness=3
+		local atm = lightService:FindFirstChild("Atmosphere")
+		if atm then atm.Density = 0 end
+	end
+
+	if espBlockerState then 
+		local folder = workspace:FindFirstChild("Generated")
+		if folder then 
+			local exitBlocker = folder:FindFirstChild("Exit")and folder:FindFirstChild("Exit"):FindFirstChild("ExitBlocker") 
+			if exitBlocker then blockerOutline.Parent=exitBlocker end
+		end
+	end
+
+	if espMonstersState then 
+		local folder = workspace:FindFirstChild("Monsters")
+		if folder then 
+			for _, clown in ipairs(folder:GetChildren()) do 
+				if clown:IsA("Model") then 
+					local hold = false
+
+					for _, item in ipairs(clown:GetChildren()) do 
+						if item:IsA("Highlight") then hold=true end
+					end
+					if not hold then 
+						local highlight = clawnOutline()
+						highlight.Parent=clown
+					end
+				end
+			end
+		end
+	end
+	if espBalloonState then
+		local folder = workspace:FindFirstChild("Generated")
+		if folder then 
+			for _, balloon in ipairs(folder:GetChildren()) do 
+				if balloon:IsA("Model") and balloon.Name == "ClownBalloon" then 
+					local hold = false
+					for _, item in ipairs(balloon:GetChildren()) do 
+						if item:IsA("Highlight") then hold=true end
+					end
+					if not hold then 
+						local highlight = balloonOutline()
+						highlight.Parent=balloon
+					end
+				end
+			end
+		end
+	end
+
+	if fullZoomState then 
+
+		if player.CameraMode ~= Enum.CameraMode.Classic then
+			player.CameraMode = Enum.CameraMode.Classic
+		end
+		if player.CameraMinZoomDistance < 2 then
+			player.CameraMinZoomDistance = 2
+			player.CameraMaxZoomDistance = 100
+		end
+	end
+	
+	if escapeLineState then
+		local character = player.Character
+		if not character then 
+			clearLines()
+			return 
+		end
+
+		local rootPart = character:FindFirstChild("HumanoidRootPart")
+		local targetPart = getTargetPart()
+
+		if rootPart and targetPart and targetPart:IsA("BasePart") then
+			local realTargetPos = targetPart.Position
+			local elevatedTargetPos = realTargetPos + Vector3.new(0, ELEVATION_OFFSET, 0)
+			local now = tick()
+
+			-- نقطة البداية الحقيقية للرسم (عند أقدام اللاعب)
+			local visualStartPos = rootPart.Position - Vector3.new(0, 1.5, 0)
+
+			if now - lastCheck > 0.15 then
+				lastCheck = now
+
+				-- رفع نقطة بداية الحساب للخوارزمية بمقدار 2.5 unit (يحاكي القفز)
+				local calculationStartPos = rootPart.Position + Vector3.new(0, 2.5, 0)
+				local floorTargetPos = Vector3.new(realTargetPos.X, rootPart.Position.Y, realTargetPos.Z)
+
+				local success = pcall(function()
+					path:ComputeAsync(calculationStartPos, floorTargetPos)
+				end)
+
+				if success and path.Status == Enum.PathStatus.Success then
+					waypoints = path:GetWaypoints()
+					isPathValid = #waypoints > 1
+				else
+					waypoints = {}
+					isPathValid = false
+				end
+			end
+
+			clearLines()
+
+			local totalDistance = (visualStartPos - realTargetPos).Magnitude
+			local alpha = math.clamp(totalDistance / MAX_DISTANCE, 0, 1)
+			local currentThickness = MAX_THICKNESS - (alpha * (MAX_THICKNESS - MIN_THICKNESS))
+
+			if isPathValid and #waypoints > 1 then
+				for i = 1, #waypoints - 1 do
+					-- إسقاط الـ Waypoints لحساب مستوى الأرض للرسم البصري
+					local w1 = Vector3.new(waypoints[i].Position.X, visualStartPos.Y + 0.4, waypoints[i].Position.Z)
+					local w2 = Vector3.new(waypoints[i + 1].Position.X, visualStartPos.Y + 0.4, waypoints[i + 1].Position.Z)
+
+					-- النقطة الأولى تبدأ مباشرة من قدم اللاعب
+					if i == 1 then
+						w1 = visualStartPos + Vector3.new(0, 0.4, 0)
+					end
+
+					-- النقطة الأخيرة ترتفع نحو الهدف
+					if i == #waypoints - 1 then
+						w2 = elevatedTargetPos
+					end
+
+					createSegment(w1, w2, currentThickness)
+				end
+			else
+				-- خط احتياطي
+				createSegment(visualStartPos, elevatedTargetPos, currentThickness)
+			end
+		else
+			clearLines()
+		end
+	else
+		-- في حال كانت escapeLineState تساوي false يتم مسح الخطوط القائمة لتوفير الأداء
+		clearLines()
+	end
+end)
