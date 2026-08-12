@@ -2,6 +2,8 @@ local players=game:GetService("Players")
 local player=players.LocalPlayer
 local playerGui = player.PlayerGui
 local PathfindingService = game:GetService("PathfindingService")
+local camera = workspace.CurrentCamera
+
 
 local runService = game:GetService("RunService")
 local lightService = game:GetService("Lighting")
@@ -28,7 +30,7 @@ frame.Parent = screenGui
 
 local frameTitle = Instance.new("TextLabel")
 frameTitle.Size=UDim2.new(1,0,0.1,0)
-frameTitle.Text="SEWER SCREAMS V4.0"
+frameTitle.Text="SEWER SCREAMS V5.0"
 frameTitle.TextXAlignment=Enum.TextXAlignment.Left
 frameTitle.TextColor=BrickColor.new("White")
 frameTitle.BackgroundColor3=blk_color
@@ -122,6 +124,62 @@ local espPlayersState = false
 local espPlayersBtn = newBtn(" ESP Players", 0.45,frame_1)
 local espPlayersTerm = newTrem(espPlayersBtn)
 espPlayersBtn.TextXAlignment="Left"
+
+local noclipState = false
+local noclipBtn = newBtn(" Noclip", 0.60,frame_1)
+local noclipTerm = newTrem(noclipBtn)
+noclipBtn.TextXAlignment="Left"
+
+local flyState = false
+local flyspeed = 10
+local currentPosition = nil
+
+local flyFrame = Instance.new("Frame")
+flyFrame.Size=UDim2.new(0,100,0,50)
+flyFrame.Position=UDim2.new(0.2)
+flyFrame.Parent=screenGui
+flyFrame.Visible=false
+
+local flyBtn = newBtn(" Toggle Fly", 0.75,frame_1)
+local flyTerm = newTrem(flyBtn)
+flyBtn.TextXAlignment="Left"
+
+local upBtn = Instance.new("TextButton")
+upBtn.Size=UDim2.new(0.3,0,0.5,0)
+upBtn.Position=UDim2.new(0,0,0,0)
+upBtn.TextScaled=true
+upBtn.Text="△"
+upBtn.Parent=flyFrame
+
+local downBtn = Instance.new("TextButton")
+downBtn.Size=UDim2.new(0.3,0,0.5,0)
+downBtn.Position=UDim2.new(0,0,0.5,0)
+downBtn.TextScaled=true
+downBtn.Text="▽"
+downBtn.Parent=flyFrame
+
+local isUpHolding = false
+local isDownHolding = false
+
+local increaseBtn = Instance.new("TextButton")
+increaseBtn.Size=UDim2.new(0.3,0,0.4,0)
+increaseBtn.Position=UDim2.new(0.4,0,0.6,0)
+increaseBtn.TextScaled=true
+increaseBtn.Text="+"
+increaseBtn.Parent=flyFrame
+
+local reduceBtn = Instance.new("TextButton")
+reduceBtn.Size=UDim2.new(0.3,0,0.4,0)
+reduceBtn.Position=UDim2.new(0.7,0,0.6,0)
+reduceBtn.TextScaled=true
+reduceBtn.Text="-"
+reduceBtn.Parent=flyFrame
+
+local flyLabel = Instance.new("TextLabel")
+flyLabel.Size =UDim2.new(0.6,0,0.5,0)
+flyLabel.Position=UDim2.new(0.4,0,0,0)
+flyLabel.TextScaled=true
+flyLabel.Parent=flyFrame
 
 local espBlockerState = false
 local espBlockerBtn = newBtn(" ESP Blocker",0,frame_2)
@@ -238,12 +296,52 @@ fullZoomBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
+noclipBtn.MouseButton1Click:Connect(function()
+	noclipState=not noclipState
+	if noclipState then 
+		noclipTerm.Text="🟢"
+	else
+		noclipTerm.Text="🔴"
+	end
+end)
+
+flyBtn.MouseButton1Click:Connect(function()
+	flyState=not flyState
+	if flyState then 
+		flyTerm.Text="🟢"
+	else
+		flyTerm.Text="🔴"
+		currentPosition = nil
+		isUpHolding = false
+		isDownHolding = false
+	end
+	flyFrame.Visible=flyState
+end)
+
+upBtn.MouseButton1Down:Connect(function() isUpHolding = true end)
+upBtn.MouseButton1Up:Connect(function() isUpHolding = false end)
+
+downBtn.MouseButton1Down:Connect(function() isDownHolding = true end)
+downBtn.MouseButton1Up:Connect(function() isDownHolding = false end)
+
+increaseBtn.MouseButton1Click:Connect(function() flyspeed += 1 end)
+reduceBtn.MouseButton1Click:Connect(function() flyspeed -= 1 end)
+
 local function newHighlight(parent)
 	local outline = Instance.new("Highlight")
 	outline.OutlineColor=Color3.new(0, 0.333333, 1)
 	outline.FillColor=Color3.new(0.333333, 0.666667, 1)
 	outline.Parent=parent
 	return outline
+end
+
+local function setPlatformStand(state)
+	local char = player.Character
+	if not char then return end
+	local human = char:FindFirstChildOfClass("Humanoid")
+	if human then 
+		human.PlatformStand = state
+	end
 end
 
 for _, plr in ipairs(players:GetPlayers()) do 
@@ -302,6 +400,7 @@ players.PlayerAdded:Connect(function(plr)
 	end)
 end)
 
+
 local blockerOutline = Instance.new("Highlight")
 blockerOutline.OutlineColor=Color3.fromRGB(85, 255, 0)
 blockerOutline.FillColor=Color3.fromRGB(85, 255, 127)
@@ -318,7 +417,6 @@ local function balloonOutline()
 	outline.FillColor=Color3.fromRGB(170, 85, 255)
 	return outline
 end
-
 
 espBlockerBtn.MouseButton1Click:Connect(function()
 	espBlockerState=not espBlockerState
@@ -357,6 +455,7 @@ escapeLineBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
+
 closeBtn.MouseButton1Click:Connect(function()
 	IsOpen=not IsOpen
 	if IsOpen then 
@@ -368,7 +467,12 @@ closeBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
+
 runService.Heartbeat:Connect(function()
+	local char = player.Character
+	local root = char and char:FindFirstChild("HumanoidRootPart")
+	local human = char and char:FindFirstChildOfClass("Humanoid")
+
 	if speedState then 
 		local human = player.Character and player.Character:FindFirstChild("Humanoid")
 		if human and tonumber(speedBox.Text) then 
@@ -511,4 +615,60 @@ runService.Heartbeat:Connect(function()
 		-- في حال كانت escapeLineState تساوي false يتم مسح الخطوط القائمة لتوفير الأداء
 		clearLines()
 	end
+	
+	if noclipState then 
+		local char = player.Character
+		if char then 
+			for _, item in ipairs(char:GetChildren()) do 
+				if item:IsA("BasePart") then item.CanCollide=false end
+			end
+		end
+	end
+	
+	if flyState and root and human then 
+		flyLabel.Text=flyspeed
+		local FLY_SPEED = flyspeed / 10
+		
+		human.PlatformStand = true
+
+		-- تصفير السرعة الفيزيائية
+		root.AssemblyLinearVelocity = Vector3.zero
+		root.AssemblyAngularVelocity = Vector3.zero
+
+		if not currentPosition then
+			currentPosition = root.Position
+		end
+
+		-- 1. تعديل الارتفاع العمودي المباشر عبر الأزرار (Up / Down)
+		if isUpHolding then
+			currentPosition = currentPosition + Vector3.new(0, FLY_SPEED, 0)
+		end
+		if isDownHolding then
+			currentPosition = currentPosition - Vector3.new(0, FLY_SPEED, 0)
+		end
+
+		-- 2. توجيه حركة المقبض / الكيبورد ثلاثية الأبعاد حسب اتجاه الكاميرا
+		local rawMove = human.MoveDirection
+		if rawMove.Magnitude > 0 then
+			-- نحول المتجاهات الأفقية لـ MoveDirection إلى إحداثيات محلية (Local Relative)
+			local relativeMove = camera.CFrame:VectorToObjectSpace(rawMove)
+
+			-- ثم نضرب الحركة المحلية في CFrame الكاميرا بالكامل لنحصل على اتجاه النظرة الحقيقي (بما فيه فوق وتحت)
+			local flyVector = camera.CFrame:VectorToWorldSpace(Vector3.new(relativeMove.X, 0, relativeMove.Z))
+
+			currentPosition = currentPosition + (flyVector.Unit * FLY_SPEED)
+		end
+
+		-- 3. تثبيت دوران الشخصية مع اتجاه نظرة الكاميرا
+		local lookDirection = camera.CFrame.LookVector
+		root.CFrame = CFrame.new(currentPosition, currentPosition + lookDirection)
+	else 
+		currentPosition = nil
+		isUpHolding = false
+		isDownHolding = false
+		if human then 
+			human.PlatformStand = false 
+		end
+	end
 end)
+
