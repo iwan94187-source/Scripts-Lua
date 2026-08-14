@@ -787,7 +787,7 @@ local function setupBallTrajectory(ball)
 	linePart.CanCollide = false
 	linePart.Material = Enum.Material.Neon
 	linePart.Color = Color3.fromRGB(255, 50, 50) -- لون أحمر نيون
-	linePart.Transparency = 0.6
+	linePart.Transparency = 0.5
 	linePart.Size = Vector3.new(0.6, 0.6, 1)
 	linePart.Parent = workspace
 
