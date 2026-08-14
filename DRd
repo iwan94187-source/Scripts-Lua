@@ -820,7 +820,7 @@ local function setupBallTrajectory(ball)
 				local lineForward = lineCFrame.LookVector
 
 				-- الحصول على بيانات اللاعب المحلي فقط
-				local char = localPlayer.Character
+				local char = player.Character
 				local rootPart = char and char:FindFirstChild("HumanoidRootPart")
 				local humanoid = char and char:FindFirstChildOfClass("Humanoid")
 
