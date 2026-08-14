@@ -786,13 +786,13 @@ local function setupBallTrajectory(ball)
 	linePart.Anchored = true
 	linePart.CanCollide = false
 	linePart.Material = Enum.Material.Neon
-	linePart.Color = Color3.fromRGB(255, 50, 50) -- لون أحمر نيون
+	linePart.Color = Color3.fromRGB(255, 165, 0) -- لون برتقالي
 	linePart.Transparency = 0.3
 	linePart.Size = Vector3.new(0.6, 0.6, 1)
 	linePart.Parent = workspace
 
-	local lineLength = 150 -- طول الخط
-	local extraSafetyBuffer = 5 -- مسافة التأمين الإضافية بالـ Studs
+	local lineLength = 150 
+	local extraSafetyBuffer = 5 
 	local updateConnection = nil
 
 	updateConnection = runService.Heartbeat:Connect(function()
@@ -802,11 +802,9 @@ local function setupBallTrajectory(ball)
 			return
 		end
 
-		-- 🧠 فحص شرط التفعيل الرئيسي هنا داخل Heartbeat
 		if safeLineState then
 			local velocity = ball.AssemblyLinearVelocity
 
-			-- إذا كانت الكرة تتحرك
 			if velocity.Magnitude > 1 then
 				linePart.Transparency = 0.3
 				local direction = velocity.Unit
@@ -816,58 +814,49 @@ local function setupBallTrajectory(ball)
 				linePart.Size = Vector3.new(0.6, 0.6, lineLength)
 				linePart.CFrame = CFrame.lookAt(lineCenter, lineCenter + direction)
 
-				-- حساب مسافة الأمان أوتوماتيكياً
 				local ballRadius = math.max(ball.Size.X, ball.Size.Y, ball.Size.Z) / 2
 				local dynamicSafetyRadius = ballRadius + extraSafetyBuffer
-
 				local lineCFrame = linePart.CFrame
 				local lineForward = lineCFrame.LookVector
 
-				-- فحص موقع كل لاعب بالنسبة لهالة الأمان
-				for _, plr in ipairs(players:GetPlayers()) do
-					local char = plr.Character
-					local rootPart = char and char:FindFirstChild("HumanoidRootPart")
-					local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+				-- الحصول على بيانات اللاعب المحلي فقط
+				local char = localPlayer.Character
+				local rootPart = char and char:FindFirstChild("HumanoidRootPart")
+				local humanoid = char and char:FindFirstChildOfClass("Humanoid")
 
-					if rootPart and humanoid and humanoid.Health > 0 then
-						local playerPos = rootPart.Position
-						local vecToPlayer = playerPos - lineCenter
+				if rootPart and humanoid and humanoid.Health > 0 then
+					local playerPos = rootPart.Position
+					local vecToPlayer = playerPos - lineCenter
 
-						-- حساب المسافة الطولية والعمودية
-						local forwardDist = math.abs(vecToPlayer:Dot(lineForward))
-						local projection = vecToPlayer:Dot(lineForward) * lineForward
-						local perpendicularVec = vecToPlayer - projection
-						local perpendicularDist = perpendicularVec.Magnitude
+					-- حساب المسافة
+					local forwardDist = math.abs(vecToPlayer:Dot(lineForward))
+					local projection = vecToPlayer:Dot(lineForward) * lineForward
+					local perpendicularVec = vecToPlayer - projection
+					local perpendicularDist = perpendicularVec.Magnitude
 
-						-- إذا دخل اللاعب في نطاق هالة الأمان
-						if forwardDist <= (lineLength / 2) and perpendicularDist <= dynamicSafetyRadius then
-							local pushDir = perpendicularDist > 0.1 and perpendicularVec.Unit or lineCFrame.RightVector
-
-							local pushSpeed = 60
-							local upSpeed = 15
-
-							rootPart.AssemblyLinearVelocity = (pushDir * pushSpeed) + Vector3.new(0, upSpeed, 0)
-						end
+					-- إذا دخل اللاعب المحلي في نطاق هالة الأمان
+					if forwardDist <= (lineLength / 2) and perpendicularDist <= dynamicSafetyRadius then
+						local pushDir = perpendicularDist > 0.1 and perpendicularVec.Unit or lineCFrame.RightVector
+						local pushSpeed = 60
+						local upSpeed = 15
+						rootPart.AssemblyLinearVelocity = (pushDir * pushSpeed) + Vector3.new(0, upSpeed, 0)
 					end
 				end
 			else
-				-- إخفاء الخط إذا كانت الكرة متوقفة
 				linePart.Transparency = 1
 			end
 		else
-			-- إذا كان safeLineState مساوياً لـ false، يتم إخفاء الخط وتجاهل الدفع
 			linePart.Transparency = 1
 		end
 	end)
 
-	-- تنظيف الخط عند حذف الكرة
 	ball.Destroying:Connect(function()
 		if updateConnection then updateConnection:Disconnect() end
 		if linePart then linePart:Destroy() end
 	end)
 end
 
--- 3. تشغيل المراقبة للكرات الحالية والجديدة
+-- تشغيل المراقبة
 for _, item in ipairs(ballsFolder:GetChildren()) do
 	task.spawn(setupBallTrajectory, item)
 end
