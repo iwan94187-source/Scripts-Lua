@@ -76,7 +76,7 @@ frame.Parent = screenGui
 
 local frameTitle = Instance.new("TextLabel")
 frameTitle.Size=UDim2.new(1,0,0.1,0)
-frameTitle.Text="Dodge or die"
+frameTitle.Text="Dodge or die v5.5"
 frameTitle.TextXAlignment=Enum.TextXAlignment.Left
 frameTitle.TextColor=BrickColor.new("White")
 frameTitle.BackgroundColor3=Color3.fromRGB(24, 24, 24)
@@ -204,8 +204,12 @@ local invBtn = newBtn2("Invisible", 0.15, unScroll)
 local invTerm = newTerm(invBtn)
 
 local safeLineState = false
-local safeLineBtn = newBtn2("Dodge Aura", 0.2, unScroll)
+local safeLineBtn = newBtn2("Zipline", 0.2, unScroll)
 local safeLineTerm = newTerm(safeLineBtn)
+
+local anitkillPartState=false
+local anitkillPartBtn = newBtn2("Anit-Lava/Lazer", 0.25, unScroll)
+local anitkillPartTerm = newTerm(anitkillPartBtn)
 
 
 closeBtn.MouseButton1Click:Connect(function()
@@ -271,6 +275,15 @@ safeLineBtn.MouseButton1Click:Connect(function()
 		safeLineTerm.Text="🟢"
 	else
 		safeLineTerm.Text="🔴"
+	end
+end)
+
+anitkillPartBtn.MouseButton1Click:Connect(function()
+	anitkillPartState=not anitkillPartState
+	if anitkillPartState then 
+		anitkillPartTerm.Text="🟢"
+	else
+		anitkillPartTerm.Text="🔴"
 	end
 end)
 
@@ -976,6 +989,17 @@ runService.Heartbeat:Connect(function(deltaTime)
 			local ground = map:FindFirstChild("Baseplate")
 			if ground then 
 				hrp.CFrame=ground.CFrame
+			end
+		end
+	end
+	
+	if anitkillPartState then 
+		local folderMap = workspace:FindFirstChild("CurrentMap")
+		if folderMap then 
+			local killPart = folderMap:FindFirstChild("Lava") or 
+				folderMap:FindFirstChild("SpinningLazer") and folderMap:FindFirstChild("SpinningLazer"):FindFirstChild("Lazer")
+			if killPart then 
+				killPart:Destroy()
 			end
 		end
 	end
