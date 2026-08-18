@@ -1,0 +1,336 @@
+local players=game:GetService("Players")
+local localplayer=players.LocalPlayer
+local playerGui = localplayer.PlayerGui
+
+local runService = game:GetService("RunService")
+local lightService = game:GetService("Lighting")
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local KatanaPath = ReplicatedStorage:FindFirstChild("Modules", true).Data.Constants.WeaponData.WeaponDefinitions.Katana
+local KatanaData = require(KatanaPath)
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.ResetOnSpawn=false
+screenGui.Parent=playerGui
+
+local function UIcorner(ui) 
+	local uiCorner = Instance.new("UICorner")
+	uiCorner.CornerRadius = UDim.new(0, 10)
+	uiCorner.Parent = ui
+
+	-- 4. إطار خارجي رمادي خفيف للتمييز (اختياري)
+	local uiStroke = Instance.new("UIStroke")
+	uiStroke.Color = Color3.fromRGB(40, 40, 40)
+	uiStroke.Thickness = 1.5
+	uiStroke.Parent = ui
+	return uiCorner
+end 
+
+local blk_color = Color3.fromRGB(24,24,24)
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 250, 0, 250)
+frame.Position = UDim2.new(0.3, 0, 0.15, 0)
+frame.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+frame.Active = true
+frame.Draggable = true -- يجعل النافذة قابلة للسحب!
+frame.Parent = screenGui
+
+local frameTitle = Instance.new("TextLabel")
+frameTitle.Size=UDim2.new(1,0,0.1,0)
+frameTitle.Text="Silent Assassins V1.0"
+frameTitle.TextXAlignment=Enum.TextXAlignment.Left
+frameTitle.TextColor=BrickColor.new("White")
+frameTitle.BackgroundColor3=blk_color
+frameTitle.TextXAlignment=Enum.TextXAlignment.Center
+frameTitle.TextSize=10
+frameTitle.Parent=frame
+
+local ui_frame = UIcorner(frame)
+local ui_frameTitle = UIcorner(frameTitle)
+ui_frameTitle.BottomLeftRadius=UDim.new(0,0)
+ui_frameTitle.BottomRightRadius=UDim.new(0,0)
+
+
+local IsOpen = true
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size=UDim2.new(0,25,0,25)
+closeBtn.Position=UDim2.new(0,0,0,0)
+closeBtn.BackgroundColor=BrickColor.new("Dark grey")
+closeBtn.Text="x"
+closeBtn.TextColor=BrickColor.new("White")
+closeBtn.Parent=screenGui
+
+closeBtn.MouseButton1Click:Connect(function()
+	IsOpen=not IsOpen
+	if IsOpen then 
+		frame.Visible=true
+		closeBtn.Text="x"
+	else 
+		frame.Visible=false
+		closeBtn.Text="o"
+	end
+end)
+
+local function newFrame() 
+	local frm = Instance.new("Frame")
+	frm.Size=UDim2.new(1,0,0.8,0)
+	frm.Position=UDim2.new(0,0,0.1,0)
+	frm.BackgroundTransparency=1
+	frm.Parent=frame
+	return frm
+end
+
+local function newBtn(name,pos,parent)
+	local btn = Instance.new("TextButton")
+	btn.Size=UDim2.new(1,0,0.1,0)
+	btn.Position=UDim2.new(0,0,pos,0)
+	btn.BackgroundColor=BrickColor.new("Black")
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextScaled=true
+	btn.Parent=parent
+	return btn
+end
+
+local function newTrem(parent)
+	local trem = Instance.new("TextLabel")
+	trem.Size = UDim2.new(0,25,1,0)
+	trem.Position=UDim2.new(0.85,0,0,0)
+	trem.BackgroundTransparency=1
+	trem.Text="🔴"
+	trem.TextScaled=true
+	trem.Parent=parent
+	return trem
+end
+
+local function newBox(pos, parent)
+	local box = Instance.new("TextBox")
+	box.Size=UDim2.new(0.5,0,0.1,0)
+	box.Position=UDim2.new(0,0,pos,0)
+	box.BackgroundColor=BrickColor.new("Black")
+	box.TextColor=BrickColor.new("White")
+	box.TextScaled=true
+	box.Text="Number"
+	box.Parent=parent
+	return box
+end
+
+local frame_1 = newFrame()
+frame_1.Visible=true
+
+local frame_2 = newFrame()
+frame_2.Visible=false
+
+local speedState=false
+local speedBtn=newBtn(" Speed",0,frame_1)
+speedBtn.Size=UDim2.new(0.5,0,0.1,0)
+speedBtn.BackgroundColor=BrickColor.new("Really red")
+local speedBox = newBox(0.1,frame_1)
+
+local jumpState=false
+local jumpBtn=newBtn(" Jump",0,frame_1)
+jumpBtn.Size=UDim2.new(0.5,0,0.1,0)
+jumpBtn.Position+=UDim2.new(0.5)
+jumpBtn.BackgroundColor=BrickColor.new("Really red")
+local jumpBox=newBox(0.1,frame_1)
+jumpBox.Position+=UDim2.new(0.5)
+
+local revealState=false
+local revealBtn=newBtn(" Reveal Players",0.25,frame_1)
+revealBtn.TextXAlignment=Enum.TextXAlignment.Left
+local revealTerm=newTrem(revealBtn)
+
+local killAuraState=false
+local killAuraBtn=newBtn(" Kill Aura",0.40,frame_1)
+killAuraBtn.TextXAlignment=Enum.TextXAlignment.Left
+local killAuraTerm=newTrem(killAuraBtn)
+
+local tpBehindState=false
+local tpBehindBtn=newBtn(" Auto Farm",0.55,frame_1)
+tpBehindBtn.TextXAlignment=Enum.TextXAlignment.Left
+local tpBehindTerm=newTrem(tpBehindBtn)
+
+speedBtn.MouseButton1Click:Connect(function()
+	speedState=not speedState
+	if speedState then speedBtn.BackgroundColor=BrickColor.new("Bright green") 
+	else speedBtn.BackgroundColor=BrickColor.new("Really red") end
+end)
+
+jumpBtn.MouseButton1Click:Connect(function()
+	jumpState=not jumpState
+	if jumpState then jumpBtn.BackgroundColor=BrickColor.new("Bright green") 
+	else jumpBtn.BackgroundColor=BrickColor.new("Really red") end
+end)
+
+revealBtn.MouseButton1Click:Connect(function()
+	revealState=not revealState
+	if revealState then 
+		revealTerm.Text="🟢" 
+	else 
+		revealTerm.Text="🔴" 
+	end
+end)
+
+local originalData = {}
+for i, attack in pairs(KatanaData.attackCycle) do
+	originalData[i] = {
+		attackTime = attack.attackTime,
+		hitboxSizeAdd = attack.hitboxSizeAdd,
+		knockbackMult = attack.knockbackMult or attack.knockbackMul
+	}
+end
+
+local function updateKatana()
+	if killAuraState then
+		-- تطبيق التعديلات عند تفعيل الميزة
+		for i, attack in pairs(KatanaData.attackCycle) do
+			attack.attackTime = 0.25
+			attack.hitboxSizeAdd = Vector3.new(8, 8, 8)
+			attack.knockbackMult = 2
+		end
+		print("KillAura مفعل: تم تطبيق تعديلات الكاتانا")
+	else
+		-- استعادة القيم الأصلية عند إيقاف الميزة
+		for i, attack in pairs(KatanaData.attackCycle) do
+			if originalData[i] then
+				attack.attackTime = originalData[i].attackTime
+				attack.hitboxSizeAdd = originalData[i].hitboxSizeAdd
+				attack.knockbackMult = originalData[i].knockbackMult
+			end
+		end
+		print("KillAura معطل: تم إعادة القيم الأصلية")
+	end
+end
+
+killAuraBtn.MouseButton1Click:Connect(function()
+	killAuraState=not killAuraState
+	if killAuraState then 
+		killAuraTerm.Text="🟢"
+		updateKatana()
+	else
+		killAuraTerm.Text="🔴"
+	end
+end)
+
+local function getTargetModel()
+	for _, item in ipairs(workspace:GetChildren()) do
+		if item:IsA("Model") and not players:GetPlayerFromCharacter(item) then
+			if item:FindFirstChildWhichIsA("BasePart", true) then
+				return item
+			end
+		end
+	end
+	return nil
+end
+
+-- 2. دالة التأكد من وجود موقع اللاعب بالكامل داخل أبعاد أي بارت (X, Y, Z)
+local function isPositionInsidePart(part, position)
+	-- تحويل موقع اللاعب إلى الإحداثيات المحلية للبارت
+	local localPos = part.CFrame:PointToObjectSpace(position)
+	local halfSize = part.Size / 2
+
+	-- التأكد من أن اللاعب داخل حدود البارت في المحاور الثلاثة
+	return math.abs(localPos.X) <= halfSize.X
+		and math.abs(localPos.Y) <= halfSize.Y
+		and math.abs(localPos.Z) <= halfSize.Z
+end
+
+-- 3. دالة التأكد إذا كان اللاعب داخل أي بارت ينتمي للموديل
+local function isPlayerInsideModel(playerRoot, targetModel)
+	local targetPos = playerRoot.Position
+
+	for _, part in ipairs(targetModel:GetDescendants()) do
+		if part:IsA("BasePart") then
+			if isPositionInsidePart(part, targetPos) then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+-- 4. دالة البحث والنقل
+local function checkAndTeleport(distanceBehind)
+	distanceBehind = distanceBehind or 3
+
+	local myChar = localplayer.Character
+	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
+	local myHumanoid = myChar:FindFirstChildOfClass("Humanoid")
+	if not myHumanoid or myHumanoid.Health <= 0 then return end
+	local myRoot = myChar.HumanoidRootPart
+
+	local targetModel = getTargetModel()
+	if not targetModel then return end
+
+	local closestPlayer = nil
+	local shortestDistance = math.huge
+
+	-- البحث بين اللاعبين
+	for _, player in ipairs(players:GetPlayers()) do
+		if player ~= localplayer and player.Character then
+			local char = player.Character
+			local targetRoot = char:FindFirstChild("HumanoidRootPart")
+			local targetHumanoid = char:FindFirstChildOfClass("Humanoid")
+
+			-- الشرط: حي + داخل حدود أحد بارتات الموديل فعلياً
+			if targetRoot and targetHumanoid and targetHumanoid.Health > 0 then
+				if isPlayerInsideModel(targetRoot, targetModel) then
+					local dist = (myRoot.Position - targetRoot.Position).Magnitude
+
+					if dist < shortestDistance then
+						shortestDistance = dist
+						closestPlayer = player
+					end
+				end
+			end
+		end
+	end
+
+	-- التنقل خلف اللاعب المقبول
+	if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("HumanoidRootPart") then
+		local targetRoot = closestPlayer.Character.HumanoidRootPart
+		myRoot.CFrame = targetRoot.CFrame * CFrame.new(0, 0, distanceBehind)
+	end
+end
+
+-- 3. حلقة المراقبة المستمرة بناءً على tpBehindState
+
+
+tpBehindBtn.MouseButton1Click:Connect(function()
+	tpBehindState=not tpBehindState
+	if tpBehindState then tpBehindTerm.Text="🟢" else tpBehindTerm.Text="🔴"
+	end
+end)
+
+runService.Heartbeat:Connect(function()
+	if speedState then 
+		local human = localplayer.Character and localplayer.Character:FindFirstChild("Humanoid")
+		if human and tonumber(speedBox.Text) then 
+			human.WalkSpeed=speedBox.Text
+		end
+	end
+	if jumpState then 
+		local human = localplayer.Character and localplayer.Character:FindFirstChild("Humanoid")
+		if human and tonumber(jumpBox.Text) then 
+			human.UseJumpPower=true
+			human.JumpPower=jumpBox.Text
+		end
+	end
+	if tpBehindState then
+		checkAndTeleport(3) -- نقل اللاعب خلف الهدف بمسافة 3 استود
+	end
+	if revealState then 
+		for _, plr in ipairs(players:GetPlayers()) do 
+
+			local char = plr.Character
+			if char then 
+				for _, item in ipairs(char:GetChildren()) do 
+					if item:IsA("BasePart") and item.Name~="HumanoidRootPart" then
+						item.Transparency=0 end
+
+				end
+			end
+		end
+	end
+end)
+
