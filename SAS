@@ -37,7 +37,7 @@ frame.Parent = screenGui
 
 local frameTitle = Instance.new("TextLabel")
 frameTitle.Size=UDim2.new(1,0,0.1,0)
-frameTitle.Text="Silent Assassins V1.0"
+frameTitle.Text="Silent Assassins V3.5"
 frameTitle.TextXAlignment=Enum.TextXAlignment.Left
 frameTitle.TextColor=BrickColor.new("White")
 frameTitle.BackgroundColor3=blk_color
@@ -223,33 +223,24 @@ local function getTargetModel()
 	return nil
 end
 
--- 2. دالة التأكد من وجود موقع اللاعب بالكامل داخل أبعاد أي بارت (X, Y, Z)
-local function isPositionInsidePart(part, position)
-	-- تحويل موقع اللاعب إلى الإحداثيات المحلية للبارت
-	local localPos = part.CFrame:PointToObjectSpace(position)
-	local halfSize = part.Size / 2
+-- 2. دالة التأكد من تواجد اللاعب داخل نطاق الموديل بالكامل (Bounding Box)
+local function isPlayerInsideModelBox(playerRoot, targetModel, margin)
+	margin = margin or 3 -- هامش مرونة إضافي بحسب الارتفاع وقرب اللاعب من الحواف
 
-	-- التأكد من أن اللاعب داخل حدود البارت في المحاور الثلاثة
-	return math.abs(localPos.X) <= halfSize.X
-		and math.abs(localPos.Y) <= halfSize.Y
-		and math.abs(localPos.Z) <= halfSize.Z
+	-- الحصول على مركز الموديل وحجمه الكلي الإجمالي
+	local modelCFrame, modelSize = targetModel:GetBoundingBox()
+
+	-- تحويل موقع اللاعب بالنسبة لمركز الموديل
+	local localPos = modelCFrame:PointToObjectSpace(playerRoot.Position)
+	local halfSize = modelSize / 2
+
+	-- فحص المحاور الثلاثة X, Y, Z لنطاق الموديل الكلي
+	return math.abs(localPos.X) <= (halfSize.X + margin)
+		and math.abs(localPos.Y) <= (halfSize.Y + margin)
+		and math.abs(localPos.Z) <= (halfSize.Z + margin)
 end
 
--- 3. دالة التأكد إذا كان اللاعب داخل أي بارت ينتمي للموديل
-local function isPlayerInsideModel(playerRoot, targetModel)
-	local targetPos = playerRoot.Position
-
-	for _, part in ipairs(targetModel:GetDescendants()) do
-		if part:IsA("BasePart") then
-			if isPositionInsidePart(part, targetPos) then
-				return true
-			end
-		end
-	end
-	return false
-end
-
--- 4. دالة البحث والنقل
+-- 3. دالة البحث والنقل للأقرب داخل الموديل
 local function checkAndTeleport(distanceBehind)
 	distanceBehind = distanceBehind or 3
 
@@ -265,16 +256,16 @@ local function checkAndTeleport(distanceBehind)
 	local closestPlayer = nil
 	local shortestDistance = math.huge
 
-	-- البحث بين اللاعبين
+	-- البحث بين اللاعبين الأحياء
 	for _, player in ipairs(players:GetPlayers()) do
 		if player ~= localplayer and player.Character then
 			local char = player.Character
 			local targetRoot = char:FindFirstChild("HumanoidRootPart")
 			local targetHumanoid = char:FindFirstChildOfClass("Humanoid")
 
-			-- الشرط: حي + داخل حدود أحد بارتات الموديل فعلياً
+			-- الشرط: حي + ينتمي لداخل النطاق الإجمالي للموديل
 			if targetRoot and targetHumanoid and targetHumanoid.Health > 0 then
-				if isPlayerInsideModel(targetRoot, targetModel) then
+				if isPlayerInsideModelBox(targetRoot, targetModel, 3) then
 					local dist = (myRoot.Position - targetRoot.Position).Magnitude
 
 					if dist < shortestDistance then
@@ -286,7 +277,7 @@ local function checkAndTeleport(distanceBehind)
 		end
 	end
 
-	-- التنقل خلف اللاعب المقبول
+	-- تنفيذ الانتقال خلف اللاعب المتواجد داخل الموديل
 	if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("HumanoidRootPart") then
 		local targetRoot = closestPlayer.Character.HumanoidRootPart
 		myRoot.CFrame = targetRoot.CFrame * CFrame.new(0, 0, distanceBehind)
@@ -333,4 +324,5 @@ runService.Heartbeat:Connect(function()
 		end
 	end
 end)
+
 
