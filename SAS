@@ -9,6 +9,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local KatanaPath = ReplicatedStorage:FindFirstChild("Modules", true).Data.Constants.WeaponData.WeaponDefinitions.Katana
 local KatanaData = require(KatanaPath)
 
+local Events = ReplicatedStorage:WaitForChild("Events")
+local Remote = Events:WaitForChild("GameRemoteFunction")
+
 local screenGui = Instance.new("ScreenGui")
 screenGui.ResetOnSpawn=false
 screenGui.Parent=playerGui
