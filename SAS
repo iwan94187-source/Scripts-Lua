@@ -6,11 +6,10 @@ local runService = game:GetService("RunService")
 local lightService = game:GetService("Lighting")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local KatanaPath = ReplicatedStorage:FindFirstChild("Modules", true).Data.Constants.WeaponData.WeaponDefinitions.Katana
-local KatanaData = require(KatanaPath)
-
 local Events = ReplicatedStorage:WaitForChild("Events")
 local Remote = Events:WaitForChild("GameRemoteFunction")
+local KatanaPath = ReplicatedStorage:FindFirstChild("Modules", true).Data.Constants.WeaponData.WeaponDefinitions.Katana
+local KatanaData = require(KatanaPath)
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.ResetOnSpawn=false
@@ -337,9 +336,9 @@ task.spawn(function()
 		if killAuraState then
 			local char = localplayer.Character
 			local myHRP = char and char:FindFirstChild("HumanoidRootPart")
-			local currentTool = char and char:FindFirstChildOfClass("Tool")
+			-- جلب السلاح سواء كان مجهزاً في اليد أو بداخل الـ Backpack
+			local currentTool = (char and char:FindFirstChildOfClass("Tool")) or (localplayer:FindFirstChild("Backpack") and localplayer.Backpack:FindFirstChildOfClass("Tool"))
 
-			-- التنفيذ فقط عند وجود شخصية وأداة مجهزة
 			if myHRP and currentTool then
 				for _, p in pairs(players:GetPlayers()) do
 					if p ~= localplayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
@@ -369,7 +368,6 @@ task.spawn(function()
 								enemyModel = p.Character, distance = dist, knockback = 50
 							}}
 
-							-- استدعاء أمن دون تكديس الـ Threads
 							pcall(function()
 								Remote:InvokeServer("AttemptWeaponHit", attackData, hitData)
 							end)
