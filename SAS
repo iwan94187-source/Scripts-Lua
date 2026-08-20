@@ -140,7 +140,11 @@ local revealBtn=newBtn(" Reveal Players",0.25,frame_1)
 revealBtn.TextXAlignment=Enum.TextXAlignment.Left
 local revealTerm=newTrem(revealBtn)
 
+local HitboxSize = 15
+local Reach = 500 
+local damage = 100
 local killAuraState=false
+
 local killAuraBtn=newBtn(" Kill Aura",0.40,frame_1)
 killAuraBtn.TextXAlignment=Enum.TextXAlignment.Left
 local killAuraTerm=newTrem(killAuraBtn)
@@ -325,4 +329,52 @@ runService.Heartbeat:Connect(function()
 	end
 end)
 
+task.spawn(function()
+	while true do
+		if killAuraState then
+			local char = localplayer.Character
+			local myHRP = char and char:FindFirstChild("HumanoidRootPart")
+			local currentTool = char and char:FindFirstChildOfClass("Tool")
 
+			-- التنفيذ فقط عند وجود شخصية وأداة مجهزة
+			if myHRP and currentTool then
+				for _, p in pairs(players:GetPlayers()) do
+					if p ~= localplayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+						local targetHRP = p.Character.HumanoidRootPart
+						local dist = (targetHRP.Position - myHRP.Position).Magnitude
+
+						if dist <= Reach then
+							local attackData = {
+								attackCycleData = {lungeMult = 2, slowMult = 0, slowTime = 0, knockbackMult = 1, attackTime = 0.1},
+								knockback = 50, shouldLock = false, slowTime = 0, shouldLunge = true, isCritical = true,
+								weaponDefinition = {
+									attackCycle = {
+										["1"] = {knockbackMul = 1, slowMult = 0, slowTime = 0, lungeMul = 1, attackTime = 0.1},
+										["2"] = {knockbackMul = 1, slowMult = 0, slowTime = 0, lungeMul = 1, attackTime = 0.1}
+									},
+									attackOrder = {"1", "2"}
+								},
+								attackCooldown = 0, shouldSlow = false, lungeKnockback = 50,
+								hitboxSize = Vector3.new(HitboxSize, HitboxSize, HitboxSize),
+								slowMult = 0, cycleIndex = 1,
+								tool = currentTool,
+								damage = damage
+							}
+							local hitData = {{
+								direction = (targetHRP.Position - myHRP.Position).Unit,
+								isClosestEnemy = true, origin = myHRP.Position,
+								enemyModel = p.Character, distance = dist, knockback = 50
+							}}
+
+							-- استدعاء أمن دون تكديس الـ Threads
+							pcall(function()
+								Remote:InvokeServer("AttemptWeaponHit", attackData, hitData)
+							end)
+						end
+					end
+				end
+			end
+		end
+		task.wait(0.1) 
+	end
+end)
