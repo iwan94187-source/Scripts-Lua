@@ -309,7 +309,7 @@ local function setupBallTrajectory(ball)
 	linePart.Parent = workspace
 
 	local lineLength = 150 -- طول الخط
-	local extraSafetyBuffer = 5 -- مسافة التأمين الإضافية بالـ Studs
+	local extraSafetyBuffer = 10 -- مسافة التأمين الإضافية بالـ Studs
 	local updateConnection = nil
 
 	updateConnection = runService.Heartbeat:Connect(function()
@@ -325,7 +325,6 @@ local function setupBallTrajectory(ball)
 
 			-- إذا كانت الكرة تتحرك
 			if velocity.Magnitude > 1 then
-				linePart.Transparency = 0.3
 				local direction = velocity.Unit
 
 				-- ربط موقع واتجاه الخط بالكرة
