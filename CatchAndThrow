@@ -437,32 +437,34 @@ runService.Heartbeat:Connect(function()
 end)
 
 -- دالة CFrame أفقية تماماً تلغي تأثير المحور Y
-local function getFlatLookCFrame(myPos, targetPos)
-	-- تجاهل ارتفاع الهدف وجعله على نفس مستوى ارتفاع شخصيتك تماماً
-	local flatTargetPos = Vector3.new(targetPos.X, myPos.Y, targetPos.Z)
-
-	-- حماية بسيطة في حال كان الهدف وقوفاً على نفس إحداثياتك بالضبط
-	local dir = (flatTargetPos - myPos)
-	if dir.Magnitude < 0.001 then
-		return CFrame.new(myPos)
-	end
-
-	return CFrame.lookAt(myPos, flatTargetPos)
-end
+local originalY = nil
 
 runService.Heartbeat:Connect(function()
-	if not LockPlayerState then return end
-
 	local myChar = LocalPlayer.Character
 	local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
 	local myHumanoid = myChar and myChar:FindFirstChildOfClass("Humanoid")
 
+	-- إذا تم إيقاف القفل، نعيد الشخصية لارتفاعها الأصلي (مرة واحدة) وننتهي
+	if not LockPlayerState then
+		if originalY and myRoot then
+			myRoot.CFrame = CFrame.new(myRoot.Position.X, originalY, myRoot.Position.Z) * (myRoot.CFrame - myRoot.Position)
+			originalY = nil -- إعادة ضبط المتغير
+		end
+		return
+	end
+
+	-- التأكد من وجود الشخصية وصحتها
 	if myRoot and myHumanoid and myHumanoid.Health > 0 then
+		-- حفظ الارتفاع الأصلي في أول فرام عند تفعيل القفل
+		if not originalY then
+			originalY = myRoot.Position.Y
+		end
+
 		local rightArm = myChar:FindFirstChild("Right Arm") or myChar:FindFirstChild("RightHand")
 		local rightGrip = rightArm and rightArm:FindFirstChild("RightGrip")
 
 		if rightGrip then
-			-- الحالة الأولى: وجود RightGrip -> القفل الأفقي على أقرب لاعب
+			-- الحالة الأولى: وجود RightGrip -> القفل ومطابقة الارتفاع مع أقرب لاعب
 			local closest = getClosestPlayer()
 
 			if closest and closest.Character then
@@ -470,22 +472,24 @@ runService.Heartbeat:Connect(function()
 				local targetHum = targetChar:FindFirstChildOfClass("Humanoid")
 
 				if targetHum and targetHum.Health > 0 and targetChar:IsDescendantOf(workspace) then
-					local targetPart = targetChar:FindFirstChild("HumanoidRootPart") 
-						or targetChar:FindFirstChild("Torso") 
-						or targetChar:FindFirstChild("UpperTorso")
+					local targetRoot = targetChar:FindFirstChild("HumanoidRootPart")
 
-					if targetPart and targetPart:IsA("BasePart") then
-						-- دمج التوجيه الأفقي مع تثبيت المستوى على المحور Y
-						myRoot.CFrame = getFlatLookCFrame(myRoot.Position, targetPart.Position)
+					if targetRoot then
+						-- 1. إنشاء موقع جديد لشخصيتك بنفس إحداثياتك (X, Z) ولكن بارتفاع الهدف (Y)
+						local myMatchedPos = Vector3.new(myRoot.Position.X, targetRoot.Position.Y, myRoot.Position.Z)
+						
+						-- 2. توجيه النظر بشكل طبيعي من موقعك المرتفع نحو موقع الهدف
+						myRoot.CFrame = CFrame.lookAt(myMatchedPos, targetRoot.Position)
 					end
 				end
 			end
 		else
-			-- الحالة الثانية: عدم وجود RightGrip -> القفل الأفقي على TouchPart
+			-- الحالة الثانية: عدم وجود RightGrip -> القفل على TouchPart
 			local touchPart = findTouchPart()
 
 			if touchPart and touchPart:IsA("BasePart") and touchPart:IsDescendantOf(workspace) then
-				myRoot.CFrame = getFlatLookCFrame(myRoot.Position, touchPart.Position)
+				local myMatchedPos = Vector3.new(myRoot.Position.X, touchPart.Position.Y, myRoot.Position.Z)
+				myRoot.CFrame = CFrame.lookAt(myMatchedPos, touchPart.Position)
 			end
 		end
 	end
