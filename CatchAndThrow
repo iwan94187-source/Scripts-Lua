@@ -4,8 +4,8 @@ local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local runService = game:GetService("RunService")
 
---local mxx = workspace:WaitForChild("Scriptable", 5)
---local arena = mxx:WaitForChild("Arena", 5)
+local mxx = workspace:WaitForChild("Scriptable", 5)
+local arena = mxx:WaitForChild("Arena", 5)
 
 -- 1. إنشاء الواجهة والخط الرئيسي (Slider Frame)
 local screenGui = Instance.new("ScreenGui", PlayerGui)
