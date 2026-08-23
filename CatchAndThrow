@@ -445,13 +445,6 @@ runService.Heartbeat:Connect(function()
 	local myHumanoid = myChar and myChar:FindFirstChildOfClass("Humanoid")
 
 	-- إذا تم إيقاف القفل، نعيد الشخصية لارتفاعها الأصلي (مرة واحدة) وننتهي
-	if not LockPlayerState then
-		if originalY and myRoot then
-			myRoot.CFrame = CFrame.new(myRoot.Position.X, originalY, myRoot.Position.Z) * (myRoot.CFrame - myRoot.Position)
-			originalY = nil -- إعادة ضبط المتغير
-		end
-		return
-	end
 
 	-- التأكد من وجود الشخصية وصحتها
 	if myRoot and myHumanoid and myHumanoid.Health > 0 then
@@ -477,18 +470,19 @@ runService.Heartbeat:Connect(function()
 					if targetRoot then
 						-- 1. إنشاء موقع جديد لشخصيتك بنفس إحداثياتك (X, Z) ولكن بارتفاع الهدف (Y)
 						local myMatchedPos = Vector3.new(myRoot.Position.X, targetRoot.Position.Y, myRoot.Position.Z)
-						
+
 						-- 2. توجيه النظر بشكل طبيعي من موقعك المرتفع نحو موقع الهدف
 						myRoot.CFrame = CFrame.lookAt(myMatchedPos, targetRoot.Position)
 					end
 				end
 			end
 		else
+			myRoot.CFrame = CFrame.new(myRoot.Position.X, originalY, myRoot.Position.Z) * (myRoot.CFrame - myRoot.Position)
+			originalY = nil -- 
 			-- الحالة الثانية: عدم وجود RightGrip -> القفل على TouchPart
 			local touchPart = findTouchPart()
-
+			
 			if touchPart and touchPart:IsA("BasePart") and touchPart:IsDescendantOf(workspace) then
-				local myMatchedPos = Vector3.new(myRoot.Position.X, touchPart.Position.Y, myRoot.Position.Z)
 				myRoot.CFrame = CFrame.lookAt(myMatchedPos, touchPart.Position)
 			end
 		end
