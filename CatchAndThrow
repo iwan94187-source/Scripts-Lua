@@ -494,14 +494,19 @@ runService.Heartbeat:Connect(function()
 				originalY = nil
 			end
 
-			-- الحالة الثانية: عدم وجود RightGrip -> القفل الأفقي فقط على TouchPart (بدون محور Y)
+			-- الحالة الثانية: قفل أفقي حقيقي على TouchPart دون رفع أو خفض CFrame
 			local touchPart = findTouchPart()
 
 			if touchPart and touchPart:IsA("BasePart") and touchPart:IsDescendantOf(workspace) then
-				-- إنشاء نقطة نظر أفقية تماماً على نفس مستوى ارتفاع شخصيتك الحالي
-				local flatTouchPos = Vector3.new(touchPart.Position.X, myRoot.Position.Y, touchPart.Position.Z)
+				-- حساب متجه الاتجاه الأفقي الخالص (تجاهل Y للطرفين)
+				local myPos = myRoot.Position
+				local targetPos = touchPart.Position
+				local dir = Vector3.new(targetPos.X - myPos.X, 0, targetPos.Z - myPos.Z)
 
-				myRoot.CFrame = CFrame.lookAt(myRoot.Position, flatTouchPos)
+				-- تطبيق الدوران الأفقي فقط مع الحفاظ التام على موقعك الحالي وقوة الجاذبية
+				if dir.Magnitude > 0.001 then
+					myRoot.CFrame = CFrame.lookAt(myPos, myPos + dir)
+				end
 			end
 		end
 	end
