@@ -13,7 +13,6 @@ local screenGui = Instance.new("ScreenGui", PlayerGui)
 screenGui.ResetOnSpawn = false
 
 local blk_color = Color3.fromRGB(24,24,24)
-local highdistance = 12.5
 
 local Mainframe = Instance.new("Frame")
 Mainframe.Size=UDim2.new(0,250,0,300)
@@ -494,9 +493,10 @@ runService.Heartbeat:Connect(function()
 			originalY = nil -- 
 			-- الحالة الثانية: عدم وجود RightGrip -> القفل على TouchPart
 			local touchPart = findTouchPart()
-
+			
 			if touchPart and touchPart:IsA("BasePart") and touchPart:IsDescendantOf(workspace) then
-				myRoot.CFrame = CFrame.lookAt(myRoot.Position, touchPart.Position)
+				local myMatchedPos = Vector3.new(myRoot.Position.X, touchPart.Position.Y, myRoot.Position.Z)
+				myRoot.CFrame = CFrame.lookAt(myMatchedPos, touchPart.Position)
 			end
 		end
 	end
@@ -649,7 +649,7 @@ runService.Heartbeat:Connect(function()
 
 		if not rightGrip then
 			-- الحالة الأولى: وجود RightGrip -> القفل ومطابقة الارتفاع مع أقرب لاعب
-			myHumanoid.HipHeight=highdistance
+			myHumanoid.HipHeight=10
 		else
 			myHumanoid.HipHeight=0
 		end
