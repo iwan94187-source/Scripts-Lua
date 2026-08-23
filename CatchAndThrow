@@ -436,16 +436,18 @@ runService.Heartbeat:Connect(function()
 	end
 end)
 
-local function getSafeTargetCFrame(myPos, targetPos)
-	local dir = (targetPos - myPos)
+-- دالة CFrame أفقية تماماً تلغي تأثير المحور Y
+local function getFlatLookCFrame(myPos, targetPos)
+	-- تجاهل ارتفاع الهدف وجعله على نفس مستوى ارتفاع شخصيتك تماماً
+	local flatTargetPos = Vector3.new(targetPos.X, myPos.Y, targetPos.Z)
 
-	-- إذا كان الهدف مباشرة تحتك أو فوقك تماماً بمحاذاة 100%
-	-- نضيف انحرافاً ميكروسكوبياً (0.001) لمنع التفاف الشخصية بشكل وهمي
-	if math.abs(dir.X) < 0.001 and math.abs(dir.Z) < 0.001 then
-		targetPos = targetPos + Vector3.new(0.001, 0, 0.001)
+	-- حماية بسيطة في حال كان الهدف وقوفاً على نفس إحداثياتك بالضبط
+	local dir = (flatTargetPos - myPos)
+	if dir.Magnitude < 0.001 then
+		return CFrame.new(myPos)
 	end
 
-	return CFrame.lookAt(myPos, targetPos)
+	return CFrame.lookAt(myPos, flatTargetPos)
 end
 
 runService.Heartbeat:Connect(function()
@@ -460,31 +462,30 @@ runService.Heartbeat:Connect(function()
 		local rightGrip = rightArm and rightArm:FindFirstChild("RightGrip")
 
 		if rightGrip then
-			-- الحالة الأولى: وجود RightGrip -> القفل الكامل على أقرب لاعب
+			-- الحالة الأولى: وجود RightGrip -> القفل الأفقي على أقرب لاعب
 			local closest = getClosestPlayer()
 
 			if closest and closest.Character then
 				local targetChar = closest.Character
 				local targetHum = targetChar:FindFirstChildOfClass("Humanoid")
 
-				-- تأكيد أن اللاعب حي وموجود فعلياً داخل الـ Workspace وليس جثة اختفت
 				if targetHum and targetHum.Health > 0 and targetChar:IsDescendantOf(workspace) then
-					local targetPart = targetChar:FindFirstChild("Torso") 
-						or targetChar:FindFirstChild("UpperTorso") 
-						or targetChar:FindFirstChild("HumanoidRootPart")
+					local targetPart = targetChar:FindFirstChild("HumanoidRootPart") 
+						or targetChar:FindFirstChild("Torso") 
+						or targetChar:FindFirstChild("UpperTorso")
 
 					if targetPart and targetPart:IsA("BasePart") then
-						-- قفل 3D كامل (أفقي وعمودي) مع معالجة زوايا القفز والانسداح
-						myRoot.CFrame = getSafeTargetCFrame(myRoot.Position, targetPart.Position)
+						-- دمج التوجيه الأفقي مع تثبيت المستوى على المحور Y
+						myRoot.CFrame = getFlatLookCFrame(myRoot.Position, targetPart.Position)
 					end
 				end
 			end
 		else
-			-- الحالة الثانية: عدم وجود RightGrip -> القفل الكامل على TouchPart
+			-- الحالة الثانية: عدم وجود RightGrip -> القفل الأفقي على TouchPart
 			local touchPart = findTouchPart()
 
 			if touchPart and touchPart:IsA("BasePart") and touchPart:IsDescendantOf(workspace) then
-				myRoot.CFrame = getSafeTargetCFrame(myRoot.Position, touchPart.Position)
+				myRoot.CFrame = getFlatLookCFrame(myRoot.Position, touchPart.Position)
 			end
 		end
 	end
