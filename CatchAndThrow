@@ -15,7 +15,7 @@ screenGui.ResetOnSpawn = false
 local blk_color = Color3.fromRGB(24,24,24)
 
 local Mainframe = Instance.new("Frame")
-Mainframe.Size=UDim2.new(0,250,0,250)
+Mainframe.Size=UDim2.new(0,250,0,300)
 Mainframe.Position=UDim2.new(0.125,0,0,0)
 Mainframe.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 Mainframe.Visible=false
@@ -89,24 +89,24 @@ end
 
 local function newBtn(name,pos,parent)
 	local btn = Instance.new("TextButton")
-	btn.Size=UDim2.new(0.9,0,0.15,0)
+	btn.Size=UDim2.new(0.9,0,0.13,0)
 	btn.Position=UDim2.new(0.05,0,pos,0)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
 	btn.Text=name
-	btn.TextSize=8
+	btn.TextSize=7
 	btn.Parent=parent
 	return btn
 end
 
 local function newLbl(name,pos,parent)
 	local btn = Instance.new("TextLabel")
-	btn.Size=UDim2.new(0.9,0,0.15,0)
+	btn.Size=UDim2.new(0.9,0,0.13,0)
 	btn.Position=UDim2.new(0.05,0,pos,0)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
 	btn.Text=name
-	btn.TextSize=8
+	btn.TextSize=7
 	btn.Parent=parent
 	return btn
 end
@@ -125,7 +125,7 @@ end
 local function newKnob(parent)
 	local frame = Instance.new("Frame")
 	frame.Size=UDim2.new(0,15,0,15)
-	frame.Position=UDim2.new(0,-10,0.5,-10)
+	frame.Position=UDim2.new(0,-10,0.5,-8)
 	frame.BackgroundColor3=Color3.fromRGB(255, 255, 255)
 	frame.Parent=parent
 	return frame
@@ -146,26 +146,32 @@ speedBtn.TextXAlignment="Left"
 local speedPlate = newPlate(speedBtn)
 local speedKnob = newKnob(speedPlate)
 
-local speedSlideBtn = newLbl(" Speed",0.275,Mainframe)
+local speedSlideBtn = newLbl(" Speed",0.25,Mainframe)
 speedSlideBtn.TextXAlignment="Left"
 
 local AutoCatchState = false
-local AutoCatchBtn = newBtn(" Auto Catch",0.45,Mainframe)
+local AutoCatchBtn = newBtn(" Auto Catch",0.4,Mainframe)
 AutoCatchBtn.TextXAlignment="Left"
 local AutoCatchPlate = newPlate(AutoCatchBtn)
 local AutoCatchKnob = newKnob(AutoCatchPlate)
 
 local LockPlayerState = false
-local LockPlayerBtn = newBtn(" AimBot",0.625,Mainframe)
+local LockPlayerBtn = newBtn(" AimBot",0.55,Mainframe)
 LockPlayerBtn.TextXAlignment="Left"
 local LockPlayerPlate = newPlate(LockPlayerBtn)
 local LockPlayerKnob = newKnob(LockPlayerPlate)
 
 local GetKnifeState = false
-local GetKnifeBtn = newBtn(" Get Knife",0.80,Mainframe)
+local GetKnifeBtn = newBtn(" Get Knife",0.7,Mainframe)
 GetKnifeBtn.TextXAlignment="Left"
 local GetKnifePlate = newPlate(GetKnifeBtn)
 local GetKnifeKnob = newKnob(GetKnifePlate)
+
+local surviveState = false
+local surviveBtn = newBtn(" Survive",0.85,Mainframe)
+surviveBtn.TextXAlignment="Left"
+local survivePlate = newPlate(surviveBtn)
+local surviveKnob = newKnob(survivePlate)
 
 local sliderBack = Instance.new("Frame", speedSlideBtn)
 sliderBack.Size = UDim2.new(0, 140, 0, 5) -- الخط الممتد
@@ -233,6 +239,10 @@ newUi(LockPlayerKnob)
 newUi(GetKnifeBtn)
 newUi(GetKnifePlate)
 newUi(GetKnifeKnob)
+
+newUi(surviveBtn)
+newUi(survivePlate)
+newUi(surviveKnob)
 
 newUi(iconFrame)
 
@@ -441,6 +451,7 @@ end)
 local originalY = nil
 
 runService.Heartbeat:Connect(function()
+	if not LockPlayerState or cooldown2 then return end
 	local myChar = LocalPlayer.Character
 	local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
 	local myHumanoid = myChar and myChar:FindFirstChildOfClass("Humanoid")
@@ -519,7 +530,7 @@ speedBtn.MouseButton1Click:Connect(function()
 		speedKnob.Position=UDim2.new(1,-10,0.5,-8)
 		speedPlate.BackgroundColor3=Color3.fromRGB(255, 255, 255)
 	else 
-		speedKnob.Position=UDim2.new(0,-10,0.5,-10)
+		speedKnob.Position=UDim2.new(0,-10,0.5,-8)
 		speedPlate.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 	end
 end)
@@ -530,7 +541,7 @@ AutoCatchBtn.MouseButton1Click:Connect(function()
 		AutoCatchKnob.Position=UDim2.new(1,-10,0.5,-8)
 		AutoCatchPlate.BackgroundColor3=Color3.fromRGB(255, 255, 255)
 	else 
-		AutoCatchKnob.Position=UDim2.new(0,-10,0.5,-10)
+		AutoCatchKnob.Position=UDim2.new(0,-10,0.5,-8)
 		AutoCatchPlate.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 	end
 end)
@@ -541,7 +552,7 @@ LockPlayerBtn.MouseButton1Click:Connect(function()
 		LockPlayerKnob.Position=UDim2.new(1,-10,0.5,-8)
 		LockPlayerPlate.BackgroundColor3=Color3.fromRGB(255, 255, 255)
 	else 
-		LockPlayerKnob.Position=UDim2.new(0,-10,0.5,-10)
+		LockPlayerKnob.Position=UDim2.new(0,-10,0.5,-8)
 		LockPlayerPlate.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 	end
 end)
@@ -552,8 +563,19 @@ GetKnifeBtn.MouseButton1Click:Connect(function()
 		GetKnifeKnob.Position=UDim2.new(1,-10,0.5,-8)
 		GetKnifePlate.BackgroundColor3=Color3.fromRGB(255, 255, 255)
 	else 
-		GetKnifeKnob.Position=UDim2.new(0,-10,0.5,-10)
+		GetKnifeKnob.Position=UDim2.new(0,-10,0.5,-8)
 		GetKnifePlate.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	end
+end)
+
+surviveBtn.MouseButton1Click:Connect(function()
+	surviveState=not surviveState
+	if surviveState then 
+		surviveKnob.Position=UDim2.new(1,-10,0.5,-8)
+		survivePlate.BackgroundColor3=Color3.fromRGB(255, 255, 255)
+	else 
+		surviveKnob.Position=UDim2.new(0,-10,0.5,-8)
+		survivePlate.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 	end
 end)
 
@@ -606,6 +628,29 @@ runService.Heartbeat:Connect(function()
 		-- 3. نقل الشخصية فوراً إلى موقع السكين
 		if targetCFrame then
 			myRoot.CFrame = targetCFrame
+		end
+	end
+end)
+
+runService.Heartbeat:Connect(function()
+	local myChar = LocalPlayer.Character
+	local myHumanoid = myChar and myChar:FindFirstChildOfClass("Humanoid")
+	
+	if not surviveState then 
+		if myHumanoid then myHumanoid.HipHeight=0 end
+		return
+	end
+	
+	if myHumanoid and myHumanoid.Health > 0 then
+
+		local rightArm = myChar:FindFirstChild("Right Arm") or myChar:FindFirstChild("RightHand")
+		local rightGrip = rightArm and rightArm:FindFirstChild("RightGrip")
+
+		if not rightGrip then
+			-- الحالة الأولى: وجود RightGrip -> القفل ومطابقة الارتفاع مع أقرب لاعب
+			myHumanoid.HipHeight=10
+		else
+			myHumanoid.HipHeight=0
 		end
 	end
 end)
