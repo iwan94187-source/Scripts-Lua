@@ -489,14 +489,19 @@ runService.Heartbeat:Connect(function()
 				end
 			end
 		else
-			myRoot.CFrame = CFrame.new(myRoot.Position.X, originalY, myRoot.Position.Z) * (myRoot.CFrame - myRoot.Position)
-			originalY = nil -- 
-			-- الحالة الثانية: عدم وجود RightGrip -> القفل على TouchPart
+			if originalY then
+				myRoot.CFrame = CFrame.new(myRoot.Position.X, originalY, myRoot.Position.Z) * (myRoot.CFrame - myRoot.Position)
+				originalY = nil
+			end
+
+			-- الحالة الثانية: عدم وجود RightGrip -> القفل الأفقي فقط على TouchPart (بدون محور Y)
 			local touchPart = findTouchPart()
-			
+
 			if touchPart and touchPart:IsA("BasePart") and touchPart:IsDescendantOf(workspace) then
-				local myMatchedPos = Vector3.new(myRoot.Position.X, touchPart.Position.Y, myRoot.Position.Z)
-				myRoot.CFrame = CFrame.lookAt(myMatchedPos, touchPart.Position)
+				-- إنشاء نقطة نظر أفقية تماماً على نفس مستوى ارتفاع شخصيتك الحالي
+				local flatTouchPos = Vector3.new(touchPart.Position.X, myRoot.Position.Y, touchPart.Position.Z)
+
+				myRoot.CFrame = CFrame.lookAt(myRoot.Position, flatTouchPos)
 			end
 		end
 	end
