@@ -13,6 +13,7 @@ local screenGui = Instance.new("ScreenGui", PlayerGui)
 screenGui.ResetOnSpawn = false
 
 local blk_color = Color3.fromRGB(24,24,24)
+local highdistance = 12.5
 
 local Mainframe = Instance.new("Frame")
 Mainframe.Size=UDim2.new(0,250,0,300)
@@ -648,7 +649,7 @@ runService.Heartbeat:Connect(function()
 
 		if not rightGrip then
 			-- الحالة الأولى: وجود RightGrip -> القفل ومطابقة الارتفاع مع أقرب لاعب
-			myHumanoid.HipHeight=10
+			myHumanoid.HipHeight=highdistance
 		else
 			myHumanoid.HipHeight=0
 		end
