@@ -1,0 +1,611 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local runService = game:GetService("RunService")
+
+--local mxx = workspace:WaitForChild("Scriptable", 5)
+--local arena = mxx:WaitForChild("Arena", 5)
+
+-- 1. إنشاء الواجهة والخط الرئيسي (Slider Frame)
+local screenGui = Instance.new("ScreenGui", PlayerGui)
+screenGui.ResetOnSpawn = false
+
+local blk_color = Color3.fromRGB(24,24,24)
+
+local Mainframe = Instance.new("Frame")
+Mainframe.Size=UDim2.new(0,250,0,250)
+Mainframe.Position=UDim2.new(0.125,0,0,0)
+Mainframe.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+Mainframe.Visible=false
+Mainframe.Active=true
+Mainframe.Draggable=true
+Mainframe.Parent=screenGui
+
+local frameTitle = Instance.new("TextLabel")
+frameTitle.Size=UDim2.new(1,0,0.1,0)
+frameTitle.Text="   Catch and Throw V5.0"
+frameTitle.TextXAlignment=Enum.TextXAlignment.Left
+frameTitle.TextColor=BrickColor.new("White")
+frameTitle.BackgroundColor3=blk_color
+frameTitle.TextSize=7
+frameTitle.Parent=Mainframe
+
+local iconFrame = Instance.new("ImageButton")
+iconFrame.Size=UDim2.new(0,40,0,40)
+iconFrame.Position=UDim2.new(0.3,0,0.3,0)
+iconFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+iconFrame.Image = "rbxassetid://85847690672478"
+iconFrame.Active=true
+iconFrame.Draggable=true
+iconFrame.Parent=screenGui
+
+local destroyBtn = Instance.new("TextButton")
+destroyBtn.Size=UDim2.new(0,20,0,20)
+destroyBtn.Position=UDim2.new(0.915,0,0,0)
+destroyBtn.BackgroundColor3=Color3.fromRGB(255, 0, 0)
+destroyBtn.TextColor=BrickColor.new("White")
+destroyBtn.Text="x"
+destroyBtn.Parent=frameTitle
+
+local hideBtn = Instance.new("TextButton")
+hideBtn.Size=UDim2.new(0,20,0,20)
+hideBtn.Position=UDim2.new(0.82,0,0,0)
+hideBtn.BackgroundColor3=Color3.fromRGB(0, 170, 255)
+hideBtn.TextColor=BrickColor.new("White")
+hideBtn.Text="–"
+hideBtn.Parent=frameTitle
+
+iconFrame.MouseButton1Click:Connect(function()
+	iconFrame.Visible=not iconFrame.Visible
+	if iconFrame.Visible then 
+		Mainframe.Visible=false
+	else
+		Mainframe.Position=iconFrame.Position
+		Mainframe.Visible=true
+	end
+end)
+
+hideBtn.MouseButton1Click:Connect(function()
+	Mainframe.Visible=false
+	iconFrame.Position=Mainframe.Position
+	iconFrame.Visible=true
+end)
+
+destroyBtn.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+end)
+
+local function boxFrame() 
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0.9, 0,0.1,0)
+	frame.Position=UDim2.new(0.1,0,0.1,0)
+	frame.BackgroundColor=BrickColor.new("Black")
+	frame.Parent=Mainframe
+	return frame
+
+end
+
+local function newBtn(name,pos,parent)
+	local btn = Instance.new("TextButton")
+	btn.Size=UDim2.new(0.9,0,0.15,0)
+	btn.Position=UDim2.new(0.05,0,pos,0)
+	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextSize=8
+	btn.Parent=parent
+	return btn
+end
+
+local function newLbl(name,pos,parent)
+	local btn = Instance.new("TextLabel")
+	btn.Size=UDim2.new(0.9,0,0.15,0)
+	btn.Position=UDim2.new(0.05,0,pos,0)
+	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextSize=8
+	btn.Parent=parent
+	return btn
+end
+
+local function newTrem(parent)
+	local trem = Instance.new("TextLabel")
+	trem.Size = UDim2.new(0,25,1,0)
+	trem.Position=UDim2.new(0.85,0,0,0)
+	trem.BackgroundTransparency=1
+	trem.Text="🔴"
+	trem.TextSize=20
+	trem.Parent=parent
+	return trem
+end
+
+local function newKnob(parent)
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0,15,0,15)
+	frame.Position=UDim2.new(0,-10,0.5,-10)
+	frame.BackgroundColor3=Color3.fromRGB(255, 255, 255)
+	frame.Parent=parent
+	return frame
+end
+
+local function newPlate(parent)
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0,20,0,10)
+	frame.Position=UDim2.new(0.8,0,0.49,0)
+	frame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	frame.Parent=parent
+	return frame
+end
+
+local speedState = false
+local speedBtn = newBtn(" Speed Enabled",0.10,Mainframe)
+speedBtn.TextXAlignment="Left"
+local speedPlate = newPlate(speedBtn)
+local speedKnob = newKnob(speedPlate)
+
+local speedSlideBtn = newLbl(" Speed",0.275,Mainframe)
+speedSlideBtn.TextXAlignment="Left"
+
+local AutoCatchState = false
+local AutoCatchBtn = newBtn(" Auto Catch",0.45,Mainframe)
+AutoCatchBtn.TextXAlignment="Left"
+local AutoCatchPlate = newPlate(AutoCatchBtn)
+local AutoCatchKnob = newKnob(AutoCatchPlate)
+
+local LockPlayerState = false
+local LockPlayerBtn = newBtn(" AimBot",0.625,Mainframe)
+LockPlayerBtn.TextXAlignment="Left"
+local LockPlayerPlate = newPlate(LockPlayerBtn)
+local LockPlayerKnob = newKnob(LockPlayerPlate)
+
+local GetKnifeState = false
+local GetKnifeBtn = newBtn(" Get Knife",0.80,Mainframe)
+GetKnifeBtn.TextXAlignment="Left"
+local GetKnifePlate = newPlate(GetKnifeBtn)
+local GetKnifeKnob = newKnob(GetKnifePlate)
+
+local sliderBack = Instance.new("Frame", speedSlideBtn)
+sliderBack.Size = UDim2.new(0, 140, 0, 5) -- الخط الممتد
+sliderBack.Position = UDim2.new(0.75, -100, 0.7, 0)
+sliderBack.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+sliderBack.BorderSizePixel = 0
+
+-- 2. الزر القابل للحركة (Slider Knob)
+local knob = Instance.new("TextButton", sliderBack)
+knob.Size = UDim2.new(0, 15, 0, 15) -- الدائرة/الزر
+knob.Position = UDim2.new(0, -10, 0.5, -8) -- يبدأ من اليسار
+knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+knob.Text = ""
+knob.ZIndex=2
+
+-- 3. نص لعرض القيمة الحالية
+local valueLabel = Instance.new("TextLabel", speedSlideBtn)
+valueLabel.Size = UDim2.new(1, 0, 0, 30)
+valueLabel.Position = UDim2.new(0, 30, 0, -3)
+valueLabel.BackgroundTransparency = 1
+valueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+valueLabel.TextSize = 10
+valueLabel.Text = "0"
+
+local slideFill = Instance.new("TextLabel", sliderBack)
+slideFill.Size=UDim2.new(1,0,1,0)
+slideFill.Text=""
+slideFill.BackgroundColor=BrickColor.new("White")
+
+local function newUi(parent) 
+	local ui = Instance.new("UICorner")
+	ui.CornerRadius = UDim.new(0,10)
+	ui.Parent=parent
+	return ui
+end
+
+local function newCustomUi(parent, rb,lb,ru,lu) 
+	local ui = Instance.new("UICorner")
+	ui.BottomLeftRadius =UDim.new(0,lb)
+	ui.BottomRightRadius=UDim.new(0,rb)
+	ui.TopLeftRadius=UDim.new(0,lu)
+	ui.TopRightRadius=UDim.new(0,ru)
+	ui.Parent=parent
+	return ui
+end
+newUi(knob)
+newUi(sliderBack)
+newUi(slideFill)
+newUi(Mainframe)
+
+newUi(speedBtn)
+newUi(speedKnob)
+newUi(speedPlate)
+
+newUi(speedSlideBtn)
+
+newUi(AutoCatchBtn)
+newUi(AutoCatchPlate)
+newUi(AutoCatchKnob)
+
+newUi(LockPlayerBtn)
+newUi(LockPlayerPlate)
+newUi(LockPlayerKnob)
+
+newUi(GetKnifeBtn)
+newUi(GetKnifePlate)
+newUi(GetKnifeKnob)
+
+newUi(iconFrame)
+
+newCustomUi(frameTitle,10,10,10,10)
+newCustomUi(destroyBtn,10,10,10,10)
+newCustomUi(hideBtn,10,10,10,10)
+
+-- 4. منطق السحب والتمدد (Slider Logic)
+local dragging = false
+
+local function updateSlider(input)
+	-- حساب موقع الإصبع/الموس بالنسبة لطول الخط
+	local mousePos = input.Position.X
+	local sliderPos = sliderBack.AbsolutePosition.X
+	local sliderSize = sliderBack.AbsoluteSize.X
+
+	-- حصار القيمة بين 0 و 1 (من بداية الخط لنهايته)
+	local percentage = math.clamp((mousePos - sliderPos) / sliderSize, 0, 1)
+
+	-- تحريك الزر بصرياً
+	knob.Position = UDim2.new(percentage, -10, 0.5, -8)
+
+	-- تحويل النسبة لقيمة (مثلاً من 1 إلى 50 استود للمسافة)
+	local value = math.floor(percentage * 50) 
+	valueLabel.Text = tostring(value)
+
+	return value
+end
+
+local function getTargetButton()
+	local hud = PlayerGui:FindFirstChild("HUD")
+	if hud then
+		local mobileButtons = hud:FindFirstChild("MobileButtons")
+		if mobileButtons then
+			local catchFrame = mobileButtons:FindFirstChild("Catch")
+			if catchFrame then
+				return catchFrame:FindFirstChild("click")
+			end
+		end
+	end
+	return nil
+end
+
+local function getClosestPlayer()
+	local myChar = LocalPlayer.Character
+	local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+	if not myRoot then return nil end
+
+	local closestPlayer = nil
+	local shortestDistance = math.huge
+
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer and player.Character then
+			local char = player.Character
+
+			-- 1. فحص التأكد من أن الشخصية داخل الـ Workspace وليست محذوفة أو مخفية
+			if char:IsDescendantOf(workspace) then
+				local targetRoot = char:FindFirstChild("HumanoidRootPart")
+				local targetHumanoid = char:FindFirstChildOfClass("Humanoid")
+				local head = char:FindFirstChild("Head")
+
+				-- 2. شروط صارمة: حي + الرأس موجود + الجسد غير شفاف بالكامل (ليس جثة/لاعب وهمي)
+				if targetRoot and targetHumanoid and targetHumanoid.Health > 0 and head then
+					if targetRoot.Transparency < 1 or head.Transparency < 1 then
+						local dist = (myRoot.Position - targetRoot.Position).Magnitude
+
+						-- 3. تحديد أقصى مسافة للقفل (مثلاً 250 استود) لمنع الالتفاف المفاجئ لزوايا بعيدة
+						if dist < shortestDistance and dist <= 250 then
+							shortestDistance = dist
+							closestPlayer = player
+						end
+					end
+				end
+			end
+		end
+	end
+
+	return closestPlayer
+end
+
+-- 3. دالة محاكاة ضغط الزر
+local function clickButton(btn)
+	if not btn then return end
+
+	if firesignal then
+		pcall(function() firesignal(btn.MouseButton1Click) end)
+		pcall(function() firesignal(btn.MouseButton1Down) end)
+		pcall(function() firesignal(btn.Activated) end)
+		pcall(function() firesignal(btn.TouchTap) end)
+	end
+
+	if game:GetService("VirtualInputManager") then
+		pcall(function()
+			local vim = game:GetService("VirtualInputManager")
+			local center = btn.AbsolutePosition + (btn.AbsoluteSize / 2)
+			vim:SendMouseButtonEvent(center.X, center.Y, 0, true, game, 0)
+			task.wait(0.02)
+			vim:SendMouseButtonEvent(center.X, center.Y, 0, false, game, 0)
+		end)
+	end
+end
+
+-- 4. دالة البحث عن TouchPart داخل Model
+local function findTouchPart()
+	for _, child in ipairs(workspace:GetChildren()) do
+		if child:IsA("Model") and child.Name == "Model" then
+			local touchPart = child:FindFirstChild("TouchPart", true)
+			if touchPart and touchPart:IsA("BasePart") then
+				return touchPart
+			end
+		end
+	end
+	return nil
+end
+
+local function getActiveTouchZone()
+	local mxx = workspace:FindFirstChild("Scripttable")
+	if not mxx then return nil end
+	
+	local arena = mxx:FindFirstChild("Arena")
+	if not arena then return nil end
+
+	local knifeSpawner = arena:FindFirstChild("KnifeSpawner")
+	if not knifeSpawner then return nil end
+
+	local stands = knifeSpawner:FindFirstChild("Stands")
+	if not stands then return nil end
+
+	-- استخدام Loop للبحث داخل جميع الموديلات المترقمة داخل Stands
+	for _, standModel in ipairs(stands:GetChildren()) do
+		if standModel:IsA("Model") then
+			local touchZone = standModel:FindFirstChild("TouchZone")
+
+			-- الشرط: وجود TouchZone + يملك كائنات أبناء بداخله (#GetChildren > 0)
+			if touchZone and touchZone:IsA("BasePart") and #touchZone:GetChildren() > 0 then
+				return touchZone
+			end
+		end
+	end
+
+	return nil
+end
+
+-- 5. حلقة المراقبة المستمرة
+local cooldown1, cooldown2 = false, false
+
+-- أحداث اللمس والضغط
+knob.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = false
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		updateSlider(input)
+	end
+end)
+
+runService.Heartbeat:Connect(function()
+	slideFill.Size=UDim2.new(knob.Position.X.Scale,0,1,0)
+	if speedState then 
+		local human = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+		if human and tonumber(valueLabel.Text) then 
+			human.WalkSpeed=valueLabel.Text
+		end
+	end
+end)
+
+runService.Heartbeat:Connect(function()
+	-- تنفيذ الكود فقط إذا كانت AutoCatchState متحطمة (تساوي true)
+	if not AutoCatchState then return end
+
+	local char = LocalPlayer.Character
+	local myRoot = char and char:FindFirstChild("HumanoidRootPart")
+
+	local touchPart = findTouchPart()
+
+	if touchPart then
+		local distance = (myRoot.Position - touchPart.Position).Magnitude
+		local roundedDist = math.floor(distance)
+
+		if distance <= 10 then
+
+			if not cooldown1 then
+				cooldown1 = true
+				local targetBtn = getTargetButton()
+				if targetBtn then
+					clickButton(targetBtn)
+					print("AutoCatch: تم تفعيل الزر تلقائياً!")
+				end
+				task.wait(0.3)
+				cooldown1 = false
+			end
+		end
+	end
+end)
+
+local function getSafeTargetCFrame(myPos, targetPos)
+	local dir = (targetPos - myPos)
+
+	-- إذا كان الهدف مباشرة تحتك أو فوقك تماماً بمحاذاة 100%
+	-- نضيف انحرافاً ميكروسكوبياً (0.001) لمنع التفاف الشخصية بشكل وهمي
+	if math.abs(dir.X) < 0.001 and math.abs(dir.Z) < 0.001 then
+		targetPos = targetPos + Vector3.new(0.001, 0, 0.001)
+	end
+
+	return CFrame.lookAt(myPos, targetPos)
+end
+
+runService.Heartbeat:Connect(function()
+	if not LockPlayerState then return end
+
+	local myChar = LocalPlayer.Character
+	local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+	local myHumanoid = myChar and myChar:FindFirstChildOfClass("Humanoid")
+
+	if myRoot and myHumanoid and myHumanoid.Health > 0 then
+		local rightArm = myChar:FindFirstChild("Right Arm") or myChar:FindFirstChild("RightHand")
+		local rightGrip = rightArm and rightArm:FindFirstChild("RightGrip")
+
+		if rightGrip then
+			-- الحالة الأولى: وجود RightGrip -> القفل الكامل على أقرب لاعب
+			local closest = getClosestPlayer()
+
+			if closest and closest.Character then
+				local targetChar = closest.Character
+				local targetHum = targetChar:FindFirstChildOfClass("Humanoid")
+
+				-- تأكيد أن اللاعب حي وموجود فعلياً داخل الـ Workspace وليس جثة اختفت
+				if targetHum and targetHum.Health > 0 and targetChar:IsDescendantOf(workspace) then
+					local targetPart = targetChar:FindFirstChild("Torso") 
+						or targetChar:FindFirstChild("UpperTorso") 
+						or targetChar:FindFirstChild("HumanoidRootPart")
+
+					if targetPart and targetPart:IsA("BasePart") then
+						-- قفل 3D كامل (أفقي وعمودي) مع معالجة زوايا القفز والانسداح
+						myRoot.CFrame = getSafeTargetCFrame(myRoot.Position, targetPart.Position)
+					end
+				end
+			end
+		else
+			-- الحالة الثانية: عدم وجود RightGrip -> القفل الكامل على TouchPart
+			local touchPart = findTouchPart()
+
+			if touchPart and touchPart:IsA("BasePart") and touchPart:IsDescendantOf(workspace) then
+				myRoot.CFrame = getSafeTargetCFrame(myRoot.Position, touchPart.Position)
+			end
+		end
+	end
+end)
+
+runService.Heartbeat:Connect(function()
+	if not GetKnifeState or cooldown2 then return end
+
+	local myChar = LocalPlayer.Character
+	local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+
+	if myRoot then
+		local targetZone = getActiveTouchZone()
+
+		if targetZone then
+			cooldown2 = true
+
+			-- نقل الشخصية إلى موقع الجزء المباشر مع رفع الموقع قليلاً لتجنب السقوط داخل الأرﺽ
+			myRoot.CFrame = targetZone.CFrame + Vector3.new(0, 3, 0)
+			print("تم النقل بنجاح إلى TouchZone!")
+
+			-- مهلة بسيطة (0.5 ثانية) لمنع النقل المكرر بلا توقف في نفس اللحظة
+			task.wait(0.5)
+			cooldown2 = false
+		end
+	end
+end)
+
+speedBtn.MouseButton1Click:Connect(function()
+	speedState=not speedState
+	if speedState then 
+		speedKnob.Position=UDim2.new(1,-10,0.5,-8)
+		speedPlate.BackgroundColor3=Color3.fromRGB(255, 255, 255)
+	else 
+		speedKnob.Position=UDim2.new(0,-10,0.5,-10)
+		speedPlate.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	end
+end)
+
+AutoCatchBtn.MouseButton1Click:Connect(function()
+	AutoCatchState=not AutoCatchState
+	if AutoCatchState then 
+		AutoCatchKnob.Position=UDim2.new(1,-10,0.5,-8)
+		AutoCatchPlate.BackgroundColor3=Color3.fromRGB(255, 255, 255)
+	else 
+		AutoCatchKnob.Position=UDim2.new(0,-10,0.5,-10)
+		AutoCatchPlate.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	end
+end)
+
+LockPlayerBtn.MouseButton1Click:Connect(function()
+	LockPlayerState=not LockPlayerState
+	if LockPlayerState then 
+		LockPlayerKnob.Position=UDim2.new(1,-10,0.5,-8)
+		LockPlayerPlate.BackgroundColor3=Color3.fromRGB(255, 255, 255)
+	else 
+		LockPlayerKnob.Position=UDim2.new(0,-10,0.5,-10)
+		LockPlayerPlate.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	end
+end)
+
+GetKnifeBtn.MouseButton1Click:Connect(function()
+	GetKnifeState=not GetKnifeState
+	if GetKnifeState then 
+		GetKnifeKnob.Position=UDim2.new(1,-10,0.5,-8)
+		GetKnifePlate.BackgroundColor3=Color3.fromRGB(255, 255, 255)
+	else 
+		GetKnifeKnob.Position=UDim2.new(0,-10,0.5,-10)
+		GetKnifePlate.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	end
+end)
+
+local function findKnife(parent)
+	for _, desc in ipairs(parent:GetDescendants()) do
+		if desc.Name == "Knife" or desc.Name == "TouchPart" then
+			return desc
+		end
+	end
+	return nil
+end
+
+local KnifeFounded = nil
+-- 2. الاتصال بالمسار والمراقبة
+runService.Heartbeat:Connect(function()
+	local knifeSpawner = arena:FindFirstChild("KnifeSpawner")
+	if not knifeSpawner then
+		KnifeFounded=nil
+		return
+	end
+
+	-- فحص أولي إذا كانت السكين موجودة مسبقاً
+	local foundKnife = findKnife(knifeSpawner)
+	if foundKnife then
+		KnifeFounded=foundKnife
+	else
+		KnifeFounded=nil
+	end
+end)
+
+runService.Heartbeat:Connect(function()
+	-- 1. التأكد من تفعيل الميزة ووجود السكين
+	if not GetKnifeState or not KnifeFounded then return end
+
+	local myChar = LocalPlayer.Character
+	local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+	local myHumanoid = myChar and myChar:FindFirstChildOfClass("Humanoid")
+
+	-- 2. التأكد من أن الشخصية حية والسكين ما زال موجوداً في الـ Workspace
+	if myRoot and myHumanoid and myHumanoid.Health > 0 and KnifeFounded:IsDescendantOf(workspace) then
+		-- جلب موقع السكين
+		local targetCFrame = nil
+
+		if KnifeFounded:IsA("BasePart") then
+			targetCFrame = KnifeFounded.CFrame
+		elseif KnifeFounded:IsA("Model") then
+			targetCFrame = KnifeFounded:GetPivot()
+		end
+
+		-- 3. نقل الشخصية فوراً إلى موقع السكين
+		if targetCFrame then
+			myRoot.CFrame = targetCFrame
+		end
+	end
+end)
