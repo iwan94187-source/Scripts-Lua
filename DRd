@@ -11,6 +11,7 @@ ff.Parent=LocalPlayer
 
 local UpFolder = LocalPlayer:WaitForChild("Upgrades")
 local ballsFolder = nil
+local practiceBalls=nil
 
 for _, folder in ipairs(workspace:GetChildren()) do 
 	if folder:IsA("Folder") and folder.Name == "Lobby" then 
@@ -19,6 +20,9 @@ for _, folder in ipairs(workspace:GetChildren()) do
 		-- فحص هل يحتوي على مجلدات فرعية؟
 		for _, item in ipairs(folder:GetChildren()) do 
 			if item:IsA("Folder") then
+				if item.Name=="PracticeArea" and item:FindFirstChild("PracticeBalls") then 
+					practiceBalls=item:FindFirstChild("PracticeBalls")
+				end
 				hasSubFolder = true
 				break
 			end
@@ -367,6 +371,14 @@ task.spawn(function()
 	ballsFolder.ChildAdded:Connect(function(child)
 		task.spawn(setupSmartAutoDodge, child)
 	end)
+	
+	for _, item in ipairs(practiceBalls:GetChildren()) do
+		task.spawn(setupSmartAutoDodge, item)
+	end
+	
+	practiceBalls.ChildAdded:Connect(function(child)
+		task.spawn(setupSmartAutoDodge, child)
+	end)
 end)
 
 local function setupBallTrajectory(ball)
@@ -463,7 +475,15 @@ for _, item in ipairs(ballsFolder:GetChildren()) do
 	task.spawn(setupBallTrajectory, item)
 end
 
+for _, item in ipairs(practiceBalls:GetChildren()) do
+	task.spawn(setupBallTrajectory, item)
+end
+
 ballsFolder.ChildAdded:Connect(function(child)
+	task.spawn(setupBallTrajectory, child)
+end)
+
+practiceBalls.ChildAdded:Connect(function(child)
 	task.spawn(setupBallTrajectory, child)
 end)
 
