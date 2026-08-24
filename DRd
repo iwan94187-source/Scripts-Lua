@@ -629,10 +629,19 @@ runService.Heartbeat:Connect(function()
 	if antiTrapState then 
 		local folderMap = workspace:FindFirstChild("CurrentMap")
 		if folderMap then 
-			local killPart = folderMap:FindFirstChild("Lava") or 
-				folderMap:FindFirstChild("SpinningLazer") and folderMap:FindFirstChild("SpinningLazer"):FindFirstChild("Lazer")
-			if killPart then 
-				killPart:Destroy()
+			-- 1. البحث عن Lava وحذفها
+			local lava = folderMap:FindFirstChild("Lava")
+			if lava then 
+				lava:Destroy() 
+			end
+
+			-- 2. البحث عن SpinningLazer ثم Lazer داخلها وحذفها بشكل آمن
+			local spinningLazer = folderMap:FindFirstChild("SpinningLazer")
+			if spinningLazer then
+				local lazer = spinningLazer:FindFirstChild("Lazer")
+				if lazer then
+					lazer:Destroy()
+				end
 			end
 		end
 	end
