@@ -110,7 +110,9 @@ local function txtBox(parent)
 	local box = Instance.new("TextBox")
 	box.Size=UDim2.new(0.8, 0,0.4,0)
 	box.Position=UDim2.new(0.1,0,0.4,0)
-	box.BackgroundColor=BrickColor.new("Black")
+	box.BackgroundColor3=blk_color
+	box.Text="Number"
+	box.TextSize=5
 	box.TextColor=BrickColor.new("White")
 	box.Parent=parent
 	return box
