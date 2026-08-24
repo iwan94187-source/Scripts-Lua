@@ -187,28 +187,24 @@ local function newTerm(parent)
 	return term
 end
 
-local orbState = false
-local orbBtn = newBtn2("Dodge Aura", 0, unScroll)
-local orbTrem = newTerm(orbBtn)
-
 local voidState = false
-local voidBtn = newBtn2("Void", 0.05, unScroll)
+local voidBtn = newBtn2("Void", 0, unScroll)
 local voidTerm = newTerm(voidBtn)
 
 local invState = false
-local invBtn = newBtn2("Invisible", 0.1, unScroll)
+local invBtn = newBtn2("Invisible", 0.05, unScroll)
 local invTerm = newTerm(invBtn)
 
 local safeLineState = false
-local safeLineBtn = newBtn2("Dodge Aura", 0.15, unScroll)
+local safeLineBtn = newBtn2("Dodge Aura", 0.1, unScroll)
 local safeLineTerm = newTerm(safeLineBtn)
 
 local anitkillPartState=false
-local anitkillPartBtn = newBtn2("Anit-Lava/Lazer", 0.2, unScroll)
+local anitkillPartBtn = newBtn2("Anit-Lava/Lazer", 0.15, unScroll)
 local anitkillPartTerm = newTerm(anitkillPartBtn)
 
 local autoDodgeState =false
-local autoDodgeBtn = newBtn2("Auto Dodge", 0.25, unScroll)
+local autoDodgeBtn = newBtn2("Auto Dodge", 0.2, unScroll)
 local autoDodgeTerm = newTerm(autoDodgeBtn)
 
 
@@ -253,13 +249,6 @@ end)
 unBtn.MouseButton1Click:Connect(function()
 	displayBtn()
 	unScroll.Visible=true
-end)
-
-orbBtn.MouseButton1Click:Connect(function()
-	orbState=not orbState
-	if orbState then orbTrem.Text="🟢"
-	else orbTrem.Text="🔴"
-	end
 end)
 
 voidBtn.MouseButton1Click:Connect(function()
@@ -564,60 +553,6 @@ runService.Heartbeat:Connect(function(deltaTime)
 			if jp then 
 				jp.Value=jumpBox.Text
 			end
-		end
-	end
-
-	if orbState then 
-		local character = player.Character
-		if not character then return end
-
-		local hrp = character:FindFirstChild("HumanoidRootPart")
-		local humanoid = character:FindFirstChild("Humanoid")
-
-		if not hrp or not humanoid or humanoid.Health <= 0 then return end
-
-		local totalPushVector = Vector3.zero
-		local activeBallsCount = 0
-
-		-- فحص جميع الكرات الموجودة داخل المجلد
-		for _, ball in ipairs(ballsFolder:GetChildren()) do
-			if ball:IsA("BasePart") then
-				local distance = (hrp.Position - ball.Position).Magnitude
-
-				-- إذا دخلت الكرة نطاق الـ Hitbox
-				if distance < HITBOX_RADIUS and distance > 0 then
-					activeBallsCount += 1
-
-					-- حساب اتجاه الهروب بعيداً عن الكرة (Direction)
-					local pushDirection = (hrp.Position - ball.Position).Unit
-
-					-- حساب مقدار التداخل/الاقتراب (كلما اقتربت الكرة، زاد الدفع)
-					local overlap = (HITBOX_RADIUS - distance) / HITBOX_RADIUS
-
-					-- إضافة المتجه المحسوب إلى المتجه الإجمالي
-					totalPushVector = totalPushVector + (pushDirection * (overlap * PUSH_FORCE))
-				end
-			end
-		end
-
-		-- تطبيق قوة الهروب إذا كانت هناك كرات قريبة
-		if activeBallsCount > 0 and totalPushVector.Magnitude > 0 then
-			-- دمج التأثير بشكل سلس دون إلغاء حركة اللاعب الأساسية
-			local currentVelocity = hrp.AssemblyLinearVelocity
-
-			-- تجميع دفع الكرات مع الحفاظ على الحركة الرأسية (القفز / الجاذبية)
-			local targetVelocity = Vector3.new(
-				currentVelocity.X + totalPushVector.X * deltaTime * 10,
-				currentVelocity.Y, -- الحفاظ على الجاذبية طبيعية
-				currentVelocity.Z + totalPushVector.Z * deltaTime * 10
-			)
-
-			-- تحديد حد أقصى للسرعة للحد من الطيران المفاجئ
-			if targetVelocity.Magnitude > MAX_ESCAPE_VELOCITY then
-				targetVelocity = targetVelocity.Unit * MAX_ESCAPE_VELOCITY
-			end
-
-			hrp.AssemblyLinearVelocity = targetVelocity
 		end
 	end
 
