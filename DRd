@@ -527,7 +527,7 @@ runService.Heartbeat:Connect(function()
 	end
 end)
 
-local FLY_SPEED = 50
+local FLY_SPEED = 64
 local FLY_FORCE = 40000
 
 local bodyVelocity = nil
