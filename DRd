@@ -308,7 +308,95 @@ autoDodgeBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
+local function setupAutoDodge(ball)
+	if not ball or not ball:IsA("BasePart") then return end
 
+	local safetyDistance = 15 -- مسافة الأمان (بالـ Studs)
+	local teleportOffset = 15 -- مسافة الانتقال خلف الكرة
+	local cooldown = false
+	local updateConnection = nil
+
+	updateConnection = runService.Heartbeat:Connect(function()
+		-- فحص أمان دقيق لعدم استهلاك الذاكرة في حال اختفاء الكرة
+		if not ball or not ball.Parent or not ball:IsDescendantOf(workspace) then
+			if updateConnection then 
+				updateConnection:Disconnect() 
+				updateConnection = nil
+			end
+			return
+		end
+
+		if autoDodgeState and not cooldown then
+			local char = player.Character
+			local rootPart = char and char:FindFirstChild("HumanoidRootPart")
+			local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+
+			if rootPart and humanoid and humanoid.Health > 0 then
+				local velocity = ball.AssemblyLinearVelocity
+
+				-- الفحص فقط إذا كانت الكرة تتحرك فعلياً
+				if velocity.Magnitude > 2 then
+					local moveDirection = velocity.Unit
+					local ballPos = ball.Position
+					local playerPos = rootPart.Position
+
+					local vecToPlayer = playerPos - ballPos
+					local distance = vecToPlayer.Magnitude
+
+					-- 1. فحص المسافة
+					if distance <= safetyDistance then
+						-- 2. حساب الاتجاه الدقيق باستعمال Normalized Vector
+						local dirToPlayer = vecToPlayer.Unit
+						local dotProduct = moveDirection:Dot(dirToPlayer)
+
+						-- إذا كانت الكرة تتجه نحوك بدقة (Dot Product > 0.5 تعني أنها قادمة باتجاهك)
+						if dotProduct > 0.5 then
+							cooldown = true
+
+							-- حساب الموقع الجديد: خلف الكرة بعكس اتجاه اندفاعها
+							local newPosition = ballPos - (moveDirection * teleportOffset)
+
+							-- الانتقال اللحظي وتصفير السرعة لمنع الغليتش
+							rootPart.CFrame = CFrame.new(newPosition, newPosition + rootPart.CFrame.LookVector)
+							rootPart.AssemblyLinearVelocity = Vector3.zero
+
+							-- مهلة انتظار لمنع الانتقال المكرر
+							task.delay(0.4, function()
+								cooldown = false
+							end)
+						end
+					end
+				end
+			end
+		end
+	end)
+
+	-- تنظيف احتياطي
+	ball.Destroying:Connect(function()
+		if updateConnection then 
+			updateConnection:Disconnect() 
+			updateConnection = nil
+		end
+	end)
+end
+
+-- 🧠 تشغيل آمن ومضمون بدون أخطاء السيرفرات الحقيقية
+task.spawn(function()
+	-- انتظار المجلد حتى يحمّل في اللعبة الحقيقية
+	while not ballsFolder do
+		task.wait(0.5)
+	end
+
+	-- ربط الكرات الحالية
+	for _, item in ipairs(ballsFolder:GetChildren()) do
+		task.spawn(setupAutoDodge, item)
+	end
+
+	-- ربط الكرات الجديدة
+	ballsFolder.ChildAdded:Connect(function(child)
+		task.spawn(setupAutoDodge, child)
+	end)
+end)
 
 local function setupBallTrajectory(ball)
 	if not ball:IsA("BasePart") then return end
