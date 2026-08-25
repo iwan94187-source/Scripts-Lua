@@ -1,0 +1,740 @@
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local light = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local CollectionService = game:GetService("CollectionService")
+local interactEvent = ReplicatedStorage:WaitForChild("Events"):WaitForChild("interact")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local runService = game:GetService("RunService")
+local gameFolder = workspace:WaitForChild("GameArea", 5)
+-- 1. إنشاء الواجهة والخط الرئيسي (Slider Frame)
+local screenGui = Instance.new("ScreenGui", PlayerGui)
+screenGui.ResetOnSpawn = false
+local blk_color, gry = Color3.fromRGB(24,24,24), Color3.fromRGB(52, 52, 52)
+local Mainframe = Instance.new("Frame")
+Mainframe.Size=UDim2.new(0,250,0,300)
+Mainframe.Position=UDim2.new(0.125,0,0,0)
+Mainframe.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+Mainframe.Visible=false
+Mainframe.Active=true
+Mainframe.Draggable=true
+Mainframe.Parent=screenGui
+local frameTitle = Instance.new("TextLabel")
+frameTitle.Size=UDim2.new(1,0,0.1,0)
+frameTitle.Text="   Dodge or Die V6.0"
+frameTitle.TextXAlignment=Enum.TextXAlignment.Left
+frameTitle.TextColor=BrickColor.new("White")
+frameTitle.BackgroundColor3=blk_color
+frameTitle.TextSize=7
+frameTitle.Parent=Mainframe
+local iconFrame = Instance.new("ImageButton")
+iconFrame.Size=UDim2.new(0,40,0,40)
+iconFrame.Position=UDim2.new(0.3,0,0.3,0)
+iconFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+iconFrame.Image = "rbxassetid://85847690672478"
+iconFrame.Active=true
+iconFrame.Draggable=true
+iconFrame.Parent=screenGui
+local destroyBtn = Instance.new("TextButton")
+destroyBtn.Size=UDim2.new(0,22.5,0,22.5)
+destroyBtn.Position=UDim2.new(0.915,0,0,0)
+destroyBtn.BackgroundColor3=Color3.fromRGB(255, 0, 0)
+destroyBtn.TextColor=BrickColor.new("White")
+destroyBtn.Text="x"
+destroyBtn.Parent=frameTitle
+local hideBtn = Instance.new("TextButton")
+hideBtn.Size=UDim2.new(0,22.5,0,22.5)
+hideBtn.Position=UDim2.new(0.82,0,0,0)
+hideBtn.BackgroundColor3=Color3.fromRGB(0, 170, 255)
+hideBtn.TextColor=BrickColor.new("White")
+hideBtn.Text="–"
+hideBtn.Parent=frameTitle
+iconFrame.MouseButton1Click:Connect(function()
+	iconFrame.Visible=not iconFrame.Visible
+	if iconFrame.Visible then 
+		Mainframe.Visible=false
+	else
+		Mainframe.Position=iconFrame.Position
+		Mainframe.Visible=true
+	end
+end)
+hideBtn.MouseButton1Click:Connect(function()
+	Mainframe.Visible=false
+	iconFrame.Position=Mainframe.Position
+	iconFrame.Visible=true
+end)
+destroyBtn.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+end)
+local function txtBox(parent) 
+	local box = Instance.new("TextBox")
+	box.Size=UDim2.new(0.8, 0,0.4,0)
+	box.Position=UDim2.new(0.1,0,0.4,0)
+	box.BackgroundColor3=blk_color
+	box.Text="Number"
+	box.TextSize=5
+	box.TextColor=BrickColor.new("White")
+	box.Parent=parent
+	return box
+end
+local function newBtn(name,pos,parent)
+	local btn = Instance.new("TextButton")
+	btn.Size=UDim2.new(0.9,0,0.12,0)
+	btn.Position=UDim2.new(0.05,0,pos,0)
+	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextSize=7
+	btn.Parent=parent
+	return btn
+end
+local function newLbl(name,pos,parent)
+	local btn = Instance.new("TextLabel")
+	btn.Size=UDim2.new(0.9,0,0.12,0)
+	btn.Position=UDim2.new(0.05,0,pos,0)
+	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextSize=7
+	btn.Parent=parent
+	return btn
+end
+local function newTrem(parent)
+	local trem = Instance.new("TextLabel")
+	trem.Size = UDim2.new(0,25,1,0)
+	trem.Position=UDim2.new(0.85,0,0,0)
+	trem.BackgroundTransparency=1
+	trem.Text="🔴"
+	trem.TextSize=20
+	trem.Parent=parent
+	return trem
+end
+local function newKnob(parent)
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0,15,0,15)
+	frame.Position=UDim2.new(0,-10,0.5,-8)
+	frame.BackgroundColor3=Color3.fromRGB(255, 255, 255)
+	frame.Parent=parent
+	return frame
+end
+local function newPlate(parent)
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0,20,0,10)
+	frame.Position=UDim2.new(0.8,0,0.49,0)
+	frame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	frame.Parent=parent
+	return frame
+end
+local function newUi(parent) 
+	local ui = Instance.new("UICorner")
+	ui.CornerRadius = UDim.new(0,10)
+	ui.Parent=parent
+	return ui
+end
+local function newCustomUi(parent, rb,lb,ru,lu) 
+	local ui = Instance.new("UICorner")
+	ui.BottomLeftRadius =UDim.new(0,lb)
+	ui.BottomRightRadius=UDim.new(0,rb)
+	ui.TopLeftRadius=UDim.new(0,lu)
+	ui.TopRightRadius=UDim.new(0,ru)
+	ui.Parent=parent
+	return ui
+end
+local function newsideBtn(name, pos)
+	local btn=Instance.new("TextButton")
+	btn.Size=UDim2.new(0.2,0,0.1,0)
+	btn.Position=UDim2.new(0,0,pos)
+	btn.BackgroundColor3=gry
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextSize=10
+	btn.Parent=Mainframe
+	return btn
+end
+
+local frame_1=Instance.new("Frame")
+frame_1.Size=UDim2.new(0.8,0,0.9,0)
+frame_1.Position=UDim2.new(0.2,0,0.1,0)
+frame_1.BackgroundColor3=blk_color
+frame_1.Visible=false
+frame_1.Parent=Mainframe
+
+local upState = false
+local upBtn = newBtn(" Enabled",0.05,frame_1)
+upBtn.Size=UDim2.new(0.8,0,0.1,0)
+upBtn.Position=UDim2.new(0.1,0,0,0)
+upBtn.TextXAlignment="Left"
+local upPlate = newPlate(upBtn)
+local upTerm = newKnob(upPlate)
+
+local speedSlideBtn = newLbl("Speed",0.1,frame_1)
+speedSlideBtn.Size=UDim2.new(0.35,0,0.13,0)
+speedSlideBtn.Position=UDim2.new(0.55,0,0.125,0)
+speedSlideBtn.TextYAlignment=Enum.TextYAlignment.Top
+local speedBox = txtBox(speedSlideBtn)
+
+local jumpBtn = newLbl("Jump",0.15,frame_1)
+jumpBtn.Size=UDim2.new(0.35,0,0.13,0)
+jumpBtn.Position=UDim2.new(0.1,0,0.125,0)
+jumpBtn.TextYAlignment=Enum.TextYAlignment.Top
+local jumpBox = txtBox(jumpBtn)
+
+local espPlayerState = false
+local espPlayerBtn = newBtn(" ESP Baby",0.05,frame_1)
+espPlayerBtn.Size=UDim2.new(0.8,0,0.1,0)
+espPlayerBtn.Position=UDim2.new(0.1,0,0.275,0)
+espPlayerBtn.TextXAlignment="Left"
+local espPlayerPlate = newPlate(espPlayerBtn)
+local espPlayerTerm = newKnob(espPlayerPlate)
+
+local EspTeddyState = false
+local EspTeddyBtn = newBtn(" ESP Teddy",0.5,frame_1)
+EspTeddyBtn.Size=UDim2.new(0.8,0,0.1,0)
+EspTeddyBtn.Position=UDim2.new(0.1,0,0.4,0)
+EspTeddyBtn.TextXAlignment="Left"
+local EspTeddyPlate = newPlate(EspTeddyBtn)
+local EspTeddyTerm = newKnob(EspTeddyPlate)
+
+local anitStuckState = false
+local anitStuckBtn = newBtn(" Anit-Stuck", 0.5, frame_1)
+anitStuckBtn.Size = UDim2.new(0.8, 0, 0.1, 0)
+anitStuckBtn.Position = UDim2.new(0.1, 0, 0.525, 0)
+anitStuckBtn.TextXAlignment = "Left"
+local anitStuckPlate = newPlate(anitStuckBtn)
+local anitStuckTerm = newKnob(anitStuckPlate)
+
+local fullBrightnessState = false
+local fullBrightnessBtn = newBtn(" Full Brightness", 0.5, frame_1)
+fullBrightnessBtn.Size = UDim2.new(0.8, 0, 0.1, 0)
+fullBrightnessBtn.Position = UDim2.new(0.1, 0, 0.65, 0)
+fullBrightnessBtn.TextXAlignment = "Left"
+local fullBrightnessPlate = newPlate(fullBrightnessBtn)
+local fullBrightnessTerm = newKnob(fullBrightnessPlate) 
+
+local noClipState = false
+local noClipBtn = newBtn(" No Clip", 0.5, frame_1)
+noClipBtn.Size = UDim2.new(0.8, 0, 0.1, 0)
+noClipBtn.Position = UDim2.new(0.1, 0, 0.775, 0)
+noClipBtn.TextXAlignment = "Left"
+local noClipPlate = newPlate(noClipBtn)
+local noClipTerm = newKnob(noClipPlate)
+
+local scroll_2 =Instance.new("ScrollingFrame")
+scroll_2.Size=UDim2.new(0.8,0,0.9,0)
+scroll_2.Position=UDim2.new(0.2,0,0.1,0)
+scroll_2.BackgroundColor3=blk_color
+scroll_2.Visible=false
+scroll_2.Parent=Mainframe
+local mainBtn = newsideBtn("Main", 0.1)
+local itemBtn = newsideBtn("Items", 0.22)
+
+newUi(Mainframe)
+newUi(destroyBtn)
+newUi(hideBtn)
+newUi(iconFrame)
+newUi(mainBtn)
+newUi(itemBtn)
+
+newUi(upBtn)
+newUi(upPlate)
+newUi(upTerm)
+
+newUi(espPlayerBtn)
+newUi(espPlayerPlate)
+newUi(espPlayerTerm)
+
+newUi(anitStuckBtn)
+newUi(anitStuckPlate)
+newUi(anitStuckTerm)
+
+newUi(fullBrightnessBtn)
+newUi(fullBrightnessPlate)
+newUi(fullBrightnessTerm)
+
+newUi(EspTeddyBtn)
+newUi(EspTeddyPlate)
+newUi(EspTeddyTerm)
+
+newUi(noClipBtn)
+newUi(noClipPlate)
+newUi(noClipTerm)
+
+newUi(speedSlideBtn)
+newUi(speedBox)
+
+newUi(jumpBtn)
+newUi(jumpBox)
+
+newCustomUi(frameTitle,0,0,10,10)
+newCustomUi(frame_1,10,0,0,0)
+
+local function display()
+	frame_1.Visible,scroll_2.Visible=false,false
+end
+mainBtn.MouseButton1Click:Connect(function()
+	display()
+	frame_1.Visible=true
+end)
+itemBtn.MouseButton1Click:Connect(function()
+	display()
+	scroll_2.Visible=true
+end)
+local function newBtnTp(name, pos)
+	local btn = Instance.new("TextButton")
+	btn.Size=UDim2.new(1,0,0.1,0)
+	btn.Position=UDim2.new(0,0,pos,0)
+	btn.Text=name
+
+	btn.TextSize=15
+	btn.Parent=scroll_2
+	return btn 
+end
+local items = {}
+local lastCheckTime = 0
+local checkInterval = 0.3 -- تحديث القائمة كل 0.3 ثانية بدلاً من كل فريم (يمنع اللاغ تماماً)
+local function isPlayerCharacter(model)
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player.Character and (model == player.Character or model:IsDescendantOf(player.Character)) then
+			return true
+		end
+	end
+	return false
+end
+
+runService.Heartbeat:Connect(function()
+	if espPlayerState then 
+
+	end
+end)
+
+local function newOutline(parent,out,fill)
+	local highlight=Instance.new("Highlight")
+	highlight.OutlineColor=out
+	highlight.FillColor=fill
+	highlight.Parent=parent
+end
+
+runService.Heartbeat:Connect(function()
+	local currentTime = os.clock()
+
+	if gameFolder and (currentTime - lastCheckTime) >= checkInterval then
+		lastCheckTime = currentTime
+
+		local newItemsList = {}
+
+		-- 1. جمع العناصر مع استبعاد جميع شخصيات اللاعبين
+		for _, enum in ipairs(gameFolder:GetChildren()) do
+			if not isPlayerCharacter(enum) then
+				if enum:IsA("Folder") then
+					local itemFolder = enum:FindFirstChild("Item") or enum:FindFirstChild("Items")
+					if itemFolder then
+						for _, item in ipairs(itemFolder:GetDescendants()) do
+							if item and item.Parent and (item:IsA("BasePart") or item:IsA("UnionOperation")) then
+								if not isPlayerCharacter(item) then
+									table.insert(newItemsList, item)
+								end
+							end
+						end
+					end
+				elseif enum:IsA("Model") and enum.Name ~= "Honey" then
+					for _, item in ipairs(enum:GetDescendants()) do
+						if item and item.Parent and (item:IsA("BasePart") or item:IsA("UnionOperation")) then
+							if not isPlayerCharacter(item) then
+								table.insert(newItemsList, item)
+							end
+						end
+					end
+				end
+			end
+		end
+
+		-- 2. تنظيف الأزرار السابقة
+		for _, child in ipairs(scroll_2:GetChildren()) do
+			if child:IsA("TextButton") then
+				child:Destroy()
+			end
+		end
+
+		items = newItemsList
+
+		-- 🎯 إعدادات قياسات الأزرار بالبكسل الثابت لضمان التمرير الممتاز
+		local buttonHeight = 30 -- ارتفاع الزر الواحد بالبكسل
+		local buttonSpacing = 5 -- المسافة بين كل زر والآخر بالبكسل
+
+		-- 3. بناء الأزرار وحساب مواقعها بالبكسل
+		for index, item in ipairs(items) do
+			local nam = item.Name
+
+			if item.BrickColor.Name == "Really black" then 
+				nam = "o|Key[Black]"
+			elseif item.BrickColor.Name == "Bright yellow" then 
+				nam = "o|Key[Yellow]"
+			elseif item.BrickColor.Name == "Bright blue" then 
+				nam = "o|Key[Blue]"
+			elseif item.BrickColor.Name == "Bright red" then 
+				nam = "o|Key[Red]"
+			elseif item.BrickColor.Name == "Carnation pink" then 
+				nam = "o|Key[Pink]"
+			elseif item.BrickColor.Name == "White" then
+				nam = "o|Key[White]"
+			elseif item.BrickColor.Name == "Teal" then 
+				nam = "o|Key[Light-Blue]"
+			elseif item.BrickColor.Name == "Toothpaste" then 
+				nam = "◊|Key[Light-Blue]"
+			elseif item.BrickColor.Name == "Magenta" then 
+				nam = "o|Key[Purple]"
+			elseif item.BrickColor.Name == "Lime green" then 
+				nam = "o|Key[Green]"
+			elseif item.BrickColor.Name == "Lapis" then 
+				nam = "◊|Key[Blue]" 
+			elseif item.BrickColor.Name == "Neon orange" then 
+				nam = "◊|Key[Orange]" 
+			elseif item.BrickColor.Name == "Really blue" then 
+				nam = "◊|Key[Blue]"
+			elseif item.BrickColor.Name == "Dark green" then 
+				nam = "◊|Key[Dark Green]"
+			elseif item.BrickColor.Name == "Cyan" then 
+				nam = "◊|Key[Cyan]"
+			elseif item.BrickColor.Name == "Institutional white" and item.Parent.Name ~= "Code" then 
+				nam = "◊|Key[Cyan]"
+			end
+
+			-- حساب موقع الزر العمودي بالبكسل
+			local yOffset = (index - 1) * (buttonHeight + buttonSpacing)
+
+			local btn = Instance.new("TextButton")
+			btn.Size = UDim2.new(0.8, 0, 0, buttonHeight)
+			btn.Position = UDim2.new(0.1, 0, 0, yOffset)
+			btn.Text = nam
+			btn.BackgroundColor3 = gry
+			btn.TextColor = BrickColor.new("White")
+			btn.TextScaled = true
+			btn.Parent = scroll_2
+			newUi(btn)
+
+			btn.MouseButton1Click:Connect(function()
+				if item and item.Parent then
+					local myChar = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+					local root = myChar and myChar:FindFirstChild("HumanoidRootPart")
+					local humanoid = myChar and myChar:FindFirstChildWhichIsA("Humanoid")
+					local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
+
+					local targetObject = nil
+					local current = item
+
+					while current and current ~= workspace do
+						if CollectionService:HasTag(current, "Item") or CollectionService:HasTag(current, "EasterChick") or current:FindFirstChild("Origin") then
+							targetObject = current
+							break
+						end
+						current = current.Parent
+					end
+
+					targetObject = targetObject or item.Parent
+
+					if root and targetObject then
+						local oldCFrame = root.CFrame
+
+						-- 🎯 1. دالة حساب إجمالي الأغراض (تأخذ Tool و Model في الحقيبة والشخصية)
+						local function getItemCount()
+							local count = 0
+							if backpack then
+								for _, child in ipairs(backpack:GetChildren()) do
+									if child:IsA("Tool") or child:IsA("Model") then
+										count = count + 1
+									end
+								end
+							end
+							if myChar then
+								for _, child in ipairs(myChar:GetChildren()) do
+									if child:IsA("Tool") or child:IsA("Model") then
+										count = count + 1
+									end
+								end
+							end
+							return count
+						end
+
+						local initialCount = getItemCount()
+
+						-- 2. النقل إلى موقع العنصر
+						root.CFrame = item.CFrame
+
+						-- 3. إرسال طلب التفاعل للسيرفر
+						if CollectionService:HasTag(targetObject, "EasterChick") then
+							interactEvent:FireServer(targetObject, "EasterChick")
+						else
+							interactEvent:FireServer(targetObject, "Item")
+						end
+
+						-- 🎯 4. الانتظار الذكي الفوري: يتحقق من زيادة العدد الكلي للأغراض بغض النظر عن نوعها
+						local timeout = 0
+						while timeout < 1.0 do
+							-- أ) اختفاء العنصر من الخريطة
+							if not (item and item.Parent and item:IsDescendantOf(workspace)) then
+								break
+							end
+
+							-- ب) زيادة في عدد الأغراض لدى اللاعب
+							if getItemCount() > initialCount then
+								break
+							end
+
+							-- إعادة التنبيه للسيرفر عند التأخر
+							if timeout >= 0.2 and (math.floor(timeout * 100) % 20 == 0) then
+								if CollectionService:HasTag(targetObject, "EasterChick") then
+									interactEvent:FireServer(targetObject, "EasterChick")
+								else
+									interactEvent:FireServer(targetObject, "Item")
+								end
+							end
+
+							task.wait(0.02)
+							timeout = timeout + 0.02
+						end
+
+						-- 5. العودة الفورية للموقع الأصلي وإعادة الضبط
+						root.CFrame = oldCFrame
+						root.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+						root.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+
+						if humanoid then
+							humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+						end
+					end
+				end
+			end)
+		end
+
+		-- 🎯 حساب ارتفاع منطقة التمرير الإجمالية بالبكسل
+		local totalCanvasHeight = #items * (buttonHeight + buttonSpacing)
+		scroll_2.CanvasSize = UDim2.new(0, 0, 0, totalCanvasHeight)
+	end
+end)
+
+local function getColor(char)
+	local clr1,clr2=nil,nil
+	if char.Parent==gameFolder then 
+		clr1=Color3.fromRGB(0, 0, 255)
+		clr2=Color3.fromRGB(0, 85, 255)
+	else
+		clr1=Color3.fromRGB(255, 0, 0)
+		clr2=Color3.fromRGB(255, 44, 44)
+	end
+	return {clr1,clr2}
+end
+
+runService.Heartbeat:Connect(function()
+	if upState then 
+		local human = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+		if human then
+			if tonumber(jumpBox.Text) then 
+				human.UseJumpPower=true
+				human.JumpPower=jumpBox.Text
+			end
+			if tonumber(speedBox.Text) then human.WalkSpeed=speedBox.Text end
+		end
+	end
+
+	if EspTeddyState then 
+		if gameFolder then 
+			for _, enum in ipairs(gameFolder:GetChildren()) do 
+				if enum:IsA("Folder") then 
+					for _, fold in ipairs(enum:GetChildren()) do 
+						if fold:IsA("Model") and fold:FindFirstChild("Humanoid") then 
+							local isHold = false
+							for _, item in ipairs(fold:GetChildren()) do 
+								if item:IsA("Highlight") then 
+									isHold = true 
+									break
+								end
+							end
+							if not isHold then 
+								local color = getColor(fold)
+								newOutline(fold, color[1], color[2])
+							end
+						end
+					end
+				end
+			end
+		end
+	else
+		-- عند إيقاف الـ ESP يتم إزالة الـ Highlight
+		if gameFolder then 
+			for _, enum in ipairs(gameFolder:GetChildren()) do 
+				if enum:IsA("Folder") then 
+					for _, fold in ipairs(enum:GetChildren()) do 
+						if fold:IsA("Model") and (fold.Name == "Teddy" or fold:FindFirstChild("Humanoid")) then 
+							for _, item in ipairs(fold:GetChildren()) do 
+								if item:IsA("Highlight") then 
+									item:Destroy()
+								end
+							end
+						end
+					end
+				end
+			end
+		end    
+	end
+end)
+
+runService.Heartbeat:Connect(function()
+	if anitStuckState then 
+		if gameFolder then 
+			for _, item in ipairs(gameFolder:GetChildren()) do 
+				if item:IsA("Model") and item.Name=="Honey" then 
+					local hitbox = item:FindFirstChild("Hitbox")
+					if hitbox then hitbox:Destroy() end
+				end
+			end
+		end
+	end
+	
+	if fullBrightnessState then 
+		light.Brightness=3
+		light.GlobalShadows=false
+		light.Ambient=Color3.fromRGB(200, 200, 200)
+	end
+	
+	if noClipState then 
+		local char = LocalPlayer.Character
+		if char then 
+			for _, item in ipairs(char:GetChildren()) do 
+				if item:IsA("BasePart") then item.CanCollide=false end
+			end
+		end
+	end
+end)
+
+upBtn.MouseButton1Click:Connect(function()
+	upState = not upState
+	if upState then 
+		upTerm.Position = UDim2.new(1, -10, 0.5, -8)
+		upPlate.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	else 
+		upTerm.Position = UDim2.new(0, -10, 0.5, -8)
+		upPlate.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+	end
+end)
+
+for _, player in ipairs(Players:GetPlayers()) do 
+	if player~=LocalPlayer then 
+		player.CharacterAdded:Connect(function(char)
+			if espPlayerState then 
+				local IsHold=false
+				local color=getColor(char)
+				for _, item in ipairs(char:GetChildren()) do 
+					if item:IsA("Highlight") then 
+						IsHold=true 
+						break
+					end
+				end
+				if not IsHold then newOutline(char,color[1], color[2]) end
+			end
+		end)
+	end
+end
+
+Players.PlayerAdded:Connect(function(player)
+	player.CharacterAdded:Connect(function(char)
+		if espPlayerState then
+			local IsHold=false
+			local color=getColor(char)
+			for _, item in ipairs(char:GetChildren()) do
+				if item:IsA("Highlight") then 
+					IsHold=true 
+					break
+				end
+			end
+			if not IsHold then newOutline(char,color[1], color[2]) end
+		end
+	end)
+end)
+
+
+espPlayerBtn.MouseButton1Click:Connect(function()
+	espPlayerState=not espPlayerState
+	if espPlayerState then 
+		local IsHold=false
+		for _, player in ipairs(Players:GetPlayers()) do 
+			if player~=LocalPlayer then 
+				local char = player.Character
+				if char then
+					local color=getColor(char)
+					for _, item in ipairs(char:GetChildren()) do 
+						if item:IsA("Highlight") then 
+							IsHold=true 
+							break
+						end
+					end
+					if not IsHold then newOutline(char,color[1], color[2]) end
+				end
+			end
+		end
+		espPlayerTerm.Position=UDim2.new(1,-10,0.5,-8)
+		espPlayerPlate.BackgroundColor3=Color3.fromRGB(255, 255, 255)
+	else 
+		for _, player in ipairs(Players:GetPlayers()) do 
+			if player~=LocalPlayer then 
+				local char = player.Character
+				if char then 
+					for _, item in ipairs(char:GetChildren()) do 
+						if item:IsA("Highlight") then item:Destroy() end
+					end
+				end
+			end
+		end
+		espPlayerTerm.Position=UDim2.new(0,-10,0.5,-8)
+		espPlayerPlate.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	end
+end)
+
+EspTeddyBtn.MouseButton1Click:Connect(function()
+	EspTeddyState = not EspTeddyState
+	if EspTeddyState then 
+		EspTeddyTerm.Position = UDim2.new(1, -10, 0.5, -8)
+		EspTeddyPlate.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	else 
+		EspTeddyTerm.Position = UDim2.new(0, -10, 0.5, -8)
+		EspTeddyPlate.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+	end
+end)
+
+anitStuckBtn.MouseButton1Click:Connect(function()
+	anitStuckState = not anitStuckState
+	if anitStuckState then 
+		anitStuckTerm.Position = UDim2.new(1, -10, 0.5, -8)
+		anitStuckPlate.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	else 
+		anitStuckTerm.Position = UDim2.new(0, -10, 0.5, -8)
+		anitStuckPlate.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+	end
+end)
+
+fullBrightnessBtn.MouseButton1Click:Connect(function()
+	fullBrightnessState = not fullBrightnessState
+	if fullBrightnessState then 
+		fullBrightnessTerm.Position = UDim2.new(1, -10, 0.5, -8)
+		fullBrightnessPlate.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	else 
+		light.Brightness=0
+		light.Ambient=Color3.fromRGB(0, 0, 0)
+		light.GlobalShadows=true
+		
+		fullBrightnessTerm.Position = UDim2.new(0, -10, 0.5, -8)
+		fullBrightnessPlate.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+	end
+end)
+
+noClipBtn.MouseButton1Click:Connect(function()
+	noClipState = not noClipState
+	if noClipState then 
+		noClipTerm.Position = UDim2.new(1, -10, 0.5, -8)
+		noClipPlate.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	else 
+		noClipTerm.Position = UDim2.new(0, -10, 0.5, -8)
+		noClipPlate.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+	end
+end)
