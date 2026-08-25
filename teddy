@@ -602,9 +602,15 @@ runService.Heartbeat:Connect(function()
 		local char = LocalPlayer.Character
 		if char then 
 			for _, item in ipairs(char:GetChildren()) do 
-				if item:IsA("BasePart") then item.CanCollide=false end
+				if item:IsA("BasePart") then item.CanCollide=false
+				elseif item:IsA("Model") and char:FindFirstChild("BindableEventFreeze") then 
+					for _, part in ipairs(item:GetChildren()) do 
+						if part:IsA("BasePart") then part.CanCollide=false end
+					end
+				end
 			end
 		end
+		
 	end
 end)
 
