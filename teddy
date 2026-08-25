@@ -4,7 +4,7 @@ local UserInputService = game:GetService("UserInputService")
 local light = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CollectionService = game:GetService("CollectionService")
-local interactEvent = ReplicatedStorage:WaitForChild("Events"):WaitForChild("interact")
+--local interactEvent = ReplicatedStorage:WaitForChild("Events"):WaitForChild("interact")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local runService = game:GetService("RunService")
@@ -601,12 +601,9 @@ runService.Heartbeat:Connect(function()
 	if noClipState then 
 		local char = LocalPlayer.Character
 		if char then 
-			for _, item in ipairs(char:GetChildren()) do 
+			for _, item in ipairs(char:GetDescendants()) do 
 				if item:IsA("BasePart") then item.CanCollide=false
-				elseif item:IsA("Model") and char:FindFirstChild("BindableEventFreeze") then 
-					for _, part in ipairs(item:GetChildren()) do 
-						if part:IsA("BasePart") then part.CanCollide=false end
-					end
+					
 				end
 			end
 		end
