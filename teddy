@@ -149,7 +149,7 @@ local function newsideBtn(name, pos)
 	btn.BackgroundColor3=gry
 	btn.TextColor=BrickColor.new("White")
 	btn.Text=name
-	btn.TextScaled=true
+	btn.TextSize=10
 	btn.Parent=Mainframe
 	return btn
 end
