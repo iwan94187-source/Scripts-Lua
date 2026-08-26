@@ -86,7 +86,7 @@ local function newBtn(name,pos,parent)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
 	btn.Text=name
-	btn.TextSize=7
+	btn.TextScaled=true
 	btn.Parent=parent
 	return btn
 end
