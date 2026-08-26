@@ -631,7 +631,7 @@ runService.Heartbeat:Connect(function()
 	end
 end)
 
-local ree = false
+local ree = true
 LocalPlayer.CharacterAdded:Connect(function()
 	ree = true
 end)
