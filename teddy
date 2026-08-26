@@ -86,7 +86,7 @@ local function newBtn(name,pos,parent)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
 	btn.Text=name
-	btn.TextScaled=true
+	btn.TextSize=7
 	btn.Parent=parent
 	return btn
 end
@@ -149,7 +149,7 @@ local function newsideBtn(name, pos)
 	btn.BackgroundColor3=gry
 	btn.TextColor=BrickColor.new("White")
 	btn.Text=name
-	btn.TextSize=10
+	btn.TextScaled=true
 	btn.Parent=Mainframe
 	return btn
 end
@@ -244,6 +244,7 @@ scroll_2.Parent=Mainframe
 local mainBtn = newsideBtn("Main", 0.1)
 local itemBtn = newsideBtn("Items", 0.22)
 local unvBtn = newsideBtn("Unvirsal", 0.34)
+
 
 newUi(Mainframe)
 newUi(destroyBtn)
@@ -631,7 +632,7 @@ runService.Heartbeat:Connect(function()
 	end
 end)
 
-local ree = false
+local ree = true
 LocalPlayer.CharacterAdded:Connect(function()
 	ree = true
 end)
