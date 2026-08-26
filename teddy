@@ -161,6 +161,13 @@ frame_1.BackgroundColor3=blk_color
 frame_1.Visible=false
 frame_1.Parent=Mainframe
 
+local frame_2=Instance.new("Frame")
+frame_2.Size=UDim2.new(0.8,0,0.9,0)
+frame_2.Position=UDim2.new(0.2,0,0.1,0)
+frame_2.BackgroundColor3=blk_color
+frame_2.Visible=false
+frame_2.Parent=Mainframe
+
 local upState = false
 local upBtn = newBtn(" Enabled",0.05,frame_1)
 upBtn.Size=UDim2.new(0.8,0,0.1,0)
@@ -221,6 +228,13 @@ noClipBtn.TextXAlignment = "Left"
 local noClipPlate = newPlate(noClipBtn)
 local noClipTerm = newKnob(noClipPlate)
 
+local escapeBtn = newBtn(" Auta Ecsape", 0, frame_2)
+escapeBtn.Size = UDim2.new(0.8, 0, 0.1, 0)
+escapeBtn.Position = UDim2.new(0.1, 0, 0.05, 0)
+escapeBtn.TextXAlignment = "Left"
+local escapePlate = newPlate(escapeBtn)
+local escapeTerm = newKnob(escapePlate)
+
 local scroll_2 =Instance.new("ScrollingFrame")
 scroll_2.Size=UDim2.new(0.8,0,0.9,0)
 scroll_2.Position=UDim2.new(0.2,0,0.1,0)
@@ -229,6 +243,7 @@ scroll_2.Visible=false
 scroll_2.Parent=Mainframe
 local mainBtn = newsideBtn("Main", 0.1)
 local itemBtn = newsideBtn("Items", 0.22)
+local unvBtn = newsideBtn("Unvirsal", 0.34)
 
 newUi(Mainframe)
 newUi(destroyBtn)
@@ -236,6 +251,7 @@ newUi(hideBtn)
 newUi(iconFrame)
 newUi(mainBtn)
 newUi(itemBtn)
+newUi(unvBtn)
 
 newUi(upBtn)
 newUi(upPlate)
@@ -261,6 +277,10 @@ newUi(noClipBtn)
 newUi(noClipPlate)
 newUi(noClipTerm)
 
+newUi(escapeBtn)
+newUi(escapePlate)
+newUi(escapeTerm)
+
 newUi(speedSlideBtn)
 newUi(speedBox)
 
@@ -271,7 +291,7 @@ newCustomUi(frameTitle,0,0,10,10)
 newCustomUi(frame_1,10,0,0,0)
 
 local function display()
-	frame_1.Visible,scroll_2.Visible=false,false
+	frame_1.Visible, frame_2.Visible,scroll_2.Visible=false,false,false
 end
 mainBtn.MouseButton1Click:Connect(function()
 	display()
@@ -280,6 +300,10 @@ end)
 itemBtn.MouseButton1Click:Connect(function()
 	display()
 	scroll_2.Visible=true
+end)
+unvBtn.MouseButton1Click:Connect(function()
+	display()
+	frame_2.Visible=true
 end)
 local function newBtnTp(name, pos)
 	local btn = Instance.new("TextButton")
@@ -303,11 +327,7 @@ local function isPlayerCharacter(model)
 	return false
 end
 
-runService.Heartbeat:Connect(function()
-	if espPlayerState then 
 
-	end
-end)
 
 local function newOutline(parent,out,fill)
 	local highlight=Instance.new("Highlight")
@@ -591,23 +611,35 @@ runService.Heartbeat:Connect(function()
 			end
 		end
 	end
-	
+
 	if fullBrightnessState then 
 		light.Brightness=3
 		light.GlobalShadows=false
 		light.Ambient=Color3.fromRGB(200, 200, 200)
 	end
-	
+
 	if noClipState then 
 		local char = LocalPlayer.Character
 		if char then 
 			for _, item in ipairs(char:GetDescendants()) do 
 				if item:IsA("BasePart") then item.CanCollide=false
-					
+
 				end
 			end
 		end
-		
+
+	end
+end)
+
+runService.Heartbeat:Connect(function()
+	if escapeState then 
+		local char = LocalPlayer.Character
+		local chapter= gameFolder and gameFolder:FindFirstChildOfClass("Folder") 
+		local eventPath = ReplicatedStorage:FindFirstChild("Events") and ReplicatedStorage.Events:FindFirstChild("toggleCutscene")
+
+		if char and chapter and eventPath then 
+			firesignal(eventPath.OnClientEvent, chapter.Name, "Exit")
+		end
 	end
 end)
 
@@ -725,7 +757,7 @@ fullBrightnessBtn.MouseButton1Click:Connect(function()
 		light.Brightness=0
 		light.Ambient=Color3.fromRGB(0, 0, 0)
 		light.GlobalShadows=true
-		
+
 		fullBrightnessTerm.Position = UDim2.new(0, -10, 0.5, -8)
 		fullBrightnessPlate.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
 	end
@@ -739,5 +771,16 @@ noClipBtn.MouseButton1Click:Connect(function()
 	else 
 		noClipTerm.Position = UDim2.new(0, -10, 0.5, -8)
 		noClipPlate.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+	end
+end)
+
+escapeBtn.MouseButton1Click:Connect(function()
+	escapeState = not escapeState
+	if escapeState then 
+		escapeTerm.Position = UDim2.new(1, -10, 0.5, -8)
+		escapePlate.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	else 
+		escapeTerm.Position = UDim2.new(0, -10, 0.5, -8)
+		escapePlate.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
 	end
 end)
