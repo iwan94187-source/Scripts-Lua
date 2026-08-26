@@ -149,7 +149,7 @@ local function newsideBtn(name, pos)
 	btn.BackgroundColor3=gry
 	btn.TextColor=BrickColor.new("White")
 	btn.Text=name
-	btn.TextSize=10
+	btn.TextScaled=true
 	btn.Parent=Mainframe
 	return btn
 end
@@ -244,7 +244,7 @@ scroll_2.Parent=Mainframe
 local mainBtn = newsideBtn("Main", 0.1)
 local itemBtn = newsideBtn("Items", 0.22)
 local unvBtn = newsideBtn("Unvirsal", 0.34)
-unvBtn.TextScaled=true
+
 
 newUi(Mainframe)
 newUi(destroyBtn)
@@ -791,4 +791,3 @@ escapeBtn.MouseButton1Click:Connect(function()
 		escapePlate.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
 	end
 end)
- 
