@@ -543,7 +543,7 @@ runService.Heartbeat:Connect(function()
 			for _, enum in ipairs(gameFolder:GetChildren()) do 
 				if enum:IsA("Folder") then 
 					for _, fold in ipairs(enum:GetChildren()) do 
-						if fold:IsA("Model") and fold:FindFirstChild("Humanoid") then 
+						if fold:IsA("Model") and fold:FindFirstChild("Humanoid") and fold~=LocalPlayer.Character then 
 							local isHold = false
 							for _, item in ipairs(fold:GetChildren()) do 
 								if item:IsA("Highlight") then 
@@ -566,7 +566,7 @@ runService.Heartbeat:Connect(function()
 			for _, enum in ipairs(gameFolder:GetChildren()) do 
 				if enum:IsA("Folder") then 
 					for _, fold in ipairs(enum:GetChildren()) do 
-						if fold:IsA("Model") and (fold.Name == "Teddy" or fold:FindFirstChild("Humanoid")) then 
+						if fold:IsA("Model") and fold:FindFirstChild("Humanoid") and fold~=LocalPlayer.Character then 
 							for _, item in ipairs(fold:GetChildren()) do 
 								if item:IsA("Highlight") then 
 									item:Destroy()
