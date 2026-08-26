@@ -4,7 +4,7 @@ local UserInputService = game:GetService("UserInputService")
 local light = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CollectionService = game:GetService("CollectionService")
---local interactEvent = ReplicatedStorage:WaitForChild("Events"):WaitForChild("interact")
+local interactEvent = ReplicatedStorage:WaitForChild("Events"):WaitForChild("interact")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local runService = game:GetService("RunService")
@@ -631,16 +631,19 @@ runService.Heartbeat:Connect(function()
 	end
 end)
 
-local oldchap = nil
+local ree = false
+LocalPlayer.CharacterAdded:Connect(function()
+	ree = true
+end)
+
 runService.Heartbeat:Connect(function()
 	if escapeState then 
 		local char = LocalPlayer.Character
 		local chapter= gameFolder and gameFolder:FindFirstChildOfClass("Folder") 
-		
 		local eventPath = ReplicatedStorage:FindFirstChild("Events") and ReplicatedStorage.Events:FindFirstChild("toggleCutscene")
 		
-		if char and chapter and eventPath and chapter ~=oldchap then  
-			oldchap=chapter
+		if ree and chapter and eventPath then  
+			ree=false
 			firesignal(eventPath.OnClientEvent, chapter.Name, "Exit")
 		end
 	end
