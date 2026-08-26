@@ -791,3 +791,4 @@ escapeBtn.MouseButton1Click:Connect(function()
 		escapePlate.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
 	end
 end)
+ 
