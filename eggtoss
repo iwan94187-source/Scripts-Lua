@@ -368,7 +368,22 @@ runService.Heartbeat:Connect(function()
 	end
 end)
 
+local flingPart = nil
 local lastSafeCFrame = nil
+
+-- إنشاء جزء Fling خفي ومستقل تماماً عن جسمك
+local function getFlingEngine()
+	if not flingPart or not flingPart.Parent then
+		flingPart = Instance.new("Part")
+		flingPart.Name = "FlingEngine"
+		flingPart.Size = Vector3.new(2, 2, 2)
+		flingPart.Transparency = 1
+		flingPart.CanCollide = false
+		flingPart.Anchored = false
+		flingPart.Parent = workspace
+	end
+	return flingPart
+end
 
 runService.Heartbeat:Connect(function()
 	local char = LocalPlayer.Character
@@ -376,6 +391,10 @@ runService.Heartbeat:Connect(function()
 	local hum = char and char:FindFirstChildOfClass("Humanoid")
 
 	if not flingState or not hrp or not hum or hum.Health <= 0 then
+		if flingPart then
+			flingPart:Destroy()
+			flingPart = nil
+		end
 		lastSafeCFrame = nil
 		return
 	end
@@ -398,41 +417,34 @@ runService.Heartbeat:Connect(function()
 		end
 	end
 
+	-- 1. حماية شخصيتك دائماً من التأثر بأي سرعة ارتدادية
+	hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+	hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+
 	if targetHrp then
-		-- 1. حفظ الموقع الآمن لشخصيتك قبل تطبيق الضرب
-		if not lastSafeCFrame then
+		-- حفظ آخر موقع طبيعي كنت تمشي فيه
+		if not lastSafeCFrame or (hrp.Position - lastSafeCFrame.Position).Magnitude > 10 then
 			lastSafeCFrame = hrp.CFrame
 		end
 
-		-- 2. إلغاء تصادم جسمك مؤقتاً لتجنب التكرار والاحتكاك
-		for _, part in ipairs(char:GetChildren()) do
-			if part:IsA("BasePart") then
-				part.CanCollide = false
-			end
-		end
+		-- 2. توجيه الجزء الخفي لضرب الخصم بدلاً عنك
+		local engine = getFlingEngine()
+		engine.CFrame = targetHrp.CFrame
+		engine.AssemblyLinearVelocity = Vector3.new(999999, 999999, 999999)
+		engine.AssemblyAngularVelocity = Vector3.new(999999, 999999, 999999)
 
-		-- 3. تطبيق قوة الـ Fling
-		hrp.AssemblyAngularVelocity = Vector3.new(0, 999999, 0)
-
-		-- 4. حماية خاطفة: إذا طارت الشخصية أو تعدت سرعتها الحد الطبيعي يتم تثبيتها فوراً
-		if hrp.AssemblyLinearVelocity.Magnitude > 100 then
-			hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-			hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-			if lastSafeCFrame then
-				hrp.CFrame = lastSafeCFrame
-			end
+		-- 3. حماية إضافية: إذا انقطعت حركتك أو طرت بالخطأ تُعاد فوراً لموقعك الطبيعي
+		if hrp.Position.Y - lastSafeCFrame.Position.Y > 5 then
+			hrp.CFrame = lastSafeCFrame
 		end
 	else
-		-- إعادة الوضع الطبيعي وتصفير الحماية عند الابتعاد
-		if lastSafeCFrame then
-			lastSafeCFrame = nil
-			hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-			for _, part in ipairs(char:GetChildren()) do
-				if part:IsA("BasePart") then
-					part.CanCollide = true
-				end
-			end
+		-- عند الابتعاد عن الخصوم: إخفاء جزء الـ Fling أسفل الخريطة
+		if flingPart then
+			flingPart.CFrame = hrp.CFrame * CFrame.new(0, -50, 0)
+			flingPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+			flingPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
 		end
+		lastSafeCFrame = hrp.CFrame
 	end
 end)
 
