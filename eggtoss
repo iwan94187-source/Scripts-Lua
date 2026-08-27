@@ -370,13 +370,12 @@ end)
 
 local flingPart = nil
 
--- إنشاء جزء Fling مستقل وغير مرئي بعيد عن الفيزيائية المباشرة للشخصية
 local function setupFlingPart()
 	if flingPart and flingPart.Parent then return end
 
 	flingPart = Instance.new("Part")
 	flingPart.Name = "TouchFlingEngine"
-	flingPart.Size = Vector3.new(4, 4, 4)
+	flingPart.Size = Vector3.new(3, 3, 3)
 	flingPart.Transparency = 1
 	flingPart.CanCollide = false
 	flingPart.Anchored = false
@@ -389,7 +388,6 @@ runService.Heartbeat:Connect(function()
 	local hrp = char and char:FindFirstChild("HumanoidRootPart")
 	local hum = char and char:FindFirstChildOfClass("Humanoid")
 
-	-- إيقاف النظام وإعادة الشخصية لحركتها الطبيعية فوراً عند إيقاف flingState
 	if not flingState or not hrp or not hum or hum.Health <= 0 then
 		if flingPart then
 			flingPart:Destroy()
@@ -401,14 +399,17 @@ runService.Heartbeat:Connect(function()
 	setupFlingPart()
 
 	if flingPart then
-		-- نقل موقع الجزء التخيلي فقط دون تغيير سرعة الشخصية الأساسية
-		flingPart.CFrame = hrp.CFrame
+		-- 1. تثبيت وحماية شخصيتك لمنع طيرانك مطلقاً
+		hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+		hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
 
-		-- إعطاء الجزء سرعة اندفاعية فائقة تعجز فيزياء الماب عن معالجتها
-		flingPart.AssemblyLinearVelocity = Vector3.new(99999, 99999, 99999)
-		flingPart.AssemblyAngularVelocity = Vector3.new(99999, 99999, 99999)
+		-- 2. إعطاء الجزء قوة دفع فائقة
+		flingPart.AssemblyLinearVelocity = Vector3.new(999999, 999999, 999999)
+		flingPart.AssemblyAngularVelocity = Vector3.new(999999, 999999, 999999)
 
-		-- فحص الاصطدام مع أي مجسم أو لاعب بالقرب منك
+		local targetFound = false
+
+		-- 3. البحث عن أي شخصية أو NPC قريب
 		for _, targetModel in ipairs(workspace:GetChildren()) do
 			if targetModel:IsA("Model") and targetModel ~= char then
 				local targetHum = targetModel:FindFirstChildOfClass("Humanoid")
@@ -417,17 +418,20 @@ runService.Heartbeat:Connect(function()
 				if targetHum and targetHrp and targetHum.Health > 0 then
 					local distance = (hrp.Position - targetHrp.Position).Magnitude
 
-					-- عند الاقتراب من الخصم (مسافة لمس 5 أمتار)
+					-- عند الاقتراب (اقل من 5 أمتار)
 					if distance <= 5 then
-						-- إجبار التداخل الفيزيائي لتطير الشخصية الأخرى فوراً
-						targetHrp.AssemblyLinearVelocity = Vector3.new(
-							math.random(-50000, 50000),
-							100000,
-							math.random(-50000, 50000)
-						)
+						targetFound = true
+						-- نقل الجزء التخيلي فقط إلى موقع الخصم لضربه بالقوة
+						flingPart.CFrame = targetHrp.CFrame
+						break
 					end
 				end
 			end
+		end
+
+		-- إذا لم تكن قريباً من أحد، يظل الجزء عند موقعك دون الاصطدام بك
+		if not targetFound then
+			flingPart.CFrame = hrp.CFrame * CFrame.new(0, -10, 0) -- إخفاء الجزء أسفل الأرض عند عدم الاستخدام
 		end
 	end
 end)
