@@ -368,44 +368,22 @@ runService.Heartbeat:Connect(function()
 	end
 end)
 
-local flingPart = nil
+local flingActive = false
 
--- إنشاء المحرك الفيزيائي المخفي
-local function getFlingPart()
-	if not flingPart or not flingPart.Parent then
-		flingPart = Instance.new("Part")
-		flingPart.Name = "FlingEngine"
-		flingPart.Size = Vector3.new(1, 1, 1)
-		flingPart.Transparency = 1
-		flingPart.CanCollide = false
-		flingPart.Anchored = false
-		flingPart.Parent = workspace
-	end
-	return flingPart
-end
-
+-- دالة حماية وتحديث الفيزيا
 runService.Heartbeat:Connect(function()
 	local char = LocalPlayer.Character
 	local hrp = char and char:FindFirstChild("HumanoidRootPart")
 	local hum = char and char:FindFirstChildOfClass("Humanoid")
 
 	if not flingState or not hrp or not hum or hum.Health <= 0 then
-		if flingPart then
-			flingPart:Destroy()
-			flingPart = nil
-		end
+		flingActive = false
 		return
 	end
 
-	local part = getFlingPart()
-
-	-- 1. حماية شخصيتك من الارتداد والتأثر بالقوة
-	hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-	hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-
 	local targetHrp = nil
 
-	-- 2. البحث عن أقرب شخصية أو لاعب
+	-- 1. البحث عن أقرب هدف (لاعب أو NPC) في نطاق 6 أمتار
 	for _, targetModel in ipairs(workspace:GetChildren()) do
 		if targetModel:IsA("Model") and targetModel ~= char then
 			local tHum = targetModel:FindFirstChildOfClass("Humanoid")
@@ -413,7 +391,7 @@ runService.Heartbeat:Connect(function()
 
 			if tHum and tHrp and tHum.Health > 0 then
 				local distance = (hrp.Position - tHrp.Position).Magnitude
-				if distance <= 7 then
+				if distance <= 6 then
 					targetHrp = tHrp
 					break
 				end
@@ -421,18 +399,44 @@ runService.Heartbeat:Connect(function()
 		end
 	end
 
-	-- 3. تطبيق قوة الـ Fling على الخصم فور الاقتراب
+	-- 2. عند الاقتراب من الخصم
 	if targetHrp then
-		-- نقل الجزء المخفي داخل الخصم مباشرة
-		part.CFrame = targetHrp.CFrame
-		-- إعطاء الجزء سرعة نفاثة يجبر السيرفر بها على طرد الخصم
-		part.AssemblyLinearVelocity = Vector3.new(0, 999999, 0)
-		part.AssemblyAngularVelocity = Vector3.new(999999, 999999, 999999)
+		flingActive = true
+
+		-- إلغاء تصادم جسمك لضمان عدم حدوث احتكاك يسبب بطء المشي
+		for _, part in ipairs(char:GetChildren()) do
+			if part:IsA("BasePart") then
+				part.CanCollide = false
+			end
+		end
+
+		-- حفظ الموقع الحالي وتصفير القوى الارتدادية فوراً
+		local currentCF = hrp.CFrame
+		hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+
+		-- تطبيق ضربة فيزيائية سريعة على الخصم عبر النقل الخاطف المتبادل
+		task.spawn(function()
+			-- نقل خاطف لأسفل الخصم مع زاوية دورانية لإجبار السيرفر على طرده
+			hrp.CFrame = targetHrp.CFrame * CFrame.new(0, -1, 0) * CFrame.Angles(math.rad(90), 0, 0)
+			hrp.AssemblyAngularVelocity = Vector3.new(0, 999999, 0)
+
+			runService.RenderStepped:Wait()
+
+			-- إرجاعك لموقعك فوراً وتصفير السرعة لمنع التأخير أو بطء الحركة
+			hrp.CFrame = currentCF
+			hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+			hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+		end)
 	else
-		-- إبعاد الجزء تحت الماب عند عدم وجود خصم قريب كي لا يعرقلك
-		part.CFrame = hrp.CFrame * CFrame.new(0, -50, 0)
-		part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-		part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+		if flingActive then
+			flingActive = false
+			-- إعادة التصادم الطبيعي عند الابتعاد عن الخصوم
+			for _, part in ipairs(char:GetChildren()) do
+				if part:IsA("BasePart") then
+					part.CanCollide = true
+				end
+			end
+		end
 	end
 end)
 
