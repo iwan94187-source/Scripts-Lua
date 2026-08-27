@@ -379,13 +379,18 @@ runService.Heartbeat:Connect(function()
 		if flingActive then
 			flingActive = false
 			hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+			for _, part in ipairs(char:GetChildren()) do
+				if part:IsA("BasePart") then
+					part.CanCollide = true
+				end
+			end
 		end
 		return
 	end
 
 	local targetHrp = nil
 
-	-- البحث عن أقرب هدف (لاعب أو NPC) في نطاق 6 أمتار
+	-- البحث عن أقرب هدف (لاعب أو NPC) في نطاق 5.5 أمتار
 	for _, targetModel in ipairs(workspace:GetChildren()) do
 		if targetModel:IsA("Model") and targetModel ~= char then
 			local tHum = targetModel:FindFirstChildOfClass("Humanoid")
@@ -393,7 +398,7 @@ runService.Heartbeat:Connect(function()
 
 			if tHum and tHrp and tHum.Health > 0 then
 				local distance = (hrp.Position - tHrp.Position).Magnitude
-				if distance <= 6 then
+				if distance <= 5.5 then
 					targetHrp = tHrp
 					break
 				end
@@ -404,23 +409,20 @@ runService.Heartbeat:Connect(function()
 	if targetHrp then
 		flingActive = true
 
-		-- 1. إلغاء تصادم أجزاء الجسم لمنع التبطيئ والاحتكاك
+		-- 1. إلغاء تصادم جسمك فقط أثناء الاقتراب واللمس لمنع التبطيئ
 		for _, part in ipairs(char:GetChildren()) do
-			if part:IsA("BasePart") then
+			if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
 				part.CanCollide = false
 			end
 		end
 
-		-- 2. تصفير أي قوة دفع خطية تحاول تطييرك أنت
-		hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-
-		-- 3. تطبيق دوران عمودي خاطف يطير الخصم دون نقل موقعك أو تحريك الكاميرا
+		-- 2. تدوير محوري أفقي خاطف يضمن طرد الخصم دون تجميد أنيميشن المشي الخاص بك
 		hrp.AssemblyAngularVelocity = Vector3.new(0, 999999, 0)
 	else
 		if flingActive then
 			flingActive = false
 
-			-- إعادة السرعة الزاوية والتصادم لوضعهم الطبيعي
+			-- 3. إعادة التصادم الطبيعي وتصفير الدوران فور الابتعاد
 			hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
 			for _, part in ipairs(char:GetChildren()) do
 				if part:IsA("BasePart") then
