@@ -183,12 +183,13 @@ frame_2.BackgroundColor3=blk_color
 frame_2.Visible=false
 frame_2.Parent=Mainframe
 
-local mainBtn = newsideBtn("Main", 0.1)
-mainBtn.TextSize,mainBtn.TextScaled=10,false
-local gameplayBtn = newsideBtn("Gameplay", 0.22)
+local mainBtn = newsideBtn("Enable", 0.1)
+mainBtn.TextSize,mainBtn.TextScaled=8,false
+local gameplayBtn = newsideBtn("Press", 0.22)
+gameplayBtn.TextSize,gameplayBtn.TextScaled=10,false
 
 local upState = false
-local upBtn = newBtn(" Upgrades Enabled",0.05,frame_1)
+local upBtn = newBtn(" Status Enabled",0.05,frame_1)
 upBtn.TextXAlignment="Left"
 local upPlate = newPlate(upBtn)
 local upTerm = newKnob(upPlate)
@@ -222,11 +223,20 @@ antiLavaBtn.TextXAlignment="Left"
 local antiLavaPlate = newPlate(antiLavaBtn)
 local antiLavaKnob = newKnob(antiLavaPlate)
 
+local flingState = false
+local flingBtn = newBtn(" Fling",0.80,frame_1)
+flingBtn.TextXAlignment="Left"
+local flingPlate = newPlate(flingBtn)
+local flingKnob = newKnob(flingPlate)
+
 local catchBtn = newBtn(" Catch Egg [Click]",0.05,frame_2)
 catchBtn.TextXAlignment="Left"
 
 local throwBtn = newBtn(" Perfect Throw💯 [Click]",0.20,frame_2)
 throwBtn.TextXAlignment="Left"
+
+local reBtn = newBtn(" Rest Chaarcter [Click]",0.35,frame_2)
+reBtn.TextXAlignment="Left"
 
 
 local function newUi(parent) 
@@ -290,23 +300,34 @@ newUi(antiLavaBtn)
 newUi(antiLavaPlate)
 newUi(antiLavaKnob)
 
+newUi(flingBtn)
+newUi(flingPlate)
+newUi(flingKnob)
+
 newUi(catchBtn)
 
 newUi(throwBtn)
 
+local PlayerModule = require(LocalPlayer:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule"))
+local Controls = PlayerModule:GetControls()
+
 local function forceDynamicControl()
-	-- 1. فرض نمط الحركة على Dynamic Thumbstick من Client
-	if LocalPlayer.DevMovementMode ~= Enum.DevMovementMode.Scriptable then
-		LocalPlayer.DevTouchMovementMode = Enum.DevTouchMovementMode.DynamicThumbstick
+	-- 1. فرض نمط الحركة الديناميكية
+	LocalPlayer.DevTouchMovementMode = Enum.DevTouchMovementMode.DynamicThumbstick
+
+	-- 2. إجبار نظام التحكم البرمجي على التفعيل (Enable)
+	if Controls then
+		Controls:Enable(true)
 	end
 
-	-- 2. إرجاع واجهة التحكم باللمس إذا قام الماب بإخفائها من PlayerGui
+	-- 3. إظهار واجهات اللمس وإعادة تفعيلها في PlayerGui
 	local touchGui = PlayerGui:FindFirstChild("TouchGui")
 	if touchGui then
 		touchGui.Enabled = true
 		local touchControlFrame = touchGui:FindFirstChild("TouchControlFrame")
 		if touchControlFrame then
 			touchControlFrame.Visible = true
+
 			local dynamicThumbstick = touchControlFrame:FindFirstChild("DynamicThumbstickFrame")
 			if dynamicThumbstick then
 				dynamicThumbstick.Visible = true
@@ -347,6 +368,69 @@ runService.Heartbeat:Connect(function()
 	end
 end)
 
+local flingPart = nil
+
+-- إنشاء جزء Fling مستقل وغير مرئي بعيد عن الفيزيائية المباشرة للشخصية
+local function setupFlingPart()
+	if flingPart and flingPart.Parent then return end
+
+	flingPart = Instance.new("Part")
+	flingPart.Name = "TouchFlingEngine"
+	flingPart.Size = Vector3.new(4, 4, 4)
+	flingPart.Transparency = 1
+	flingPart.CanCollide = false
+	flingPart.Anchored = false
+	flingPart.CanQuery = false
+	flingPart.Parent = workspace
+end
+
+runService.Heartbeat:Connect(function()
+	local char = LocalPlayer.Character
+	local hrp = char and char:FindFirstChild("HumanoidRootPart")
+	local hum = char and char:FindFirstChildOfClass("Humanoid")
+
+	-- إيقاف النظام وإعادة الشخصية لحركتها الطبيعية فوراً عند إيقاف flingState
+	if not flingState or not hrp or not hum or hum.Health <= 0 then
+		if flingPart then
+			flingPart:Destroy()
+			flingPart = nil
+		end
+		return
+	end
+
+	setupFlingPart()
+
+	if flingPart then
+		-- نقل موقع الجزء التخيلي فقط دون تغيير سرعة الشخصية الأساسية
+		flingPart.CFrame = hrp.CFrame
+
+		-- إعطاء الجزء سرعة اندفاعية فائقة تعجز فيزياء الماب عن معالجتها
+		flingPart.AssemblyLinearVelocity = Vector3.new(99999, 99999, 99999)
+		flingPart.AssemblyAngularVelocity = Vector3.new(99999, 99999, 99999)
+
+		-- فحص الاصطدام مع أي مجسم أو لاعب بالقرب منك
+		for _, targetModel in ipairs(workspace:GetChildren()) do
+			if targetModel:IsA("Model") and targetModel ~= char then
+				local targetHum = targetModel:FindFirstChildOfClass("Humanoid")
+				local targetHrp = targetModel:FindFirstChild("HumanoidRootPart") or targetModel:FindFirstChild("Torso")
+
+				if targetHum and targetHrp and targetHum.Health > 0 then
+					local distance = (hrp.Position - targetHrp.Position).Magnitude
+
+					-- عند الاقتراب من الخصم (مسافة لمس 5 أمتار)
+					if distance <= 5 then
+						-- إجبار التداخل الفيزيائي لتطير الشخصية الأخرى فوراً
+						targetHrp.AssemblyLinearVelocity = Vector3.new(
+							math.random(-50000, 50000),
+							100000,
+							math.random(-50000, 50000)
+						)
+					end
+				end
+			end
+		end
+	end
+end)
 
 noClipBtn.MouseButton1Click:Connect(function()
 	noClipState = not noClipState
@@ -387,4 +471,22 @@ end)
 
 throwBtn.MouseButton1Click:Connect(function()
 	eggThrowEvent:FireServer("perfect", false)
+end)
+
+reBtn.MouseButton1Click:Connect(function()
+	local human = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+	if human then
+		human.Health=0
+	end
+end)
+
+flingBtn.MouseButton1Click:Connect(function()
+	flingState = not flingState
+	if flingState then 
+		flingKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
+		flingPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		flingKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
+		flingPlate.BackgroundColor3 = blk_color
+	end
 end)
