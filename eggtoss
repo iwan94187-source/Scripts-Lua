@@ -369,14 +369,12 @@ runService.Heartbeat:Connect(function()
 end)
 
 local flingPart = nil
-local lastSafeCFrame = nil
 
--- إنشاء جزء Fling خفي ومستقل تماماً عن جسمك
 local function getFlingEngine()
 	if not flingPart or not flingPart.Parent then
 		flingPart = Instance.new("Part")
-		flingPart.Name = "FlingEngine"
-		flingPart.Size = Vector3.new(2, 2, 2)
+		flingPart.Name = "TouchEngine"
+		flingPart.Size = Vector3.new(1, 1, 1)
 		flingPart.Transparency = 1
 		flingPart.CanCollide = false
 		flingPart.Anchored = false
@@ -395,13 +393,17 @@ runService.Heartbeat:Connect(function()
 			flingPart:Destroy()
 			flingPart = nil
 		end
-		lastSafeCFrame = nil
 		return
 	end
 
-	local targetHrp = nil
+	-- 1. تثبيت سرعة شخصيتك تماماً لمنع حدوث أي طيران مبكر
+	hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+	hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
 
-	-- البحث عن أقرب لاعب أو NPC في نطاق 5 أمتار
+	local targetHrp = nil
+	local closestDistance = math.huge
+
+	-- البحث عن الهدف الأقرب
 	for _, targetModel in ipairs(workspace:GetChildren()) do
 		if targetModel:IsA("Model") and targetModel ~= char then
 			local tHum = targetModel:FindFirstChildOfClass("Humanoid")
@@ -409,42 +411,26 @@ runService.Heartbeat:Connect(function()
 
 			if tHum and tHrp and tHum.Health > 0 then
 				local distance = (hrp.Position - tHrp.Position).Magnitude
-				if distance <= 5 then
+				if distance < closestDistance then
+					closestDistance = distance
 					targetHrp = tHrp
-					break
 				end
 			end
 		end
 	end
 
-	-- 1. حماية شخصيتك دائماً من التأثر بأي سرعة ارتدادية
-	hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-	hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+	local engine = getFlingEngine()
 
-	if targetHrp then
-		-- حفظ آخر موقع طبيعي كنت تمشي فيه
-		if not lastSafeCFrame or (hrp.Position - lastSafeCFrame.Position).Magnitude > 10 then
-			lastSafeCFrame = hrp.CFrame
-		end
-
-		-- 2. توجيه الجزء الخفي لضرب الخصم بدلاً عنك
-		local engine = getFlingEngine()
-		engine.CFrame = targetHrp.CFrame
-		engine.AssemblyLinearVelocity = Vector3.new(999999, 999999, 999999)
-		engine.AssemblyAngularVelocity = Vector3.new(999999, 999999, 999999)
-
-		-- 3. حماية إضافية: إذا انقطعت حركتك أو طرت بالخطأ تُعاد فوراً لموقعك الطبيعي
-		if hrp.Position.Y - lastSafeCFrame.Position.Y > 5 then
-			hrp.CFrame = lastSafeCFrame
-		end
+	-- 2. إذا كنت بعيداً أو تقترب فقط (أكبر من 2.5 متر): تظل القوة (0) لمنع الدرع الوهمي
+	if not targetHrp or closestDistance > 2.5 then
+		engine.CFrame = hrp.CFrame * CFrame.new(0, -20, 0)
+		engine.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+		engine.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
 	else
-		-- عند الابتعاد عن الخصوم: إخفاء جزء الـ Fling أسفل الخريطة
-		if flingPart then
-			flingPart.CFrame = hrp.CFrame * CFrame.new(0, -50, 0)
-			flingPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-			flingPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-		end
-		lastSafeCFrame = hrp.CFrame
+		-- 3. تفعيل القوة فقط في اللحظة الدقيقة للتداخل المباشر (أقل من 2.5 متر)
+		engine.CFrame = targetHrp.CFrame
+		engine.AssemblyLinearVelocity = Vector3.new(500000, 500000, 500000)
+		engine.AssemblyAngularVelocity = Vector3.new(500000, 500000, 500000)
 	end
 end)
 
