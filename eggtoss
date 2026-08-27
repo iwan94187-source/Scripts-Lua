@@ -368,21 +368,11 @@ runService.Heartbeat:Connect(function()
 	end
 end)
 
-local flingActive = false
-
--- دوال حماية وتحكم لمنع ارتداد الفيزياء على شخصيتك
-runService.Heartbeat:Connect(function()
+local function getTarget()
 	local char = LocalPlayer.Character
 	local hrp = char and char:FindFirstChild("HumanoidRootPart")
-	local hum = char and char:FindFirstChildOfClass("Humanoid")
+	if not hrp then return nil end
 
-	if not flingState or not hrp or not hum or hum.Health <= 0 then
-		return
-	end
-
-	local targetHrp = nil
-
-	-- البحث عن أقرب هدف (لاعب أو NPC)
 	for _, targetModel in ipairs(workspace:GetChildren()) do
 		if targetModel:IsA("Model") and targetModel ~= char then
 			local tHum = targetModel:FindFirstChildOfClass("Humanoid")
@@ -391,32 +381,51 @@ runService.Heartbeat:Connect(function()
 			if tHum and tHrp and tHum.Health > 0 then
 				local distance = (hrp.Position - tHrp.Position).Magnitude
 				if distance <= 6 then
-					targetHrp = tHrp
-					break
+					return tHrp
 				end
 			end
 		end
 	end
+	return nil
+end
 
-	-- إذا وجد هدف قريب
+runService.RenderStepped:Connect(function()
+	local char = LocalPlayer.Character
+	local hrp = char and char:FindFirstChild("HumanoidRootPart")
+	local hum = char and char:FindFirstChildOfClass("Humanoid")
+
+	if not flingState or not hrp or not hum or hum.Health <= 0 then
+		return
+	end
+
+	local targetHrp = getTarget()
+
 	if targetHrp then
-		-- 1. تجميد سرعة الارتداد لشخصيتك لمنع طيرانك نهائياً
+		-- 1. حفظ موقعك الأصلي قبل الضرب
+		local originalCFrame = hrp.CFrame
+
+		-- 2. إلغاء تصادم جسمك كي لا تتعرقل مع الأرض أو الخصم
+		for _, part in ipairs(char:GetChildren()) do
+			if part:IsA("BasePart") then
+				part.CanCollide = false
+			end
+		end
+
+		-- 3. ضرب الخصم بسرعة زاوية متذبذبة دون تطبيق سرعة خطية عليك
+		hrp.CFrame = targetHrp.CFrame * CFrame.Angles(math.rad(math.random(-180, 180)), math.rad(math.random(-180, 180)), math.rad(math.random(-180, 180)))
+		hrp.AssemblyAngularVelocity = Vector3.new(999999, 999999, 999999)
+
+		-- 4. إرجاعك لموقعك الأصلي وتصفير السرعة فوراً في نفس الإطار
+		hrp.CFrame = originalCFrame
 		hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
 		hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-
-		-- 2. توجيه قوة الـ Fling الحقيقية نحو الخصم عبر نبضات سرعة سريعة جداً
-		-- نضع السرعة على الخصم ونحرك الموقع بدقة لإجباره على الطيران دون التأثير عليك
-		task.spawn(function()
-			local oldPos = hrp.CFrame
-
-			-- نقل خاطف داخل الخصم وإعطاؤه القوة
-			hrp.CFrame = targetHrp.CFrame * CFrame.new(0, 0, 0)
-			hrp.AssemblyLinearVelocity = Vector3.new(99999, 99999, 99999)
-
-			-- إرجاع شخصيتك للموقع الأصلي وتصفير سرعتها في نفس الإطار
-			runService.RenderStepped:Wait()
-			hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-		end)
+	else
+		-- إعادة التصادم الطبيعي عند عدم وجود هدف
+		for _, part in ipairs(char:GetChildren()) do
+			if part:IsA("BasePart") then
+				part.CanCollide = true
+			end
+		end
 	end
 end)
 
