@@ -5,6 +5,10 @@ local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local runService = game:GetService("RunService")
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local remoteEvents = ReplicatedStorage:WaitForChild("RemoteEvents")
+local eggThrowEvent = remoteEvents:WaitForChild("EggThrowEvent")
+local didCatchEvent = remoteEvents:WaitForChild("DidCatch")
 
 -- 1. إنشاء الواجهة والخط الرئيسي (Slider Frame)
 local screenGui = Instance.new("ScreenGui", PlayerGui)
@@ -143,14 +147,26 @@ end
 
 local function newsideBtn(name, pos)
 	local btn=Instance.new("TextButton")
-	btn.Size=UDim2.new(0.2,0,0.1,0)
-	btn.Position=UDim2.new(0,0,pos)
+	btn.Size=UDim2.new(0.17,0,0.1,0)
+	btn.Position=UDim2.new(0.01,0,pos)
 	btn.BackgroundColor3=gry
 	btn.TextColor=BrickColor.new("White")
 	btn.Text=name
 	btn.TextScaled=true
 	btn.Parent=Mainframe
 	return btn
+end
+
+local function newBox(pos, parent)
+	local box = Instance.new("TextBox")
+	box.Size=UDim2.new(0.5,0,0.1,0)
+	box.Position=UDim2.new(0,0,pos,0)
+	box.BackgroundColor=BrickColor.new("Black")
+	box.TextColor=BrickColor.new("White")
+	box.TextScaled=true
+	box.Text="Number"
+	box.Parent=parent
+	return box
 end
 
 local frame_1=Instance.new("Frame")
@@ -167,23 +183,51 @@ frame_2.BackgroundColor3=blk_color
 frame_2.Visible=false
 frame_2.Parent=Mainframe
 
+local mainBtn = newsideBtn("Main", 0.1)
+mainBtn.TextSize,mainBtn.TextScaled=10,false
+local gameplayBtn = newsideBtn("Gameplay", 0.22)
+
+local upState = false
+local upBtn = newBtn(" Upgrades Enabled",0.05,frame_1)
+upBtn.TextXAlignment="Left"
+local upPlate = newPlate(upBtn)
+local upTerm = newKnob(upPlate)
+
+local speedSlideBtn = newLbl("Speed",0.20,frame_1)
+speedSlideBtn.Size=UDim2.new(0.425,0,0.13,0)
+speedSlideBtn.TextYAlignment=Enum.TextYAlignment.Top
+local speedBox = txtBox(speedSlideBtn)
+
+local jumpBtn = newLbl("Jump",0.20,frame_1)
+jumpBtn.Size=UDim2.new(0.425,0,0.13,0)
+jumpBtn.Position=UDim2.new(0.525,0,0.20,0)
+jumpBtn.TextYAlignment=Enum.TextYAlignment.Top
+local jumpBox = txtBox(jumpBtn)
+
 local noClipState = false
-local noClipBtn = newBtn(" No Clip",0.05,frame_1)
+local noClipBtn = newBtn(" No Clip",0.35,frame_1)
 noClipBtn.TextXAlignment="Left"
 local noClipPlate = newPlate(noClipBtn)
 local noClipKnob = newKnob(noClipPlate)
 
 local moveState = false
-local moveBtn = newBtn(" Move Enabled",0.2,frame_1)
+local moveBtn = newBtn(" Move Enabled",0.5,frame_1)
 moveBtn.TextXAlignment="Left"
 local movePlate = newPlate(moveBtn)
 local moveKnob = newKnob(movePlate)
 
 local antiLavaState = false
-local antiLavaBtn = newBtn(" Anti Lava",0.35,frame_1)
+local antiLavaBtn = newBtn(" Anti Lava",0.65,frame_1)
 antiLavaBtn.TextXAlignment="Left"
 local antiLavaPlate = newPlate(antiLavaBtn)
 local antiLavaKnob = newKnob(antiLavaPlate)
+
+local catchBtn = newBtn(" Catch Egg [Click]",0.05,frame_2)
+catchBtn.TextXAlignment="Left"
+
+local throwBtn = newBtn(" Perfect Throw💯 [Click]",0.20,frame_2)
+throwBtn.TextXAlignment="Left"
+
 
 local function newUi(parent) 
 	local ui = Instance.new("UICorner")
@@ -202,6 +246,18 @@ local function newCustomUi(parent, rb,lb,ru,lu)
 	return ui
 end
 
+local function display()
+	frame_1.Visible, frame_2.Visible=false,false
+end
+mainBtn.MouseButton1Click:Connect(function()
+	display()
+	frame_1.Visible=true
+end)
+gameplayBtn.MouseButton1Click:Connect(function()
+	display()
+	frame_2.Visible=true
+end)
+
 newUi(destroyBtn)
 newUi(hideBtn)
 
@@ -217,30 +273,40 @@ newUi(moveBtn)
 newUi(movePlate)
 newUi(moveKnob)
 
+newUi(upBtn)
+newUi(upPlate)
+newUi(upTerm)
+
+newUi(speedSlideBtn)
+newUi(speedBox)
+
+newUi(jumpBtn)
+newUi(jumpBox)
+
+newUi(mainBtn)
+newUi(gameplayBtn)
+
 newUi(antiLavaBtn)
 newUi(antiLavaPlate)
 newUi(antiLavaKnob)
 
-local PlayerModule = require(LocalPlayer:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule"))
-local Controls = PlayerModule:GetControls()
+newUi(catchBtn)
+
+newUi(throwBtn)
 
 local function forceDynamicControl()
-	-- 1. فرض نمط الحركة الديناميكية
-	LocalPlayer.DevTouchMovementMode = Enum.DevTouchMovementMode.DynamicThumbstick
-	
-	-- 2. إجبار نظام التحكم البرمجي على التفعيل (Enable)
-	if Controls then
-		Controls:Enable(true)
+	-- 1. فرض نمط الحركة على Dynamic Thumbstick من Client
+	if LocalPlayer.DevMovementMode ~= Enum.DevMovementMode.Scriptable then
+		LocalPlayer.DevTouchMovementMode = Enum.DevTouchMovementMode.DynamicThumbstick
 	end
-	
-	-- 3. إظهار واجهات اللمس وإعادة تفعيلها في PlayerGui
+
+	-- 2. إرجاع واجهة التحكم باللمس إذا قام الماب بإخفائها من PlayerGui
 	local touchGui = PlayerGui:FindFirstChild("TouchGui")
 	if touchGui then
 		touchGui.Enabled = true
 		local touchControlFrame = touchGui:FindFirstChild("TouchControlFrame")
 		if touchControlFrame then
 			touchControlFrame.Visible = true
-			
 			local dynamicThumbstick = touchControlFrame:FindFirstChild("DynamicThumbstickFrame")
 			if dynamicThumbstick then
 				dynamicThumbstick.Visible = true
@@ -248,6 +314,7 @@ local function forceDynamicControl()
 		end
 	end
 end
+
 runService.Stepped:Connect(function()
 	if noClipState and LocalPlayer.Character then
 		for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
@@ -259,9 +326,26 @@ runService.Stepped:Connect(function()
 	if moveState then
 		forceDynamicControl()
 	end
+	if antiLavaState then 
+		local lava = workspace:FindFirstChild("lava") or workspace:FindFirstChild("Lava")
+		if lava then lava.CanTouch=false else lava.CanTouch=true end
+	end
 end)
 
-
+runService.Heartbeat:Connect(function()
+	if upState then 
+		local human = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+		if human then 
+			if tonumber(speedBox.Text) then 
+				human.WalkSpeed=speedBox.Text
+			end
+			if tonumber(jumpBox.Text) then 
+				human.UseJumpPower=true
+				human.JumpPower=jumpBox.Text
+			end
+		end
+	end
+end)
 
 
 noClipBtn.MouseButton1Click:Connect(function()
@@ -286,13 +370,21 @@ moveBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-antiLavaBtn.MouseButton1Click:Connect(function()
-	antiLavaState = not antiLavaState
-	if antiLavaState then 
-		antiLavaKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
-		antiLavaPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+upBtn.MouseButton1Click:Connect(function()
+	upState = not upState
+	if upState then 
+		upTerm.Position = UDim2.new(0.6, 0, 0.65, -8)
+		upPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
 	else 
-		antiLavaKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
-		antiLavaPlate.BackgroundColor3 = blk_color
+		upTerm.Position = UDim2.new(0.1, 0, 0.65, -8)
+		upPlate.BackgroundColor3 = blk_color
 	end
+end)
+
+catchBtn.MouseButton1Click:Connect(function()
+	didCatchEvent:FireServer()
+end)
+
+throwBtn.MouseButton1Click:Connect(function()
+	eggThrowEvent:FireServer("perfect", false)
 end)
