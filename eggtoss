@@ -368,19 +368,25 @@ runService.Heartbeat:Connect(function()
 	end
 end)
 
-local flingPart = nil
+local flingSpin = nil
 
-local function setupFlingPart()
-	if flingPart and flingPart.Parent then return end
+local function enableFling(hrp)
+	if not flingSpin or flingSpin.Parent ~= hrp then
+		if flingSpin then flingSpin:Destroy() end
+		flingSpin = Instance.new("BodyAngularVelocity")
+		flingSpin.Name = "FlingForce"
+		flingSpin.MaxTorque = Vector3.new(0, math.huge, 0) -- قوة عمودية فقط لحمايتك من الانقلاب والطيران
+		flingSpin.P = 10000000
+		flingSpin.AngularVelocity = Vector3.new(0, 999999, 0)
+		flingSpin.Parent = hrp
+	end
+end
 
-	flingPart = Instance.new("Part")
-	flingPart.Name = "TouchFlingEngine"
-	flingPart.Size = Vector3.new(3, 3, 3)
-	flingPart.Transparency = 1
-	flingPart.CanCollide = false
-	flingPart.Anchored = false
-	flingPart.CanQuery = false
-	flingPart.Parent = workspace
+local function disableFling()
+	if flingSpin then
+		flingSpin:Destroy()
+		flingSpin = nil
+	end
 end
 
 runService.Heartbeat:Connect(function()
@@ -389,49 +395,51 @@ runService.Heartbeat:Connect(function()
 	local hum = char and char:FindFirstChildOfClass("Humanoid")
 
 	if not flingState or not hrp or not hum or hum.Health <= 0 then
-		if flingPart then
-			flingPart:Destroy()
-			flingPart = nil
-		end
+		disableFling()
 		return
 	end
 
-	setupFlingPart()
+	local targetFound = false
 
-	if flingPart then
-		-- 1. تثبيت وحماية شخصيتك لمنع طيرانك مطلقاً
-		hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-		hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+	for _, targetModel in ipairs(workspace:GetChildren()) do
+		if targetModel:IsA("Model") and targetModel ~= char then
+			local targetHum = targetModel:FindFirstChildOfClass("Humanoid")
+			local targetHrp = targetModel:FindFirstChild("HumanoidRootPart") or targetModel:FindFirstChild("Torso")
 
-		-- 2. إعطاء الجزء قوة دفع فائقة
-		flingPart.AssemblyLinearVelocity = Vector3.new(999999, 999999, 999999)
-		flingPart.AssemblyAngularVelocity = Vector3.new(999999, 999999, 999999)
+			if targetHum and targetHrp and targetHum.Health > 0 then
+				local distance = (hrp.Position - targetHrp.Position).Magnitude
 
-		local targetFound = false
+				if distance <= 6 then
+					targetFound = true
 
-		-- 3. البحث عن أي شخصية أو NPC قريب
-		for _, targetModel in ipairs(workspace:GetChildren()) do
-			if targetModel:IsA("Model") and targetModel ~= char then
-				local targetHum = targetModel:FindFirstChildOfClass("Humanoid")
-				local targetHrp = targetModel:FindFirstChild("HumanoidRootPart") or targetModel:FindFirstChild("Torso")
+					-- 1. تفعيل محرك Fling الدوران العمودي
+					enableFling(hrp)
 
-				if targetHum and targetHrp and targetHum.Health > 0 then
-					local distance = (hrp.Position - targetHrp.Position).Magnitude
-
-					-- عند الاقتراب (اقل من 5 أمتار)
-					if distance <= 5 then
-						targetFound = true
-						-- نقل الجزء التخيلي فقط إلى موقع الخصم لضربه بالقوة
-						flingPart.CFrame = targetHrp.CFrame
-						break
+					-- 2. إيقاف تصادم أجزاء جسمك كي لا تعكس الفيزياء عليك
+					for _, part in ipairs(char:GetChildren()) do
+						if part:IsA("BasePart") then
+							part.CanCollide = false
+						end
 					end
+
+					-- 3. تصفير السرعة الارتدادية لشخصيتك لمنع طيرانك
+					hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+
+					-- 4. إجبار التداخل الفيزيائي مع الخصم (سواء كان لاعب أو NPC)
+					hrp.CFrame = targetHrp.CFrame
+					break
 				end
 			end
 		end
+	end
 
-		-- إذا لم تكن قريباً من أحد، يظل الجزء عند موقعك دون الاصطدام بك
-		if not targetFound then
-			flingPart.CFrame = hrp.CFrame * CFrame.new(0, -10, 0) -- إخفاء الجزء أسفل الأرض عند عدم الاستخدام
+	-- إعادة الوضع الطبيعي فور الابتعاد عن أي لاعب/NPC
+	if not targetFound then
+		disableFling()
+		for _, part in ipairs(char:GetChildren()) do
+			if part:IsA("BasePart") then
+				part.CanCollide = true
+			end
 		end
 	end
 end)
