@@ -258,9 +258,10 @@ local function setupSmartAutoDodge(ball)
 
 	table.insert(activeTrajectories, hitbox)
 
-	local frontZoneLength = 15   -- طول الأنبوب أمام الكرة 15 Studs
-	local extraWidthBuffer = 6   -- أمان إضافي لعرض الأنبوب مقارنة بحجم الكرة
-	local teleportOffset = 15    -- المسافة المطلوبة للنقل خلف الكرة (15 Studs)
+	local frontZoneLength = 15    -- طول الأنبوب أمام الكرة 15 Studs
+	local extraWidthBuffer = 6    -- أمان إضافي لعرض الأنبوب مقارنة بحجم الكرة
+	local teleportOffset = 15     -- المسافة المطلوبة للنقل خلف الكرة (15 Studs)
+	local wallBuffer = 2.5        -- مسافة أمان للابتعاد عن الجدار حتى لا تلتصق به تماماً أو تسقط
 	local cooldown = false
 	local updateConnection = nil
 
@@ -324,20 +325,39 @@ local function setupSmartAutoDodge(ball)
 					if isInsideZone then
 						cooldown = true
 						local ballPos = ball.Position
+						local rayDirection = -direction * teleportOffset
 
-						-- 🎯 النقل المباشر 15 Studs بعكس اتجاه اندفاع الكرة
-						local finalOffset = teleportOffset
-						local targetPosition = ballPos - (direction * finalOffset)
+						-- 🎯 إعدادات فحص الجدران عبر Raycast
+						local raycastParams = RaycastParams.new()
+						-- تحديد العناصر التي سيتم تجاهلها تلقائياً
+						raycastParams.FilterDescendantsInstances = {char, ball, hitbox}
+						raycastParams.IgnoreWater = true
+						-- إستثناء الشخصية والكرة والأنبوب من الاصطدام
+						
 
-						-- إذا كان الموقع يتقاطع مع أنبوب كرة أخرى، نبتعد أبعد على نفس خط عكس الاتجاه
-						local attempts = 0
-						while not isPositionSafe(targetPosition) and attempts < 5 do
-							attempts += 1
-							finalOffset += 15
-							targetPosition = ballPos - (direction * finalOffset)
+						local rayResult = workspace:Raycast(ballPos, rayDirection, raycastParams)
+						local targetPosition
+
+						if rayResult then
+							-- 🧱 إذا وجد جدار خلف الكرة: يتم حظر اختراقه والوقوف أمامه مباشرة مع مسافة أمان
+							local hitDistance = rayResult.Distance
+							local safeDistance = math.max(1, hitDistance - wallBuffer)
+							targetPosition = ballPos - (direction * safeDistance)
+						else
+							-- 🟢 إذا لم يكن هناك جدار: الانتقال العادي بمسافة 15 Studs
+							targetPosition = ballPos - (direction * teleportOffset)
+
+							-- إذا كان الموقع يتقاطع مع أنبوب كرة أخرى، نبتعد أبعد
+							local attempts = 0
+							local finalOffset = teleportOffset
+							while not isPositionSafe(targetPosition) and attempts < 5 do
+								attempts += 1
+								finalOffset += 15
+								targetPosition = ballPos - (direction * finalOffset)
+							end
 						end
 
-						-- 🚀 تنفيذ النقل اللحظي
+						-- 🚀 تنفيذ النقل اللحظي الآمن
 						rootPart.CFrame = CFrame.new(targetPosition, targetPosition + rootPart.CFrame.LookVector)
 						rootPart.AssemblyLinearVelocity = Vector3.zero
 
@@ -371,11 +391,11 @@ task.spawn(function()
 	ballsFolder.ChildAdded:Connect(function(child)
 		task.spawn(setupSmartAutoDodge, child)
 	end)
-	
+
 	for _, item in ipairs(practiceBalls:GetChildren()) do
 		task.spawn(setupSmartAutoDodge, item)
 	end
-	
+
 	practiceBalls.ChildAdded:Connect(function(child)
 		task.spawn(setupSmartAutoDodge, child)
 	end)
