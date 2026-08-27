@@ -376,21 +376,10 @@ runService.Heartbeat:Connect(function()
 	local hum = char and char:FindFirstChildOfClass("Humanoid")
 
 	if not flingState or not hrp or not hum or hum.Health <= 0 then
-		if flingActive then
-			flingActive = false
-			hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-			for _, part in ipairs(char:GetChildren()) do
-				if part:IsA("BasePart") then
-					part.CanCollide = true
-				end
-			end
-		end
 		return
 	end
 
-	local targetHrp = nil
-
-	-- البحث عن أقرب هدف (لاعب أو NPC) في نطاق 5.5 أمتار
+	-- البحث عن أي target في نطاق 5 أمتار
 	for _, targetModel in ipairs(workspace:GetChildren()) do
 		if targetModel:IsA("Model") and targetModel ~= char then
 			local tHum = targetModel:FindFirstChildOfClass("Humanoid")
@@ -398,35 +387,23 @@ runService.Heartbeat:Connect(function()
 
 			if tHum and tHrp and tHum.Health > 0 then
 				local distance = (hrp.Position - tHrp.Position).Magnitude
-				if distance <= 5.5 then
-					targetHrp = tHrp
-					break
-				end
-			end
-		end
-	end
 
-	if targetHrp then
-		flingActive = true
+				-- عند الاقتراب المباشر
+				if distance <= 5 then
+					-- 1. إلغاء تصادم شخصيتك مؤقتاً لتمر بسلاسة
+					for _, part in ipairs(char:GetChildren()) do
+						if part:IsA("BasePart") then
+							part.CanCollide = false
+						end
+					end
 
-		-- 1. إلغاء تصادم جسمك فقط أثناء الاقتراب واللمس لمنع التبطيئ
-		for _, part in ipairs(char:GetChildren()) do
-			if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-				part.CanCollide = false
-			end
-		end
-
-		-- 2. تدوير محوري أفقي خاطف يضمن طرد الخصم دون تجميد أنيميشن المشي الخاص بك
-		hrp.AssemblyAngularVelocity = Vector3.new(0, 999999, 0)
-	else
-		if flingActive then
-			flingActive = false
-
-			-- 3. إعادة التصادم الطبيعي وتصفير الدوران فور الابتعاد
-			hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-			for _, part in ipairs(char:GetChildren()) do
-				if part:IsA("BasePart") then
-					part.CanCollide = true
+					-- 2. إعطاء الخصم فقط سرعة دفع وتدوير هائلة لطرده بعيداً
+					tHrp.AssemblyLinearVelocity = Vector3.new(
+						math.random(-100000, 100000),
+						100000,
+						math.random(-100000, 100000)
+					)
+					tHrp.AssemblyAngularVelocity = Vector3.new(999999, 999999, 999999)
 				end
 			end
 		end
