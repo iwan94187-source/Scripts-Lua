@@ -368,7 +368,26 @@ runService.Heartbeat:Connect(function()
 	end
 end)
 
-local flingActive = false
+local function flingTarget(targetHrp)
+	local char = LocalPlayer.Character
+	local hrp = char and char:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+
+	-- 1. حفظ السرعة الأصلية وموقعك
+	local oldVelocity = hrp.AssemblyLinearVelocity
+	local oldRotVelocity = hrp.AssemblyAngularVelocity
+
+	-- 2. إعطاء شخصيتك سرعة دوران فائقة زاوية لحساب الاصطدام مع الخصم
+	hrp.AssemblyAngularVelocity = Vector3.new(0, 999999, 0)
+	hrp.AssemblyLinearVelocity = Vector3.new(9999, 9999, 9999)
+
+	-- 3. إلغاء القوة عن شخصيتك فوراً في الإطار التالي حتى لا تطير
+	runService.RenderStepped:Wait()
+	if hrp then
+		hrp.AssemblyLinearVelocity = oldVelocity
+		hrp.AssemblyAngularVelocity = oldRotVelocity
+	end
+end
 
 runService.Heartbeat:Connect(function()
 	local char = LocalPlayer.Character
@@ -379,7 +398,7 @@ runService.Heartbeat:Connect(function()
 		return
 	end
 
-	-- البحث عن أي target في نطاق 5 أمتار
+	-- فحص الاصطدامات والمسافات القريبة
 	for _, targetModel in ipairs(workspace:GetChildren()) do
 		if targetModel:IsA("Model") and targetModel ~= char then
 			local tHum = targetModel:FindFirstChildOfClass("Humanoid")
@@ -388,22 +407,11 @@ runService.Heartbeat:Connect(function()
 			if tHum and tHrp and tHum.Health > 0 then
 				local distance = (hrp.Position - tHrp.Position).Magnitude
 
-				-- عند الاقتراب المباشر
+				-- عند الاقتراب المباشر (مسافة 5 أمتار)
 				if distance <= 5 then
-					-- 1. إلغاء تصادم شخصيتك مؤقتاً لتمر بسلاسة
-					for _, part in ipairs(char:GetChildren()) do
-						if part:IsA("BasePart") then
-							part.CanCollide = false
-						end
-					end
-
-					-- 2. إعطاء الخصم فقط سرعة دفع وتدوير هائلة لطرده بعيداً
-					tHrp.AssemblyLinearVelocity = Vector3.new(
-						math.random(-100000, 100000),
-						100000,
-						math.random(-100000, 100000)
-					)
-					tHrp.AssemblyAngularVelocity = Vector3.new(999999, 999999, 999999)
+					-- إعطاء نبضة Fling خاطفة تدفع الخصم وترجع سرعة شخصيتك للصفر فوراً
+					flingTarget(tHrp)
+					break
 				end
 			end
 		end
