@@ -368,26 +368,7 @@ runService.Heartbeat:Connect(function()
 	end
 end)
 
-local function flingTarget(targetHrp)
-	local char = LocalPlayer.Character
-	local hrp = char and char:FindFirstChild("HumanoidRootPart")
-	if not hrp then return end
-
-	-- 1. حفظ السرعة الأصلية وموقعك
-	local oldVelocity = hrp.AssemblyLinearVelocity
-	local oldRotVelocity = hrp.AssemblyAngularVelocity
-
-	-- 2. إعطاء شخصيتك سرعة دوران فائقة زاوية لحساب الاصطدام مع الخصم
-	hrp.AssemblyAngularVelocity = Vector3.new(0, 999999, 0)
-	hrp.AssemblyLinearVelocity = Vector3.new(9999, 9999, 9999)
-
-	-- 3. إلغاء القوة عن شخصيتك فوراً في الإطار التالي حتى لا تطير
-	runService.RenderStepped:Wait()
-	if hrp then
-		hrp.AssemblyLinearVelocity = oldVelocity
-		hrp.AssemblyAngularVelocity = oldRotVelocity
-	end
-end
+local lastSafeCFrame = nil
 
 runService.Heartbeat:Connect(function()
 	local char = LocalPlayer.Character
@@ -395,10 +376,13 @@ runService.Heartbeat:Connect(function()
 	local hum = char and char:FindFirstChildOfClass("Humanoid")
 
 	if not flingState or not hrp or not hum or hum.Health <= 0 then
+		lastSafeCFrame = nil
 		return
 	end
 
-	-- فحص الاصطدامات والمسافات القريبة
+	local targetHrp = nil
+
+	-- البحث عن أقرب لاعب أو NPC في نطاق 5 أمتار
 	for _, targetModel in ipairs(workspace:GetChildren()) do
 		if targetModel:IsA("Model") and targetModel ~= char then
 			local tHum = targetModel:FindFirstChildOfClass("Humanoid")
@@ -406,12 +390,46 @@ runService.Heartbeat:Connect(function()
 
 			if tHum and tHrp and tHum.Health > 0 then
 				local distance = (hrp.Position - tHrp.Position).Magnitude
-
-				-- عند الاقتراب المباشر (مسافة 5 أمتار)
 				if distance <= 5 then
-					-- إعطاء نبضة Fling خاطفة تدفع الخصم وترجع سرعة شخصيتك للصفر فوراً
-					flingTarget(tHrp)
+					targetHrp = tHrp
 					break
+				end
+			end
+		end
+	end
+
+	if targetHrp then
+		-- 1. حفظ الموقع الآمن لشخصيتك قبل تطبيق الضرب
+		if not lastSafeCFrame then
+			lastSafeCFrame = hrp.CFrame
+		end
+
+		-- 2. إلغاء تصادم جسمك مؤقتاً لتجنب التكرار والاحتكاك
+		for _, part in ipairs(char:GetChildren()) do
+			if part:IsA("BasePart") then
+				part.CanCollide = false
+			end
+		end
+
+		-- 3. تطبيق قوة الـ Fling
+		hrp.AssemblyAngularVelocity = Vector3.new(0, 999999, 0)
+
+		-- 4. حماية خاطفة: إذا طارت الشخصية أو تعدت سرعتها الحد الطبيعي يتم تثبيتها فوراً
+		if hrp.AssemblyLinearVelocity.Magnitude > 100 then
+			hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+			hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+			if lastSafeCFrame then
+				hrp.CFrame = lastSafeCFrame
+			end
+		end
+	else
+		-- إعادة الوضع الطبيعي وتصفير الحماية عند الابتعاد
+		if lastSafeCFrame then
+			lastSafeCFrame = nil
+			hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+			for _, part in ipairs(char:GetChildren()) do
+				if part:IsA("BasePart") then
+					part.CanCollide = true
 				end
 			end
 		end
