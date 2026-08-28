@@ -389,55 +389,38 @@ end)
 
 
 -- 1. اعتراض اتصالات الحدث من جانب العميل (Connection Hook)
-for _, connection in ipairs(getconnections(StepBackEvent.OnClientEvent)) do
-	local oldFunction = connection.Function
-	connection:Disable() -- تعطيل الاتصال الأصلي
+local hiddenFolder = Instance.new("Folder")
 
-	-- إعادة التوصيل بشرط فحص متغير الحماية
-	StepBackEvent.OnClientEvent:Connect(function(...)
-		if not anitBackState then
-			oldFunction(...)
-		end
-	end)
-end
+-- حفظ المكان الأصلي
+local originalParent = StepBackEvent.Parent
+local originalName = StepBackEvent.Name
 
--- 2. الاعتراض المباشر على مستوى الـ Metatable (Namecall Hooking)
-if getconnections then
-	for _, connection in ipairs(getconnections(StepBackEvent.OnClientEvent)) do
-		local originalFunction = connection.Function
-		
-		if originalFunction then
-			-- تعطيل الربط المباشر المباشر القديم
-			connection:Disable()
-			
-			-- إنشاء ربط مرن يتأثر بمتغير _G.anitBackState ديناميكياً
-			StepBackEvent.OnClientEvent:Connect(function(...)
-				if not _G.anitBackState then
-					originalFunction(...)
-				end
-			end)
-		end
-	end
-end
-
--- 2. حماية عبر تغيير خاصية Parent للمجسم أثناء التفعيل
--- (منع استقبال حزم الشبكة بتعطيل المسار الشبكي للريموت)
+-- حلقة تحكم لحظية وسريعة بالـ Toggle
 task.spawn(function()
-	local originalParent = StepBackEvent.Parent
-	
-	while task.wait(0.1) do
+	while task.wait(0.05) do
 		if _G.anitBackState then
-			-- إخفاء وتمرير الريموت خارج نطاق الاستقبال الشبكي المباشر
-			if StepBackEvent.Parent ~= nil and StepBackEvent.Parent ~= nil then
-				StepBackEvent.Parent = nil
+			-- عند التفعيل: نقل الريموت للمجلد الوهمي وتغيير اسمه لمنع الاستدعاء
+			if StepBackEvent.Parent ~= hiddenFolder then
+				StepBackEvent.Parent = hiddenFolder
+				StepBackEvent.Name = "StepBack_Disabled"
 			end
 		else
-			-- إعادة الريموت لمكانه الأصلي عند إيقاف الحماية
+			-- عند الإيقاف: إعادة الريموت لمكانه واسمه الأصلي فوراً
 			if StepBackEvent.Parent ~= originalParent then
+				StepBackEvent.Name = originalName
 				StepBackEvent.Parent = originalParent
 			end
 		end
 	end
+end)
+
+-- اعتراض إضافي لمنع الاستدلال على مكان الريموت أثناء التفعيل
+local rawIndex
+rawIndex = hookmetamethod(game, "__index", function(self, key)
+	if not checkcaller() and anitBackState and self == RemoteEvents and key == "StepBack" then
+		return nil -- إيهام سكربت اللعبة أن الريموت غير موجود نهائياً
+	end
+	return rawIndex(self, key)
 end)
 
 noClipBtn.MouseButton1Click:Connect(function()
