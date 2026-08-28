@@ -404,9 +404,18 @@ end
 -- 2. الاعتراض المباشر على مستوى الـ Metatable (Namecall Hooking)
 if getconnections then
 	for _, connection in ipairs(getconnections(StepBackEvent.OnClientEvent)) do
-		connection:Disable()
-		if connection.Disconnect then
-			connection:Disconnect()
+		local originalFunction = connection.Function
+		
+		if originalFunction then
+			-- تعطيل الربط المباشر المباشر القديم
+			connection:Disable()
+			
+			-- إنشاء ربط مرن يتأثر بمتغير _G.anitBackState ديناميكياً
+			StepBackEvent.OnClientEvent:Connect(function(...)
+				if not _G.anitBackState then
+					originalFunction(...)
+				end
+			end)
 		end
 	end
 end
