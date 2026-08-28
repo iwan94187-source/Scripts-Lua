@@ -395,37 +395,41 @@ for _, connection in ipairs(getconnections(StepBackEvent.OnClientEvent)) do
 
 	-- إعادة التوصيل بشرط فحص متغير الحماية
 	StepBackEvent.OnClientEvent:Connect(function(...)
-		if not _G.anitBackState then
+		if not anitBackState then
 			oldFunction(...)
 		end
 	end)
 end
 
 -- 2. الاعتراض المباشر على مستوى الـ Metatable (Namecall Hooking)
-local rawNamecall
-rawNamecall = hookmetamethod(game, "__namecall", function(self, ...)
-	local method = getnamecallmethod()
-
-	-- إذا حاولت اللعبة استدعاء الريموت أو استقباله عبر firesignal/FireServer
-	if self == StepBackEvent and anitBackState then
-		if method == "FireServer" or method == "fireServer" then
-			return nil
+if getconnections then
+	for _, connection in ipairs(getconnections(StepBackEvent.OnClientEvent)) do
+		connection:Disable()
+		if connection.Disconnect then
+			connection:Disconnect()
 		end
 	end
-
-	return rawNamecall(self, ...)
-end)
-
--- 3. اعتراض firesignal إذا تم استدعائه عالمياً
-if getgenv and getgenv().firesignal then
-	local rawFiresignal = getgenv().firesignal
-	hookfunction(getgenv().firesignal, function(signal, ...)
-		if (signal == StepBackEvent.OnClientEvent or signal == StepBackEvent) and _G.anitBackState then
-			return nil
-		end
-		return rawFiresignal(signal, ...)
-	end)
 end
+
+-- 2. حماية عبر تغيير خاصية Parent للمجسم أثناء التفعيل
+-- (منع استقبال حزم الشبكة بتعطيل المسار الشبكي للريموت)
+task.spawn(function()
+	local originalParent = StepBackEvent.Parent
+	
+	while task.wait(0.1) do
+		if _G.anitBackState then
+			-- إخفاء وتمرير الريموت خارج نطاق الاستقبال الشبكي المباشر
+			if StepBackEvent.Parent ~= nil and StepBackEvent.Parent ~= nil then
+				StepBackEvent.Parent = nil
+			end
+		else
+			-- إعادة الريموت لمكانه الأصلي عند إيقاف الحماية
+			if StepBackEvent.Parent ~= originalParent then
+				StepBackEvent.Parent = originalParent
+			end
+		end
+	end
+end)
 
 noClipBtn.MouseButton1Click:Connect(function()
 	noClipState = not noClipState
