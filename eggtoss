@@ -388,16 +388,19 @@ runService.Heartbeat:Connect(function()
 end)
 
 for _, connection in ipairs(getconnections(StepBackEvent.OnClientEvent)) do
-	local oldFunction = connection.Function
-	if oldFunction then
-		-- استبدال دالة الحدث بدالة تفحص المتغير قبل التنفيذ
-		hookfunction(oldFunction, function(...)
-			if antiBackState then
-				return -- تجميد وإلغاء التنفيذ تماماً
-			end
-			return oldFunction(...)
-		end)
-	end
+    local originalFunc = connection.Function
+    if originalFunc then
+        local oldFunc
+        oldFunc = hookfunction(originalFunc, function(...)
+            -- 1. إذا كانت الحماية مفعلة، يتم تجميد وإلغاء التنفيذ
+            if _G.antiBackState then
+                return
+            end
+            
+            -- 2. إذا كانت الحماية غير مفعلة، يتم تشغيل الدالة الأصلية بسلام
+            return oldFunc(...)
+        end)
+    end
 end
 
 noClipBtn.MouseButton1Click:Connect(function()
