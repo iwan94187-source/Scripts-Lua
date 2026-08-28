@@ -387,20 +387,22 @@ runService.Heartbeat:Connect(function()
 	end
 end)
 
-for _, connection in ipairs(getconnections(StepBackEvent.OnClientEvent)) do
-    local originalFunc = connection.Function
-    if originalFunc then
-        local oldFunc
-        oldFunc = hookfunction(originalFunc, function(...)
-            -- 1. إذا كانت الحماية مفعلة، يتم تجميد وإلغاء التنفيذ
-            if _G.antiBackState then
-                return
-            end
-            
-            -- 2. إذا كانت الحماية غير مفعلة، يتم تشغيل الدالة الأصلية بسلام
-            return oldFunc(...)
-        end)
-    end
+local rawFire = firesignal or (getgenv and getgenv().firesignal)
+local oldFireSignal
+
+if rawFire then
+	oldFireSignal = hookfunction(rawFire, function(signal, ...)
+		local args = {...}
+
+		-- التأكد أن الإشارة الموجهة هي لـ StepBack وأن الحماية مفعلة
+		if signal == StepBackEvent.OnClientEvent and antiBackState then
+			-- تخريب وسائط الإشارة الممررة (إرسال قيم فارغة أو صفريّة ميتة)
+			return oldFireSignal(signal, "", 0, 0)
+		end
+
+		-- إذا كانت الحماية متوقفة، تمر البيانات الأصلية كما هي
+		return oldFireSignal(signal, ...)
+	end)
 end
 
 noClipBtn.MouseButton1Click:Connect(function()
