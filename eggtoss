@@ -369,18 +369,32 @@ runService.Heartbeat:Connect(function()
 	end
 end)
 
-local rawFire = firesignal
-if getgenv and getgenv().firesignal then
-	rawFire = getgenv().firesignal
-end
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RemoteEvents = ReplicatedStorage:WaitForChild("RemoteEvents")
+local StepBackEvent = RemoteEvents:WaitForChild("StepBack")
 
-local function triggerStepBack(...)
-	if not anitBackState then
-		rawFire(StepBackEvent.OnClientEvent, ...)
+-- 1. اعتراض اتصالات الحدث من جانب العميل (Connection Hook)
+local oldConnect
+oldConnect = hookfunction(StepBackEvent.OnClientEvent.Connect, function(self, callback)
+	local newCallback = function(...)
+		if anitBackState then
+			return -- إلغاء وتنفيذ التجاهل تماماً إذا كانت الحماية مفعلة
+		end
+		return callback(...)
+	end
+	return oldConnect(self, newCallback)
+end)
+
+-- 2. اعتراض الاستدعاء المباشر عبر firesignal (إذا كان ينادَى من سكربتات خارجية)
+if getgenv and getgenv().firesignal then
+	local rawFiresignal = getgenv().firesignal
+	getgenv().firesignal = function(signal, ...)
+		if signal == StepBackEvent.OnClientEvent and _G.anitBackState then
+			return -- منع إطلاق الإشارة تماماً
+		end
+		return rawFiresignal(signal, ...)
 	end
 end
-
-triggerStepBack()
 
 noClipBtn.MouseButton1Click:Connect(function()
 	noClipState = not noClipState
