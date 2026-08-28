@@ -95,7 +95,7 @@ end
 
 local function newBtn(name,pos,parent)
 	local btn = Instance.new("TextButton")
-	btn.Size=UDim2.new(0.9,0,0.12,0)
+	btn.Size=UDim2.new(0.9,0,0.06,0)
 	btn.Position=UDim2.new(0.05,0,pos,0)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
@@ -107,7 +107,7 @@ end
 
 local function newLbl(name,pos,parent)
 	local btn = Instance.new("TextLabel")
-	btn.Size=UDim2.new(0.9,0,0.12,0)
+	btn.Size=UDim2.new(0.9,0,0.6,0)
 	btn.Position=UDim2.new(0.05,0,pos,0)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
@@ -170,7 +170,7 @@ local function newBox(pos, parent)
 	return box
 end
 
-local frame_1=Instance.new("Frame")
+local frame_1=Instance.new("ScrollingFrame")
 frame_1.Size=UDim2.new(0.8,0,0.9,0)
 frame_1.Position=UDim2.new(0.2,0,0.1,0)
 frame_1.BackgroundColor3=blk_color
@@ -190,45 +190,51 @@ local gameplayBtn = newsideBtn("Press", 0.22)
 gameplayBtn.TextSize,gameplayBtn.TextScaled=6,false
 
 local upState = false
-local upBtn = newBtn(" Status Enabled",0.05,frame_1)
+local upBtn = newBtn(" Status Enabled",0.01,frame_1)
 upBtn.TextXAlignment="Left"
 local upPlate = newPlate(upBtn)
 local upTerm = newKnob(upPlate)
 
-local speedSlideBtn = newLbl("Speed",0.20,frame_1)
-speedSlideBtn.Size=UDim2.new(0.425,0,0.13,0)
+local speedSlideBtn = newLbl("Speed",0.08,frame_1)
+speedSlideBtn.Size=UDim2.new(0.425,0,0.06,0)
 speedSlideBtn.TextYAlignment=Enum.TextYAlignment.Top
 local speedBox = txtBox(speedSlideBtn)
 
-local jumpBtn = newLbl("Jump",0.20,frame_1)
-jumpBtn.Size=UDim2.new(0.425,0,0.13,0)
-jumpBtn.Position=UDim2.new(0.525,0,0.20,0)
+local jumpBtn = newLbl("Jump",0.08,frame_1)
+jumpBtn.Size=UDim2.new(0.425,0,0.06,0)
+jumpBtn.Position=UDim2.new(0.525,0,0.08,0)
 jumpBtn.TextYAlignment=Enum.TextYAlignment.Top
 local jumpBox = txtBox(jumpBtn)
 
 local noClipState = false
-local noClipBtn = newBtn(" No Clip",0.35,frame_1)
+local noClipBtn = newBtn(" No Clip",0.15,frame_1)
 noClipBtn.TextXAlignment="Left"
 local noClipPlate = newPlate(noClipBtn)
 local noClipKnob = newKnob(noClipPlate)
 
 local moveState = false
-local moveBtn = newBtn(" Move Enabled",0.5,frame_1)
+local moveBtn = newBtn(" Move Enabled",0.22,frame_1)
 moveBtn.TextXAlignment="Left"
 local movePlate = newPlate(moveBtn)
 local moveKnob = newKnob(movePlate)
 
 local antiLavaState = false
-local antiLavaBtn = newBtn(" Anti Lava",0.65,frame_1)
+local antiLavaBtn = newBtn(" Anti Lava",0.29,frame_1)
 antiLavaBtn.TextXAlignment="Left"
 local antiLavaPlate = newPlate(antiLavaBtn)
 local antiLavaKnob = newKnob(antiLavaPlate)
 
 local anitBackState = false
-local anitBackBtn = newBtn(" Anit Step-Back",0.80,frame_1)
+local anitBackBtn = newBtn(" Anit Step-Back",0.36,frame_1)
 anitBackBtn.TextXAlignment="Left"
 local anitBackPlate = newPlate(anitBackBtn)
 local anitBackKnob = newKnob(anitBackPlate)
+
+local maxZoomState = false
+local maxZoomBtn = newBtn(" Max-Zoom",0.43,frame_1)
+maxZoomBtn.TextXAlignment="Left"
+local maxZoomPlate = newPlate(maxZoomBtn)
+local maxZoomKnob = newKnob(maxZoomPlate)
 
 local catchBtn = newBtn(" Catch Egg [Click]",0.05,frame_2)
 catchBtn.TextXAlignment="Left"
@@ -305,6 +311,10 @@ newUi(anitBackBtn)
 newUi(anitBackPlate)
 newUi(anitBackKnob)
 
+newUi(maxZoomBtn)
+newUi(maxZoomPlate)
+newUi(maxZoomKnob)
+
 newUi(catchBtn)
 
 newUi(throwBtn)
@@ -366,6 +376,14 @@ runService.Heartbeat:Connect(function()
 				human.JumpPower=jumpBox.Text
 			end
 		end
+	end
+	if maxZoomState then
+		LocalPlayer.CameraMaxZoomDistance = 100000
+
+		LocalPlayer.CameraMinZoomDistance = 0.5
+	else
+		LocalPlayer.CameraMaxZoomDistance = 128
+		LocalPlayer.CameraMinZoomDistance = 10
 	end
 end)
 
@@ -463,5 +481,16 @@ anitBackBtn.MouseButton1Click:Connect(function()
 	else 
 		anitBackKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
 		anitBackPlate.BackgroundColor3 = blk_color
+	end
+end)
+
+maxZoomBtn.MouseButton1Click:Connect(function()
+	maxZoomState = not maxZoomState
+	if maxZoomState then 
+		maxZoomKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
+		maxZoomPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		maxZoomKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
+		maxZoomPlate.BackgroundColor3 = blk_color
 	end
 end)
