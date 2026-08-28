@@ -387,41 +387,18 @@ runService.Heartbeat:Connect(function()
 	end
 end)
 
-
--- 1. اعتراض اتصالات الحدث من جانب العميل (Connection Hook)
-local hiddenFolder = Instance.new("Folder")
-
--- حفظ المكان الأصلي
-local originalParent = StepBackEvent.Parent
-local originalName = StepBackEvent.Name
-
--- حلقة تحكم لحظية وسريعة بالـ Toggle
-task.spawn(function()
-	while task.wait(0.05) do
-		if _G.anitBackState then
-			-- عند التفعيل: نقل الريموت للمجلد الوهمي وتغيير اسمه لمنع الاستدعاء
-			if StepBackEvent.Parent ~= hiddenFolder then
-				StepBackEvent.Parent = hiddenFolder
-				StepBackEvent.Name = "StepBack_Disabled"
+for _, connection in ipairs(getconnections(StepBackEvent.OnClientEvent)) do
+	local oldFunction = connection.Function
+	if oldFunction then
+		-- استبدال دالة الحدث بدالة تفحص المتغير قبل التنفيذ
+		hookfunction(oldFunction, function(...)
+			if antiBackState then
+				return -- تجميد وإلغاء التنفيذ تماماً
 			end
-		else
-			-- عند الإيقاف: إعادة الريموت لمكانه واسمه الأصلي فوراً
-			if StepBackEvent.Parent ~= originalParent then
-				StepBackEvent.Name = originalName
-				StepBackEvent.Parent = originalParent
-			end
-		end
+			return oldFunction(...)
+		end)
 	end
-end)
-
--- اعتراض إضافي لمنع الاستدلال على مكان الريموت أثناء التفعيل
-local rawIndex
-rawIndex = hookmetamethod(game, "__index", function(self, key)
-	if not checkcaller() and anitBackState and self == RemoteEvents and key == "StepBack" then
-		return nil -- إيهام سكربت اللعبة أن الريموت غير موجود نهائياً
-	end
-	return rawIndex(self, key)
-end)
+end
 
 noClipBtn.MouseButton1Click:Connect(function()
 	noClipState = not noClipState
