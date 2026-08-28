@@ -403,48 +403,6 @@ local function updateStepBackState(enabled)
 	end
 end
 
--- 3. إنشاء واجهة المستخدم (ScreenGui)
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "AntiBackGui"
-screenGui.ResetOnSpawn = false
-
--- التأكد من وضع الواجهة في المكان الصحيح باللعبة
-local parentGui = LocalPlayer:FindFirstChildOfClass("PlayerGui") or game:GetService("CoreGui")
-screenGui.Parent = parentGui
-
-local toggleBtn = Instance.new("TextButton")
-toggleBtn.Name = "AntiBackToggle"
-toggleBtn.Size = UDim2.new(0, 160, 0, 45)
-toggleBtn.Position = UDim2.new(0.05, 0, 0.4, 0)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- أحمر (معطل)
-toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleBtn.TextSize = 16
-toggleBtn.Font = Enum.Font.SourceSansBold
-toggleBtn.Text = "Anti StepBack: OFF"
-toggleBtn.Parent = screenGui
-
--- إضافة حواف دائرية للزر (تصحيح الخطأ السابق)
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 8)
-corner.Parent = toggleBtn
-
--- 4. ربط الضغط على الزر بتغيير الحالة
-toggleBtn.MouseButton1Click:Connect(function()
-	anitBackState = not anitBackState
-
-	-- تطبيق التغيير على الريموت
-	updateStepBackState(_G.antiBackState)
-
-	-- تحديث شكل ولون الزر
-	if anitBackState then
-		toggleBtn.Text = "Anti StepBack: ON"
-		toggleBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 80) -- أخضر (مفعل)
-	else
-		toggleBtn.Text = "Anti StepBack: OFF"
-		toggleBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- أحمر (معطل)
-	end
-end)
-
 -- 5. حماية إضافية: في حال قام الماب بربط اتصال جديد أثناء اللعب
 StepBackEvent.OnClientEvent:Connect(function()
 	if anitBackState then
@@ -513,6 +471,9 @@ end)
 
 anitBackBtn.MouseButton1Click:Connect(function()
 	anitBackState = not anitBackState
+
+    updateStepBackState(anitBackState)
+
 	if anitBackState then 
 		anitBackKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
 		anitBackPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
