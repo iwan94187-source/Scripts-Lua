@@ -387,23 +387,70 @@ runService.Heartbeat:Connect(function()
 	end
 end)
 
-local rawFire = firesignal or (getgenv and getgenv().firesignal)
-local oldFireSignal
+-- 2. دالة تحديث حالة الريموت
+local function updateStepBackState(enabled)
+	anitBackState = enabled
 
-if rawFire then
-	oldFireSignal = hookfunction(rawFire, function(signal, ...)
-		local args = {...}
-
-		-- التأكد أن الإشارة الموجهة هي لـ StepBack وأن الحماية مفعلة
-		if signal == StepBackEvent.OnClientEvent and antiBackState then
-			-- تخريب وسائط الإشارة الممررة (إرسال قيم فارغة أو صفريّة ميتة)
-			return oldFireSignal(signal, "", 0, 0)
+	-- تعطيل أو تفعيل جميع الـ Connections المربوطة بالحدث
+	if getconnections then
+		for _, connection in ipairs(getconnections(StepBackEvent.OnClientEvent)) do
+			if enabled then
+				connection:Disable() -- حظر الريموت
+			else
+				connection:Enable()  -- إرجاع الريموت للعمل الطبيعي
+			end
 		end
-
-		-- إذا كانت الحماية متوقفة، تمر البيانات الأصلية كما هي
-		return oldFireSignal(signal, ...)
-	end)
+	end
 end
+
+-- 3. إنشاء واجهة المستخدم (ScreenGui)
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AntiBackGui"
+screenGui.ResetOnSpawn = false
+
+-- التأكد من وضع الواجهة في المكان الصحيح باللعبة
+local parentGui = LocalPlayer:FindFirstChildOfClass("PlayerGui") or game:GetService("CoreGui")
+screenGui.Parent = parentGui
+
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Name = "AntiBackToggle"
+toggleBtn.Size = UDim2.new(0, 160, 0, 45)
+toggleBtn.Position = UDim2.new(0.05, 0, 0.4, 0)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- أحمر (معطل)
+toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.TextSize = 16
+toggleBtn.Font = Enum.Font.SourceSansBold
+toggleBtn.Text = "Anti StepBack: OFF"
+toggleBtn.Parent = screenGui
+
+-- إضافة حواف دائرية للزر (تصحيح الخطأ السابق)
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 8)
+corner.Parent = toggleBtn
+
+-- 4. ربط الضغط على الزر بتغيير الحالة
+toggleBtn.MouseButton1Click:Connect(function()
+	anitBackState = not anitBackState
+
+	-- تطبيق التغيير على الريموت
+	updateStepBackState(_G.antiBackState)
+
+	-- تحديث شكل ولون الزر
+	if anitBackState then
+		toggleBtn.Text = "Anti StepBack: ON"
+		toggleBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 80) -- أخضر (مفعل)
+	else
+		toggleBtn.Text = "Anti StepBack: OFF"
+		toggleBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- أحمر (معطل)
+	end
+end)
+
+-- 5. حماية إضافية: في حال قام الماب بربط اتصال جديد أثناء اللعب
+StepBackEvent.OnClientEvent:Connect(function()
+	if anitBackState then
+		updateStepBackState(true)
+	end
+end)
 
 noClipBtn.MouseButton1Click:Connect(function()
 	noClipState = not noClipState
