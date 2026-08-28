@@ -9,6 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local remoteEvents = ReplicatedStorage:WaitForChild("RemoteEvents")
 local eggThrowEvent = remoteEvents:WaitForChild("EggThrowEvent")
 local didCatchEvent = remoteEvents:WaitForChild("DidCatch")
+local StepBackEvent = remoteEvents:WaitForChild("StepBack")
 
 -- 1. إنشاء الواجهة والخط الرئيسي (Slider Frame)
 local screenGui = Instance.new("ScreenGui", PlayerGui)
@@ -99,7 +100,7 @@ local function newBtn(name,pos,parent)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
 	btn.Text=name
-	btn.TextSize=7
+	btn.TextSize=5
 	btn.Parent=parent
 	return btn
 end
@@ -111,7 +112,7 @@ local function newLbl(name,pos,parent)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
 	btn.Text=name
-	btn.TextSize=7
+	btn.TextSize=5
 	btn.Parent=parent
 	return btn
 end
@@ -184,9 +185,9 @@ frame_2.Visible=false
 frame_2.Parent=Mainframe
 
 local mainBtn = newsideBtn("Enable", 0.1)
-mainBtn.TextSize,mainBtn.TextScaled=8,false
+mainBtn.TextSize,mainBtn.TextScaled=5,false
 local gameplayBtn = newsideBtn("Press", 0.22)
-gameplayBtn.TextSize,gameplayBtn.TextScaled=10,false
+gameplayBtn.TextSize,gameplayBtn.TextScaled=6,false
 
 local upState = false
 local upBtn = newBtn(" Status Enabled",0.05,frame_1)
@@ -223,11 +224,11 @@ antiLavaBtn.TextXAlignment="Left"
 local antiLavaPlate = newPlate(antiLavaBtn)
 local antiLavaKnob = newKnob(antiLavaPlate)
 
-local flingState = false
-local flingBtn = newBtn(" Fling",0.80,frame_1)
-flingBtn.TextXAlignment="Left"
-local flingPlate = newPlate(flingBtn)
-local flingKnob = newKnob(flingPlate)
+local anitBackState = false
+local anitBackBtn = newBtn(" Anit Step-Back",0.80,frame_1)
+anitBackBtn.TextXAlignment="Left"
+local anitBackPlate = newPlate(anitBackBtn)
+local anitBackKnob = newKnob(anitBackPlate)
 
 local catchBtn = newBtn(" Catch Egg [Click]",0.05,frame_2)
 catchBtn.TextXAlignment="Left"
@@ -300,9 +301,9 @@ newUi(antiLavaBtn)
 newUi(antiLavaPlate)
 newUi(antiLavaKnob)
 
-newUi(flingBtn)
-newUi(flingPlate)
-newUi(flingKnob)
+newUi(anitBackBtn)
+newUi(anitBackPlate)
+newUi(anitBackKnob)
 
 newUi(catchBtn)
 
@@ -368,61 +369,18 @@ runService.Heartbeat:Connect(function()
 	end
 end)
 
-runService.Heartbeat:Connect(function()
-	local char = LocalPlayer.Character
-	local hrp = char and char:FindFirstChild("HumanoidRootPart")
-	local hum = char and char:FindFirstChildOfClass("Humanoid")
+local rawFire = firesignal
+if getgenv and getgenv().firesignal then
+	rawFire = getgenv().firesignal
+end
 
-	if not flingState or not hrp or not hum or hum.Health <= 0 then
-		return
+local function triggerStepBack(...)
+	if not anitBackState then
+		rawFire(StepBackEvent.OnClientEvent, ...)
 	end
+end
 
-	local targetHrp = nil
-
-	-- فحص الخصوم في نطاق لمس قريب جدًا (3 أمتار)
-	for _, targetModel in ipairs(workspace:GetChildren()) do
-		if targetModel:IsA("Model") and targetModel ~= char then
-			local tHum = targetModel:FindFirstChildOfClass("Humanoid")
-			local tHrp = targetModel:FindFirstChild("HumanoidRootPart") or targetModel:FindFirstChild("Torso")
-
-			if tHum and tHrp and tHum.Health > 0 then
-				local distance = (hrp.Position - tHrp.Position).Magnitude
-				if distance <= 3 then
-					targetHrp = tHrp
-					break
-				end
-			end
-		end
-	end
-
-	if targetHrp then
-		-- 1. إلغاء تصادم جميع أجزاء جسمك (بما فيها HumanoidRootPart) لمنع ارتداد الفيزياء عليك
-		for _, part in ipairs(char:GetDescendants()) do
-			if part:IsA("BasePart") then
-				part.CanCollide = false
-			end
-		end
-
-		-- 2. تثبيت سرعتك ومنع طيرانك نهائيًا
-		hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-		hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-
-		-- 3. دفع الخصم وتدويره مباشرة من مسافة اللمس
-		targetHrp.AssemblyLinearVelocity = Vector3.new(
-			math.random(-200000, 200000),
-			300000,
-			math.random(-200000, 200000)
-		)
-		targetHrp.AssemblyAngularVelocity = Vector3.new(999999, 999999, 999999)
-	else
-		-- إعادة التصادم الطبيعي لشخصيتك عند الابتعاد
-		for _, part in ipairs(char:GetDescendants()) do
-			if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-				part.CanCollide = true
-			end
-		end
-	end
-end)
+triggerStepBack()
 
 noClipBtn.MouseButton1Click:Connect(function()
 	noClipState = not noClipState
@@ -457,6 +415,17 @@ upBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
+antiLavaBtn.MouseButton1Click:Connect(function()
+	antiLavaState = not antiLavaState
+	if antiLavaState then 
+		antiLavaKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
+		antiLavaPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		antiLavaKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
+		antiLavaPlate.BackgroundColor3 = blk_color
+	end
+end)
+
 catchBtn.MouseButton1Click:Connect(function()
 	didCatchEvent:FireServer()
 end)
@@ -472,13 +441,13 @@ reBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-flingBtn.MouseButton1Click:Connect(function()
-	flingState = not flingState
-	if flingState then 
-		flingKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
-		flingPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+anitBackBtn.MouseButton1Click:Connect(function()
+	anitBackState = not anitBackState
+	if anitBackState then 
+		anitBackKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
+		anitBackPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
 	else 
-		flingKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
-		flingPlate.BackgroundColor3 = blk_color
+		anitBackKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
+		anitBackPlate.BackgroundColor3 = blk_color
 	end
 end)
