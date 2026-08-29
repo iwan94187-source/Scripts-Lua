@@ -237,12 +237,15 @@ local maxZoomPlate = newPlate(maxZoomBtn)
 local maxZoomKnob = newKnob(maxZoomPlate)
 
 local catchBtn = newBtn(" Catch Egg [Click]",0.05,frame_2)
+catchBtn.Size=UDim2.new(0.9,0,0.12,0)
 catchBtn.TextXAlignment="Left"
 
 local throwBtn = newBtn(" Perfect Throw💯 [Click]",0.20,frame_2)
+throwBtn.Size=UDim2.new(0.9,0,0.12,0)
 throwBtn.TextXAlignment="Left"
 
 local reBtn = newBtn(" Rest Chaarcter [Click]",0.35,frame_2)
+reBtn.Size=UDim2.new(0.9,0,0.12,0)
 reBtn.TextXAlignment="Left"
 
 
