@@ -319,8 +319,8 @@ newUi(maxZoomPlate)
 newUi(maxZoomKnob)
 
 newUi(catchBtn)
-
 newUi(throwBtn)
+newUi(reBtn)
 
 local PlayerModule = require(LocalPlayer:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule"))
 local Controls = PlayerModule:GetControls()
