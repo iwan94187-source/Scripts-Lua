@@ -204,8 +204,8 @@ local function fixedTxt2(parent,siz)
 	parent.TextTransparency=1
 
 	local lbl = Instance.new("TextLabel")
-	lbl.Size=UDim2.new(0.6,0,0.2,0)
-	lbl.Position=UDim2.new(0.3,0,0,0)
+	lbl.Size=UDim2.new(0.6,0,0.4,0)
+	lbl.Position=UDim2.new(0.15,0,0,0)
 	lbl.TextColor=BrickColor.new("White")
 	lbl.BackgroundTransparency=1
 	lbl.Text=parent.Text
@@ -269,6 +269,8 @@ fixedTxt(antiTrapBtn,0.6)
 fixedTxt(flyBtn,0.6)
 
 fixedTxt2(speedSlideBtn)
+fixedTxt2(jumpBtn)
+fixedTxt2(dashBtn)
 
 
 local function newUi(parent) 
