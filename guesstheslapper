@@ -11,6 +11,7 @@ local Event = ReplicatedStorage:WaitForChild("events",5)
 local slapTurn = Event and Event:WaitForChild("SlapQueue",5)
 local guessEvent = Event and Event:WaitForChild("Guess",5)
 local sendSlapEvent = Event and Event:WaitForChild("SendSlap",5)
+local dodgeEvent = Event and Event:WaitForChild("Dodge",5)
 
 local areanasFolder = workspace:WaitForChild("arenas",5)
 
@@ -244,7 +245,6 @@ knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 knob.Text = ""
 knob.ZIndex=2
 
--- 3. نص لعرض القيمة الحالية
 local valueLabel = 0
 
 local slideFill = Instance.new("TextLabel", sliderBack)
@@ -436,9 +436,9 @@ RunService.Heartbeat:Connect(function()
 				end
 				-- التأكد من أن الزوم/الزر ظاهر ومفعل (AbsoluteSize > 0)
 				if autododgeState and dodgeBtn and dodgeBtn.Visible and dodgeBtn.AbsoluteSize.X > 0 and (os.clock() - lastClickTime > 0.15) then
-					
 					lastClickTime = os.clock()
-					safeClickDodge(dodgeBtn)
+					dodgeEvent:FireServer(true)
+					--safeClickDodge(dodgeBtn)
 				end
 			else
 				if turnSlapState then
