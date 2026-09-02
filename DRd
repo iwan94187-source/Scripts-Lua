@@ -58,7 +58,7 @@ Mainframe.Parent=screenGui
 
 local frameTitle = Instance.new("TextLabel")
 frameTitle.Size=UDim2.new(1,0,0.1,0)
-frameTitle.Text="   Dodge or Die V6.33"
+frameTitle.Text="   Dodge or Die V6.12"
 frameTitle.TextXAlignment=Enum.TextXAlignment.Left
 frameTitle.TextColor=BrickColor.new("White")
 frameTitle.BackgroundColor3=blk_color
@@ -245,7 +245,6 @@ local activeTrajectories = {}
 local function setupSmartAutoDodge(ball)
 	if not ball or not ball:IsA("BasePart") then return end
 
-	-- 1. إنشاء الأنبوب (Zone Part)
 	local hitbox = Instance.new("Part")
 	hitbox.Name = "BallTrajectoryZone"
 	hitbox.Anchored = true
@@ -258,16 +257,16 @@ local function setupSmartAutoDodge(ball)
 
 	table.insert(activeTrajectories, hitbox)
 
-	local frontZoneLength = 15    -- طول الأنبوب أمام الكرة (15 Studs)
-	local extraWidthBuffer = 6    -- عرض الأنبوب
-	local maxTeleportOffset = 15  -- أقصى مدى للنقل (15 Studs)
-	local minSafeDistance = 5     -- الحد الأدنى المسموح به لخلف الكرة
-	local wallBuffer = 2.5        -- مسافة أمان قبل الجدار
-	local sideOffset = 15         -- مسافة النقل الجانبي لليمين/اليسار
+	local frontZoneLength = 15
+	local extraWidthBuffer = 6
+	local maxTeleportOffset = 15
+	local minSafeDistance = 5
+	local wallBuffer = 3
+	local sideOffset = 15
 	local cooldown = false
 	local updateConnection = nil
 
-	-- 🧠 فحص سلامة الموقع من أنابيب الكرات الأخرى
+	-- 🧠 فحص أمان النقطة من أنابيب الكرات الأخرى
 	local function isPositionSafe(targetPos)
 		for _, zone in ipairs(activeTrajectories) do
 			if zone ~= hitbox and zone.Parent then
@@ -277,14 +276,48 @@ local function setupSmartAutoDodge(ball)
 				if math.abs(relPos.X) <= halfSize.X and 
 					math.abs(relPos.Y) <= halfSize.Y and 
 					math.abs(relPos.Z) <= halfSize.Z then
-					return false -- يتقاطع مع أنبوب كرة أخرى
+					return false
 				end
 			end
 		end
 		return true
 	end
 
-	-- 2. المراقبة المستمرة وحساب الأبعاد داخل Heartbeat
+	-- 🛡️ فحص حاسم: هل النقطة المستهدفة تقع داخل جدار أو جسم صلب؟
+	local function isLocationInsideWall(targetPos, char)
+		local overlapParams = OverlapParams.new()
+		overlapParams.FilterDescendantsInstances = {char, ball, hitbox}
+		overlapParams.FilterType = Enum.RaycastFilterType.Exclude
+		overlapParams.RespectCanCollide = true
+
+		local parts = workspace:GetPartBoundsInRadius(targetPos, 2, overlapParams)
+		for _, part in ipairs(parts) do
+			if part.CanCollide and part.Transparency < 1 then
+				return true -- النقطة داخل جدار!
+			end
+		end
+		return false
+	end
+
+	-- 🛡️ فحص مسار الانتقال باستخدام Blockcast (صندوق بحجم الشخصية)
+	local function checkPathSafety(startPos, endPos, raycastParams)
+		local direction = endPos - startPos
+		local distance = direction.Magnitude
+		if distance == 0 then return true, endPos end
+
+		local charSize = Vector3.new(2, 5, 2) -- حجم الشخصية المعتاد
+		local sweepResult = workspace:Blockcast(CFrame.new(startPos, endPos), charSize, direction.Unit * distance, raycastParams)
+
+		if sweepResult and sweepResult.Instance and sweepResult.Instance.CanCollide then
+			-- وجد جداراً في المسار -> إرجاع المسافة المتاحة قبل الجدار
+			local safeDist = math.max(0, sweepResult.Distance - wallBuffer)
+			local safePos = startPos + (direction.Unit * safeDist)
+			return false, safePos, sweepResult.Distance
+		end
+
+		return true, endPos, distance
+	end
+
 	updateConnection = runService.Heartbeat:Connect(function()
 		if not ball or not ball.Parent or not ball:IsDescendantOf(workspace) then
 			if updateConnection then updateConnection:Disconnect() end
@@ -319,86 +352,65 @@ local function setupSmartAutoDodge(ball)
 						math.abs(relPos.Z) <= halfSize.Z
 
 					if isInsideZone then
-						local ballPos = ball.Position
 						local myPos = rootPart.Position
+						local ballPos = ball.Position
 
-						-- إعدادات الـ Raycast للجدران المخفية والملموسة
 						local raycastParams = RaycastParams.new()
 						raycastParams.FilterDescendantsInstances = {char, ball, hitbox}
 						raycastParams.FilterType = Enum.RaycastFilterType.Exclude
 						raycastParams.IgnoreWater = true
 						raycastParams.RespectCanCollide = true
 
-						-- -------------------------------------------------------------
-						-- 🧠 1. فحص المسار الخلفي أولاً
-						-- -------------------------------------------------------------
-						local backRayResult = workspace:Raycast(ballPos, -direction * maxTeleportOffset, raycastParams)
-						local isBackValid = false
-						local targetPosition = nil
+						local chosenTarget = nil
 
-						if backRayResult and backRayResult.Instance and backRayResult.Instance.CanCollide then
-							local hitDist = backRayResult.Distance
-							if hitDist >= minSafeDistance then
-								local safeDist = math.max(minSafeDistance, hitDist - wallBuffer)
-								targetPosition = ballPos - (direction * safeDist)
-							end
-						else
-							targetPosition = ballPos - (direction * maxTeleportOffset)
-						end
+						-- -------------------------------------------------------------
+						-- 🧠 1. تجربة النقل للخلف (من موقع اللاعب إلى خلف الكرة)
+						-- -------------------------------------------------------------
+						local idealBackPos = ballPos - (direction * maxTeleportOffset)
+						local isBackClear, safeBackPos, backDist = checkPathSafety(myPos, idealBackPos, raycastParams)
 
-						-- التأكد من خلو المسار المباشر من جسم اللاعب وملاءمة الموقع
-						if targetPosition then
-							local pathRay = workspace:Raycast(myPos, targetPosition - myPos, raycastParams)
-							if not (pathRay and pathRay.Instance and pathRay.Instance.CanCollide) and isPositionSafe(targetPosition) then
-								isBackValid = true
+						if isBackClear and isPositionSafe(idealBackPos) and not isLocationInsideWall(idealBackPos, char) then
+							chosenTarget = idealBackPos
+						elseif backDist and backDist >= minSafeDistance then
+							if isPositionSafe(safeBackPos) and not isLocationInsideWall(safeBackPos, char) then
+								chosenTarget = safeBackPos
 							end
 						end
 
 						-- -------------------------------------------------------------
-						-- 🧠 2. إذا كان الخلف محظوراً أو غير آمن -> البدء بفحص اليمين واليسار
+						-- 🧠 2. إذا فشل الخلف -> تجربة اليمين واليسار
 						-- -------------------------------------------------------------
-						if not isBackValid then
+						if not chosenTarget then
 							local rightVector = hitbox.CFrame.RightVector
+							local idealRightPos = ballPos + (rightVector * sideOffset)
+							local idealLeftPos = ballPos - (rightVector * sideOffset)
 
-							-- نقاط النقل المفترضة
-							local rightPos = ballPos + (rightVector * sideOffset)
-							local leftPos = ballPos - (rightVector * sideOffset)
+							local isRightClear, safeRightPos, rightDist = checkPathSafety(myPos, idealRightPos, raycastParams)
+							local isLeftClear, safeLeftPos, leftDist = checkPathSafety(myPos, idealLeftPos, raycastParams)
 
-							-- فحص الجدران نحو اليمين واليسار
-							local rightRay = workspace:Raycast(ballPos, rightVector * sideOffset, raycastParams)
-							local leftRay = workspace:Raycast(ballPos, -rightVector * sideOffset, raycastParams)
+							local rightValid = isRightClear and isPositionSafe(idealRightPos) and not isLocationInsideWall(idealRightPos, char)
+							local leftValid = isLeftClear and isPositionSafe(idealLeftPos) and not isLocationInsideWall(idealLeftPos, char)
 
-							local rightDist = (rightRay and rightRay.Instance and rightRay.Instance.CanCollide) and rightRay.Distance or sideOffset
-							local leftDist = (leftRay and leftRay.Instance and leftRay.Instance.CanCollide) and leftRay.Distance or sideOffset
-
-							-- فحص سلامة الموقعين من أنابيب الكرات الأخرى ومن مسار الحركة
-							local isRightSafe = (rightDist >= sideOffset) and isPositionSafe(rightPos) and not (workspace:Raycast(myPos, rightPos - myPos, raycastParams))
-							local isLeftSafe = (leftDist >= sideOffset) and isPositionSafe(leftPos) and not (workspace:Raycast(myPos, leftPos - myPos, raycastParams))
-
-							-- اختيار الاتجاه الأفضل
-							if isRightSafe and isLeftSafe then
-								-- الاتجاهان آمنان بالكامل -> اختيار عشوائي
-								targetPosition = (math.random(1, 2) == 1) and rightPos or leftPos
-							elseif isRightSafe then
-								targetPosition = rightPos
-							elseif isLeftSafe then
-								targetPosition = leftPos
+							if rightValid and leftValid then
+								chosenTarget = (math.random(1, 2) == 1) and idealRightPos or idealLeftPos
+							elseif rightValid then
+								chosenTarget = idealRightPos
+							elseif leftValid then
+								chosenTarget = idealLeftPos
 							else
-								-- إذا كانت الجوانب بها جدران، أخذ الاتجاه الأطول مسافة بشرط ألا يكون أقل من 5 Studs
-								if rightDist > leftDist and rightDist >= minSafeDistance then
-									targetPosition = ballPos + (rightVector * math.max(minSafeDistance, rightDist - wallBuffer))
-								elseif leftDist > rightDist and leftDist >= minSafeDistance then
-									targetPosition = ballPos - (rightVector * math.max(minSafeDistance, leftDist - wallBuffer))
-								else
-									targetPosition = nil -- إلغاء الحركة تماماً في حال الانحصار الكامل
+								-- تجربة المساحات المتبقية قبل الجدران الجانبية بشرط ألا تقل عن 5 أمتار
+								if rightDist and rightDist >= minSafeDistance and isPositionSafe(safeRightPos) and not isLocationInsideWall(safeRightPos, char) then
+									chosenTarget = safeRightPos
+								elseif leftDist and leftDist >= minSafeDistance and isPositionSafe(safeLeftPos) and not isLocationInsideWall(safeLeftPos, char) then
+									chosenTarget = safeLeftPos
 								end
 							end
 						end
 
-						-- 🚀 3. تنفيذ النقل النهائي بعد التقييم
-						if targetPosition then
+						-- 🚀 3. التنفيذ النهائي المضمون
+						if chosenTarget then
 							cooldown = true
-							rootPart.CFrame = CFrame.new(targetPosition, targetPosition + rootPart.CFrame.LookVector)
+							rootPart.CFrame = CFrame.new(chosenTarget, chosenTarget + rootPart.CFrame.LookVector)
 							rootPart.AssemblyLinearVelocity = Vector3.zero
 
 							task.delay(0.35, function()
@@ -421,7 +433,7 @@ local function setupSmartAutoDodge(ball)
 	end)
 end
 
--- 3. تشغيل المراقبة والربط
+-- 3. التشغيل
 task.spawn(function()
 	while not ballsFolder do task.wait(0.5) end
 
