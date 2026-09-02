@@ -45,6 +45,7 @@ frameTitle.TextXAlignment=Enum.TextXAlignment.Left
 frameTitle.TextColor=BrickColor.new("White")
 frameTitle.BackgroundColor3=blk_color
 frameTitle.TextSize=1
+frameTitle.TextTransparency=1
 frameTitle.Parent=Mainframe
 
 local txt = Instance.new("TextLabel")
@@ -113,7 +114,7 @@ end
 
 local function newBtn(name,pos,parent)
 	local btn = Instance.new("TextButton")
-	btn.Size=UDim2.new(0.9,0,0.14,0)
+	btn.Size = UDim2.new(0.9, 0, 0.12, 0)
 	btn.Position=UDim2.new(0.05,0,pos,0)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
@@ -125,7 +126,7 @@ end
 
 local function newLbl(name,pos,parent)
 	local btn = Instance.new("TextLabel")
-	btn.Size=UDim2.new(0.9,0,0.14,0)
+	btn.Size = UDim2.new(0.9, 0, 0.12, 0)
 	btn.Position=UDim2.new(0.05,0,pos,0)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
@@ -228,8 +229,8 @@ local function safeClickDodge(targetButton)
 end
 
 
-local slapSlideBtn = newLbl(" %100",0.10,Mainframe)
-slapSlideBtn.TextXAlignment="Left"
+local slapSlideBtn = newLbl(" %100", 0.13, Mainframe)
+slapSlideBtn.TextXAlignment = Enum.TextXAlignment.Left
 
 local sliderBack = Instance.new("Frame", slapSlideBtn)
 sliderBack.Size = UDim2.new(0, 140, 0, 5) -- الخط الممتد
@@ -258,25 +259,25 @@ slideFill.BackgroundColor=BrickColor.new("White")
 
 local lastClickTime = 0
 
-local autoDodgeBtn  = newBtn(" Auto Dodge",  0.25, Mainframe)
+local autoDodgeBtn = newBtn(" Auto Dodge", 0.28, Mainframe)
 autoDodgeBtn.TextXAlignment = Enum.TextXAlignment.Left
 local autoDodgePlate = newPlate(autoDodgeBtn)
-local autoDodgeKnob  = newKnob(autoDodgePlate)
+local autoDodgeKnob = newKnob(autoDodgePlate)
 
-local autoGuessBtn  = newBtn(" Auto Guess",  0.40, Mainframe)
+local autoGuessBtn = newBtn(" Auto Guess", 0.43, Mainframe)
 autoGuessBtn.TextXAlignment = Enum.TextXAlignment.Left
 local autoGuessPlate = newPlate(autoGuessBtn)
-local autoGuessKnob  = newKnob(autoGuessPlate)
+local autoGuessKnob = newKnob(autoGuessPlate)
 
-local turnSlapBtn   = newBtn(" Slap Switch", 0.55, Mainframe)
+local turnSlapBtn = newBtn(" Slap Switch", 0.58, Mainframe)
 turnSlapBtn.TextXAlignment = Enum.TextXAlignment.Left
 local turnSlapPlate = newPlate(turnSlapBtn)
-local turnSlapKnob  = newKnob(turnSlapPlate)
+local turnSlapKnob = newKnob(turnSlapPlate)
 
-local autoSlapBtn    = newBtn(" Auto Slap",   0.70, Mainframe)
+local autoSlapBtn = newBtn(" Auto Slap", 0.73, Mainframe)
 autoSlapBtn.TextXAlignment = Enum.TextXAlignment.Left
 local autoSlapPlate = newPlate(autoSlapBtn)
-local autoSlapKnob  = newKnob(autoSlapPlate)
+local autoSlapKnob = newKnob(autoSlapPlate)
 
 local dragging = false
 
