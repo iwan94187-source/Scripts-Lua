@@ -1,0 +1,507 @@
+local Players = game:GetService("Players")
+local camera = workspace.CurrentCamera
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local RunService = game:GetService("RunService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Event = ReplicatedStorage:WaitForChild("events",5)
+local slapTurn = Event and Event:WaitForChild("SlapQueue",5)
+local guessEvent = Event and Event:WaitForChild("Guess",5)
+local sendSlapEvent = Event and Event:WaitForChild("SendSlap",5)
+
+local areanasFolder = workspace:WaitForChild("arenas",5)
+
+local gameScreenGui = PlayerGui:WaitForChild("ScreenGui",5)
+local slapbut = gameScreenGui and gameScreenGui:WaitForChild("slapbut",5)
+local dodgeBtn = gameScreenGui and gameScreenGui:WaitForChild("dodgebut",5)
+local suspk = gameScreenGui and gameScreenGui:WaitForChild("suspects",5)
+local meter = gameScreenGui and gameScreenGui:WaitForChild("meter",5)
+
+-- 1. إنشاء الواجهة والخط الرئيسي (Slider Frame)
+local screenGui = Instance.new("ScreenGui", PlayerGui)
+screenGui.Name = "SkullGui"
+screenGui.ResetOnSpawn = false
+
+local blk_color = Color3.fromRGB(24,24,24)
+local useSlap = true
+local vb = nil 
+
+local Mainframe = Instance.new("Frame")
+Mainframe.Size=UDim2.new(0,250,0,200)
+Mainframe.Position=UDim2.new(0.125,0,0,0)
+Mainframe.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+Mainframe.Visible=false
+Mainframe.Active=true
+Mainframe.Draggable=true
+Mainframe.Parent=screenGui
+
+local frameTitle = Instance.new("TextLabel")
+frameTitle.Size=UDim2.new(1,0,0.1,0)
+frameTitle.TextXAlignment=Enum.TextXAlignment.Left
+frameTitle.TextColor=BrickColor.new("White")
+frameTitle.BackgroundColor3=blk_color
+frameTitle.TextSize=1
+frameTitle.Parent=Mainframe
+
+local txt = Instance.new("TextLabel")
+txt.Size=UDim2.new(0.6,0,1,0)
+txt.Position=UDim2.new(0.05,0,0,0)
+txt.TextColor=BrickColor.new("White")
+txt.BackgroundTransparency=1
+txt.Text="Guess the Slapper V5.0"
+txt.TextScaled=true
+txt.Parent=frameTitle
+
+local iconFrame = Instance.new("ImageButton")
+iconFrame.Size=UDim2.new(0,40,0,40)
+iconFrame.Position=UDim2.new(0.3,0,0.3,0)
+iconFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+iconFrame.Image = "rbxassetid://85847690672478"
+iconFrame.Active=true
+iconFrame.Draggable=true
+iconFrame.Parent=screenGui
+
+local destroyBtn = Instance.new("TextButton")
+destroyBtn.Size=UDim2.new(0,20,0,20)
+destroyBtn.Position=UDim2.new(0.915,0,0,0)
+destroyBtn.BackgroundColor3=Color3.fromRGB(255, 0, 0)
+destroyBtn.TextColor=BrickColor.new("White")
+destroyBtn.Text="x"
+destroyBtn.Parent=frameTitle
+
+local hideBtn = Instance.new("TextButton")
+hideBtn.Size=UDim2.new(0,20,0,20)
+hideBtn.Position=UDim2.new(0.82,0,0,0)
+hideBtn.BackgroundColor3=Color3.fromRGB(0, 170, 255)
+hideBtn.TextColor=BrickColor.new("White")
+hideBtn.Text="–"
+hideBtn.Parent=frameTitle
+
+iconFrame.MouseButton1Click:Connect(function()
+	iconFrame.Visible=not iconFrame.Visible
+	if iconFrame.Visible then 
+		Mainframe.Visible=false
+	else
+		Mainframe.Position=iconFrame.Position
+		Mainframe.Visible=true
+	end
+end)
+
+hideBtn.MouseButton1Click:Connect(function()
+	Mainframe.Visible=false
+	iconFrame.Position=Mainframe.Position
+	iconFrame.Visible=true
+end)
+
+destroyBtn.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+end)
+
+local function boxFrame() 
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0.9, 0,0.1,0)
+	frame.Position=UDim2.new(0.1,0,0.1,0)
+	frame.BackgroundColor=BrickColor.new("Black")
+	frame.Parent=Mainframe
+	return frame
+
+end
+
+local function newBtn(name,pos,parent)
+	local btn = Instance.new("TextButton")
+	btn.Size=UDim2.new(0.9,0,0.15,0)
+	btn.Position=UDim2.new(0.05,0,pos,0)
+	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextSize=2
+	btn.Parent=parent
+	return btn
+end
+
+local function newLbl(name,pos,parent)
+	local btn = Instance.new("TextLabel")
+	btn.Size=UDim2.new(0.9,0,0.15,0)
+	btn.Position=UDim2.new(0.05,0,pos,0)
+	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextSize=2
+	btn.Parent=parent
+	return btn
+end
+
+local function newTrem(parent)
+	local trem = Instance.new("TextLabel")
+	trem.Size = UDim2.new(0,25,1,0)
+	trem.Position=UDim2.new(0.85,0,0,0)
+	trem.BackgroundTransparency=1
+	trem.Text="🔴"
+	trem.TextSize=20
+	trem.Parent=parent
+	return trem
+end
+
+local function newKnob(parent)
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0,10,0,10)
+	frame.Position=UDim2.new(0.1,0,0.65,-8)
+	frame.BackgroundColor3=Color3.fromRGB(255, 255, 255)
+	frame.Parent=parent
+	return frame
+end
+
+local function newPlate(parent)
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0,30,0,15)
+	frame.Position=UDim2.new(0.75,0,0.29,0)
+	frame.BackgroundColor3=blk_color
+	frame.Parent=parent
+	return frame
+end
+
+local function newUi(parent) 
+	local ui = Instance.new("UICorner")
+	ui.CornerRadius = UDim.new(0,10)
+	ui.Parent=parent
+	return ui
+end
+
+local function newCustomUi(parent, rb,lb,ru,lu) 
+	local ui = Instance.new("UICorner")
+	ui.BottomLeftRadius =UDim.new(0,lb)
+	ui.BottomRightRadius=UDim.new(0,rb)
+	ui.TopLeftRadius=UDim.new(0,lu)
+	ui.TopRightRadius=UDim.new(0,ru)
+	ui.Parent=parent
+	return ui
+end
+
+local function isPartInsidePart(partToTest, zonePart)
+	if not partToTest or not zonePart then return false end
+
+	local zoneCFrame = zonePart.CFrame
+	local zoneSize = zonePart.Size
+	local localPos = zoneCFrame:PointToObjectSpace(partToTest.Position)
+
+	return math.abs(localPos.X) <= (zoneSize.X / 2) and
+		math.abs(localPos.Y) <= (zoneSize.Y / 2) and
+		math.abs(localPos.Z) <= (zoneSize.Z / 2)
+end
+
+local function safeClickDodge(targetButton)
+	if not targetButton then return end
+
+	-- 1. إطلاق الإشارات البرمجية مباشرة عبر المحاكي (firesignal)
+	pcall(function()
+		if firesignal then
+			firesignal(targetButton.MouseButton1Click)
+			firesignal(targetButton.MouseButton1Down)
+			firesignal(targetButton.Activated)
+			firesignal(targetButton.InputBegan, {UserInputType = Enum.UserInputType.Touch, UserInputState = Enum.UserInputState.Begin})
+		elseif getconnections then
+			for _, conn in ipairs(getconnections(targetButton.MouseButton1Click)) do conn:Fire() end
+			for _, conn in ipairs(getconnections(targetButton.MouseButton1Down)) do conn:Fire() end
+			for _, conn in ipairs(getconnections(targetButton.Activated)) do conn:Fire() end
+		end
+	end)
+
+	-- 2. إرسال الضغطات الفعلية (Touch & Mouse) بدون تأخير
+	task.spawn(function()
+		local pos = targetButton.AbsolutePosition
+		local size = targetButton.AbsoluteSize
+		local x = pos.X + (size.X / 2)
+		local y = pos.Y + (size.Y / 2) + 36
+
+		-- ضغطة ماوس
+		VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 1)
+		VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 1)
+
+		-- ضغطة لمس (مهمة للهواتف لتفعيل زر تفادي اللعبة)
+		VirtualInputManager:SendTouchEvent(0, 0, x, y)
+		VirtualInputManager:SendTouchEvent(0, 2, x, y)
+	end)
+end
+
+
+local slapSlideBtn = newLbl(" %",0.1,Mainframe)
+slapSlideBtn.TextXAlignment="Left"
+
+local sliderBack = Instance.new("Frame", slapSlideBtn)
+sliderBack.Size = UDim2.new(0, 140, 0, 5) -- الخط الممتد
+sliderBack.Position = UDim2.new(0.75, -100, 0.7, 0)
+sliderBack.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+sliderBack.BorderSizePixel = 0
+
+-- 2. الزر القابل للحركة (Slider Knob)
+local knob = Instance.new("TextButton", sliderBack)
+knob.Size = UDim2.new(0, 15, 0, 15) -- الدائرة/الزر
+knob.Position = UDim2.new(0, -10, 0.5, -8) -- يبدأ من اليسار
+knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+knob.Text = ""
+knob.ZIndex=2
+
+-- 3. نص لعرض القيمة الحالية
+local valueLabel = Instance.new("TextLabel", slapSlideBtn)
+valueLabel.Size = UDim2.new(1, 0, 0, 30)
+valueLabel.Position = UDim2.new(0, 30, 0, -3)
+valueLabel.BackgroundTransparency = 1
+valueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+valueLabel.TextSize = 10
+valueLabel.Text = "0"
+
+local slideFill = Instance.new("TextLabel", sliderBack)
+slideFill.Size=UDim2.new(1,0,1,0)
+slideFill.Text=""
+slideFill.BackgroundColor=BrickColor.new("White")
+
+---------------------------------------------------------
+-- 4. منطق التشغيل والضغط السريع والشامل (المعدل)
+---------------------------------------------------------
+
+local lastClickTime = 0
+
+local autododgeState = false
+local autoDodgeBtn = newBtn(" Auto Dodge",0.3,Mainframe)
+autoDodgeBtn.TextXAlignment=Enum.TextXAlignment.Left
+local autoDodgePlate = newPlate(autoDodgeBtn)
+local autoDodgeKnob=newKnob(autoDodgePlate)
+
+local turnSlapState = false
+local turnSlapBtn = newBtn(" Slap sWItch",0.45,Mainframe)
+turnSlapBtn.TextXAlignment=Enum.TextXAlignment.Left
+local turnSlapPlate = newPlate(turnSlapBtn)
+local turnSlapKnob=newKnob(turnSlapPlate)
+
+local autoGuessState = false
+local autoGuessBtn = newBtn(" Auto Guess",6,Mainframe)
+autoGuessBtn.TextXAlignment=Enum.TextXAlignment.Left
+local autoGuessPlate = newPlate(autoGuessBtn)
+local autoGuessKnob=newKnob(autoGuessPlate)
+
+local autoSlapState = false
+local autoSlapBtn = newBtn(" Auto Slap",0.75,Mainframe)
+autoSlapBtn.TextXAlignment=Enum.TextXAlignment.Left
+local autoSlapPlate = newPlate(autoSlapBtn)
+local autoSlapKnob=newKnob(autoSlapPlate)
+
+local dragging = false
+
+local function updateSlider(input)
+	-- حساب موقع الإصبع/الموس بالنسبة لطول الخط
+	local mousePos = input.Position.X
+	local sliderPos = sliderBack.AbsolutePosition.X
+	local sliderSize = sliderBack.AbsoluteSize.X
+
+	-- حصار القيمة بين 0 و 1 (من بداية الخط لنهايته)
+	local percentage = math.clamp((mousePos - sliderPos) / sliderSize, 0, 1)
+
+	-- تحريك الزر بصرياً
+	knob.Position = UDim2.new(percentage, -10, 0.5, -8)
+
+	-- تحويل النسبة لقيمة (مثلاً من 1 إلى 50 استود للمسافة)
+	local value = math.floor(percentage * 1) 
+	valueLabel.Text = tostring(value)
+
+	return value
+end
+
+knob.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = false
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		updateSlider(input)
+	end
+end)
+
+RunService.Heartbeat:Connect(function()
+	slideFill.Size=UDim2.new(knob.Position.X.Scale,0,1,0)
+end)
+
+newUi(iconFrame)
+newUi(Mainframe)
+
+newUi(autoDodgeBtn)
+newUi(autoDodgePlate)
+newUi(autoDodgeKnob)
+
+newUi(turnSlapBtn)
+newUi(turnSlapPlate)
+newUi(turnSlapKnob)
+
+newUi(autoGuessBtn)
+newUi(autoGuessPlate)
+newUi(autoGuessKnob)
+
+newUi(autoSlapBtn)
+newUi(autoSlapPlate)
+newUi(autoSlapKnob)
+
+newCustomUi(frameTitle,10,10,10,10)
+newCustomUi(destroyBtn,10,10,10,10)
+newCustomUi(hideBtn,10,10,10,10)
+
+RunService.Heartbeat:Connect(function()
+	local myChar = LocalPlayer.Character
+	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then 
+		return 
+	end
+
+	local myRoot = myChar.HumanoidRootPart
+
+	local currentMyArena = nil
+
+	for _, child in ipairs(areanasFolder:GetChildren()) do
+		if child:IsA("Model") and (child.Name:lower() == "arena") then
+			local isInside = false
+			local primaryPart = child.PrimaryPart or child:FindFirstChildWhichIsA("BasePart")
+			if primaryPart then
+				local cframe, size = child:GetBoundingBox()
+				local localPos = cframe:PointToObjectSpace(myRoot.Position)
+				if math.abs(localPos.X) <= (size.X / 2) and
+					math.abs(localPos.Y) <= (size.Y / 2) and
+					math.abs(localPos.Z) <= (size.Z / 2) then
+					isInside = true
+				end
+			end
+
+			if isInside then
+				currentMyArena = child
+				break
+			end
+		end
+	end
+
+	if currentMyArena then
+		
+		local slaptp = currentMyArena:FindFirstChild("slaptp")
+		local chair = currentMyArena:FindFirstChild("Chair")
+		local seat = chair and chair:FindFirstChild("Seat")
+		local mainCam = currentMyArena:FindFirstChild("maincam")
+		local blocks = currentMyArena:FindFirstChild("blocks")
+		if meter then
+			if not meter.Visible then 
+				useSlap=true
+			end
+		end
+		
+		if slaptp and slaptp:IsA("BasePart") then
+			local foundPlayer = nil
+
+			for _, player in ipairs(Players:GetPlayers()) do
+				if player ~= LocalPlayer then
+					if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+						local otherRoot = player.Character.HumanoidRootPart
+						if isPartInsidePart(otherRoot, slaptp) then
+							foundPlayer = player
+							break
+						end
+					end
+				else
+					if autoSlapState then
+						if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+							local otherRoot = player.Character.HumanoidRootPart
+							if isPartInsidePart(otherRoot, slaptp) then
+								if useSlap then
+									useSlap=false
+									sendSlapEvent:FireServer(valueLabel.Text/10)
+								end
+									
+								
+							end
+							
+						end
+					end
+					
+				end
+			end
+
+			if foundPlayer then
+				
+				if autoGuessState and suspk and suspk.Visible then 
+					guessEvent:FireServer(foundPlayer.Name)
+				end
+				-- التأكد من أن الزوم/الزر ظاهر ومفعل (AbsoluteSize > 0)
+				if autododgeState and dodgeBtn and dodgeBtn.Visible and dodgeBtn.AbsoluteSize.X > 0 and (os.clock() - lastClickTime > 0.15) then
+					
+					lastClickTime = os.clock()
+					safeClickDodge(dodgeBtn)
+				end
+			else
+				if turnSlapState then
+					if slapbut.Visible then 
+						slapTurn:FireServer()
+					else
+					end
+				else
+				end
+			end
+
+		end
+	end
+end)
+
+RunService.Heartbeat:Connect(function()
+
+end)
+
+autoDodgeBtn.MouseButton1Click:Connect(function()
+	autododgeState = not autododgeState
+	if autododgeState then 
+		autoDodgeKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
+		autoDodgePlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		autoDodgeKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
+		autoDodgePlate.BackgroundColor3 = blk_color
+	end
+end)
+
+turnSlapBtn.MouseButton1Click:Connect(function()
+	turnSlapState = not turnSlapState
+	if turnSlapState then 
+		turnSlapKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
+		turnSlapPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		turnSlapKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
+		turnSlapPlate.BackgroundColor3 = blk_color
+	end
+end)
+
+autoGuessBtn.MouseButton1Click:Connect(function()
+	autoGuessState = not autoGuessState
+	if autoGuessState then 
+		autoGuessKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
+		autoGuessPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		autoGuessKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
+		autoGuessPlate.BackgroundColor3 = blk_color
+	end
+end)
+
+autoSlapBtn.MouseButton1Click:Connect(function()
+	autoSlapState = not autoSlapState
+	if autoSlapState then 
+		autoSlapKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
+		autoSlapPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		autoSlapKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
+		autoSlapPlate.BackgroundColor3 = blk_color
+	end
+end)
+
+local lastSendTime = 0
+
+
