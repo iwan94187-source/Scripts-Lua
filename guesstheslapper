@@ -259,22 +259,22 @@ slideFill.BackgroundColor=BrickColor.new("White")
 
 local lastClickTime = 0
 
-local autoDodgeBtn = newBtn(" Auto Dodge", 0.31, Mainframe)
+local autoDodgeBtn = newBtn(" Auto Dodge", 0.29, Mainframe)
 autoDodgeBtn.TextXAlignment = Enum.TextXAlignment.Left
 local autoDodgePlate = newPlate(autoDodgeBtn)
 local autoDodgeKnob = newKnob(autoDodgePlate)
 
-local autoGuessBtn = newBtn(" Auto Guess", 0.49, Mainframe)
+local autoGuessBtn = newBtn(" Auto Guess", 0.475, Mainframe)
 autoGuessBtn.TextXAlignment = Enum.TextXAlignment.Left
 local autoGuessPlate = newPlate(autoGuessBtn)
 local autoGuessKnob = newKnob(autoGuessPlate)
 
-local turnSlapBtn = newBtn(" Slap Switch", 0.67, Mainframe)
+local turnSlapBtn = newBtn(" Slap Switch", 0.655, Mainframe)
 turnSlapBtn.TextXAlignment = Enum.TextXAlignment.Left
 local turnSlapPlate = newPlate(turnSlapBtn)
 local turnSlapKnob = newKnob(turnSlapPlate)
 
-local autoSlapBtn = newBtn(" Auto Slap", 0.85, Mainframe)
+local autoSlapBtn = newBtn(" Auto Slap", 0.835, Mainframe)
 autoSlapBtn.TextXAlignment = Enum.TextXAlignment.Left
 local autoSlapPlate = newPlate(autoSlapBtn)
 local autoSlapKnob = newKnob(autoSlapPlate)
