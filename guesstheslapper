@@ -259,13 +259,13 @@ slideFill.BackgroundColor=BrickColor.new("White")
 local lastClickTime = 0
 
 local autododgeState = false
-local autoDodgeBtn = newBtn(" Auto Dodge",0.3,Mainframe)
+local autoDodgeBtn = newBtn(" Auto Dodge",0.35,Mainframe)
 autoDodgeBtn.TextXAlignment=Enum.TextXAlignment.Left
 local autoDodgePlate = newPlate(autoDodgeBtn)
 local autoDodgeKnob=newKnob(autoDodgePlate)
 
 local turnSlapState = false
-local turnSlapBtn = newBtn(" Slap sWItch",0.4,Mainframe)
+local turnSlapBtn = newBtn(" Slap sWItch",0.45,Mainframe)
 turnSlapBtn.TextXAlignment=Enum.TextXAlignment.Left
 local turnSlapPlate = newPlate(turnSlapBtn)
 local turnSlapKnob=newKnob(turnSlapPlate)
