@@ -58,7 +58,7 @@ Mainframe.Parent=screenGui
 
 local frameTitle = Instance.new("TextLabel")
 frameTitle.Size=UDim2.new(1,0,0.1,0)
-frameTitle.Text="   Dodge or Die V6.84884"
+frameTitle.Text="   Dodge or Die V6.1"
 frameTitle.TextXAlignment=Enum.TextXAlignment.Left
 frameTitle.TextColor=BrickColor.new("White")
 frameTitle.BackgroundColor3=blk_color
@@ -245,6 +245,7 @@ local activeTrajectories = {}
 local function setupSmartAutoDodge(ball)
 	if not ball or not ball:IsA("BasePart") then return end
 
+	-- 1. إنشاء الأنبوب (Zone Part)
 	local hitbox = Instance.new("Part")
 	hitbox.Name = "BallTrajectoryZone"
 	hitbox.Anchored = true
@@ -257,65 +258,15 @@ local function setupSmartAutoDodge(ball)
 
 	table.insert(activeTrajectories, hitbox)
 
-	local frontZoneLength = 15
-	local extraWidthBuffer = 6
-	local maxTeleportOffset = 15
-	local minSafeDistance = 5 -- أدنى مسافة مسموحة خلف الكرة
-	local sideOffset = 15
+	local frontZoneLength = 15    -- طول الأنبوب أمام الكرة (15 Studs)
+	local extraWidthBuffer = 6    -- عرض الأنبوب
+	local maxTeleportOffset = 15  -- أقصى مدى للنقل خلف الكرة (15 Studs)
+	local minSafeDistance = 5     -- الحد الأدنى المسموح به لخلف الكرة (5 Studs)
+	local wallBuffer = 2.5        -- مسافة أمان قبل الجدار مباشرة
 	local cooldown = false
 	local updateConnection = nil
 
-	-- 🧠 فحص أمان النقطة من مسارات الكرات الأخرى
-	local function isPositionSafe(targetPos)
-		for _, zone in ipairs(activeTrajectories) do
-			if zone ~= hitbox and zone.Parent then
-				local relPos = zone.CFrame:PointToObjectSpace(targetPos)
-				local halfSize = zone.Size / 2
-
-				if math.abs(relPos.X) <= halfSize.X and 
-					math.abs(relPos.Y) <= halfSize.Y and 
-					math.abs(relPos.Z) <= halfSize.Z then
-					return false
-				end
-			end
-		end
-		return true
-	end
-
-	-- 🛡️ فحص صارم: هل النقطة المستهدفة تقع داخل جدار أو خلفه؟
-	local function isLocationBlockedOrInsideWall(targetPos, char)
-		local overlapParams = OverlapParams.new()
-		overlapParams.FilterDescendantsInstances = {char, ball, hitbox}
-		overlapParams.FilterType = Enum.RaycastFilterType.Exclude
-		overlapParams.RespectCanCollide = false -- يفحص حتى الأجزاء دون CanCollide لضمان الأمان الكامل
-
-		local parts = workspace:GetPartBoundsInRadius(targetPos, 2.5, overlapParams)
-		for _, part in ipairs(parts) do
-			if part.CanCollide and part.Transparency < 1 then
-				return true -- النقطة غير آمنة (داخل جدار أو ملاصقة له)
-			end
-		end
-		return false
-	end
-
-	-- 🛡️ فحص المسار الجانبي/الخلفي بواسطة Blockcast (حجم الشخصية)
-	local function checkPathSafety(startPos, endPos, raycastParams)
-		local direction = endPos - startPos
-		local distance = direction.Magnitude
-		if distance == 0 then return true, endPos, 0 end
-
-		local charSize = Vector3.new(2.5, 5, 2.5) -- حجم يحاكي جسم اللاعب
-		local sweepResult = workspace:Blockcast(CFrame.new(startPos, endPos), charSize, direction.Unit * distance, raycastParams)
-
-		if sweepResult and sweepResult.Instance and sweepResult.Instance.CanCollide then
-			local safeDist = math.max(0, sweepResult.Distance - 2)
-			local safePos = startPos + (direction.Unit * safeDist)
-			return false, safePos, sweepResult.Distance
-		end
-
-		return true, endPos, distance
-	end
-
+	-- 2. المراقبة المستمرة وحساب الأبعاد داخل Heartbeat
 	updateConnection = runService.Heartbeat:Connect(function()
 		if not ball or not ball.Parent or not ball:IsDescendantOf(workspace) then
 			if updateConnection then updateConnection:Disconnect() end
@@ -332,10 +283,12 @@ local function setupSmartAutoDodge(ball)
 			local ballDiameter = math.max(ball.Size.X, ball.Size.Y, ball.Size.Z)
 			local zoneWidth = ballDiameter + extraWidthBuffer
 
+			-- تعيين حجم وموقع الأنبوب أمام الكرة
 			hitbox.Size = Vector3.new(zoneWidth, zoneWidth, frontZoneLength)
 			local centerPos = ball.Position + (direction * (frontZoneLength / 2))
 			hitbox.CFrame = CFrame.lookAt(centerPos, centerPos + direction)
 
+			-- المراقبة عند دخول اللاعب في النطاق
 			if autoDodgeState and not cooldown then
 				local char = LocalPlayer.Character
 				local rootPart = char and char:FindFirstChild("HumanoidRootPart")
@@ -350,74 +303,59 @@ local function setupSmartAutoDodge(ball)
 						math.abs(relPos.Z) <= halfSize.Z
 
 					if isInsideZone then
-						local myPos = rootPart.Position
 						local ballPos = ball.Position
 
+						-- إعدادات الـ Raycast الاستثناءات
 						local raycastParams = RaycastParams.new()
 						raycastParams.FilterDescendantsInstances = {char, ball, hitbox}
 						raycastParams.FilterType = Enum.RaycastFilterType.Exclude
 						raycastParams.IgnoreWater = true
-						raycastParams.RespectCanCollide = true
-
-						local chosenTarget = nil
+						raycastParams.RespectCanCollide = true -- 👈 تجبر السكربت على اكتشاف الجدران المخفية (Transparency = 1)
 
 						-- -------------------------------------------------------------
-						-- 🧠 1. فحص مسار خلف الكرة (عكس اتجاه الحركة)
+						-- 🧠 1. فحص الجدار الأمامي (أمام الكرة)
 						-- -------------------------------------------------------------
-						local backDirection = -direction
-						local backRayResult = workspace:Raycast(ballPos, backDirection * maxTeleportOffset, raycastParams)
+						local frontRayResult = workspace:Raycast(ballPos, direction * 5, raycastParams)
+						if frontRayResult and frontRayResult.Instance and frontRayResult.Instance.CanCollide then
+							-- يوجد جدار أمامي (حتى لو شفاف) -> إلغاء النقل
+							return
+						end
 
-						local availableBackDist = maxTeleportOffset
+						-- -------------------------------------------------------------
+						-- 🧠 2. فحص المسار الخلفي لحساب نقطة النقل
+						-- -------------------------------------------------------------
+						local backRayResult = workspace:Raycast(ballPos, -direction * maxTeleportOffset, raycastParams)
+						local targetPosition = nil
+
 						if backRayResult and backRayResult.Instance and backRayResult.Instance.CanCollide then
-							availableBackDist = backRayResult.Distance
-						end
+							local hitDistance = backRayResult.Distance
 
-						-- الشرط القاطع: النقل للخلف مسموح فقط إذا كان المسار خلف الكرة خالياً بمسافة لا تقل عن 5 أمتار
-						if availableBackDist >= minSafeDistance then
-							local targetDist = math.min(maxTeleportOffset, availableBackDist - 2)
-							local backTargetPos = ballPos + (backDirection * targetDist)
-
-							-- التأكد من عدم وجود جدار بين اللاعب والموقع المستهدف
-							local isPathClear, safePathPos = checkPathSafety(myPos, backTargetPos, raycastParams)
-
-							if isPathClear and isPositionSafe(backTargetPos) and not isLocationBlockedOrInsideWall(backTargetPos, char) then
-								chosenTarget = backTargetPos
-							end
-						end
-
-						-- -------------------------------------------------------------
-						-- 🧠 2. إذا كان الخلف مسدوداً بـ جدار -> الهروب جانباً
-						-- -------------------------------------------------------------
-						if not chosenTarget then
-							local rightVector = hitbox.CFrame.RightVector
-							local idealRightPos = ballPos + (rightVector * sideOffset)
-							local idealLeftPos = ballPos - (rightVector * sideOffset)
-
-							local isRightClear, safeRightPos, rightDist = checkPathSafety(myPos, idealRightPos, raycastParams)
-							local isLeftClear, safeLeftPos, leftDist = checkPathSafety(myPos, idealLeftPos, raycastParams)
-
-							local rightValid = isRightClear and isPositionSafe(idealRightPos) and not isLocationBlockedOrInsideWall(idealRightPos, char)
-							local leftValid = isLeftClear and isPositionSafe(idealLeftPos) and not isLocationBlockedOrInsideWall(idealLeftPos, char)
-
-							if rightValid and leftValid then
-								chosenTarget = (math.random(1, 2) == 1) and idealRightPos or idealLeftPos
-							elseif rightValid then
-								chosenTarget = idealRightPos
-							elseif leftValid then
-								chosenTarget = idealLeftPos
+							if hitDistance < minSafeDistance then
+								return -- الجدار قريب جداً خلف الكرة
 							else
-								if rightDist and rightDist >= minSafeDistance and isPositionSafe(safeRightPos) and not isLocationBlockedOrInsideWall(safeRightPos, char) then
-									chosenTarget = safeRightPos
-								elseif leftDist and leftDist >= minSafeDistance and isPositionSafe(safeLeftPos) and not isLocationBlockedOrInsideWall(safeLeftPos, char) then
-									chosenTarget = safeLeftPos
-								end
+								local safeDist = math.max(minSafeDistance, hitDistance - wallBuffer)
+								targetPosition = ballPos - (direction * safeDist)
 							end
+						else
+							targetPosition = ballPos - (direction * maxTeleportOffset)
 						end
 
-						-- 🚀 3. التنفيذ
-						if chosenTarget then
+						-- -------------------------------------------------------------
+						-- 🧠 3. فحص إضافي: التأكد من عدم وجود جدار مخفي بين موقعك الحقيقي ونقطة النقل
+						-- -------------------------------------------------------------
+						if targetPosition then
+							local myPos = rootPart.Position
+							local pathToTarget = targetPosition - myPos
+							local pathRay = workspace:Raycast(myPos, pathToTarget, raycastParams)
+
+							if pathRay and pathRay.Instance and pathRay.Instance.CanCollide then
+								-- يوجد جدار مخفي بينك وبين المكان المستهدف -> إلغاء النقل
+								return
+							end
+
+							-- 🚀 تنفيذ النقل الآمن
 							cooldown = true
-							rootPart.CFrame = CFrame.new(chosenTarget, chosenTarget + rootPart.CFrame.LookVector)
+							rootPart.CFrame = CFrame.new(targetPosition, targetPosition + rootPart.CFrame.LookVector)
 							rootPart.AssemblyLinearVelocity = Vector3.zero
 
 							task.delay(0.35, function()
@@ -440,7 +378,7 @@ local function setupSmartAutoDodge(ball)
 	end)
 end
 
--- 3. التشغيل
+-- 3. تشغيل المراقبة
 task.spawn(function()
 	while not ballsFolder do task.wait(0.5) end
 
