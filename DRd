@@ -58,7 +58,7 @@ Mainframe.Parent=screenGui
 
 local frameTitle = Instance.new("TextLabel")
 frameTitle.Size=UDim2.new(1,0,0.1,0)
-frameTitle.Text="   Dodge or Die V6.6"
+frameTitle.Text="   Dodge or Die V6.8"
 frameTitle.TextXAlignment=Enum.TextXAlignment.Left
 frameTitle.TextColor=BrickColor.new("White")
 frameTitle.BackgroundColor3=blk_color
@@ -250,37 +250,21 @@ local function setupSmartAutoDodge(ball)
 	hitbox.Name = "BallTrajectoryZone"
 	hitbox.Anchored = true
 	hitbox.CanCollide = false
-	hitbox.CanTouch = false -- إلغاء حدث اللمس بالكامل
-	hitbox.Transparency = 1 -- غير مرئي دائماً
+	hitbox.CanTouch = false
+	hitbox.Transparency = 1
 	hitbox.Material = Enum.Material.ForceField
 	hitbox.Color = Color3.fromRGB(255, 0, 0)
 	hitbox.Parent = workspace
 
 	table.insert(activeTrajectories, hitbox)
 
-	local frontZoneLength = 15    -- طول الأنبوب أمام الكرة 15 Studs
-	local extraWidthBuffer = 6    -- أمان إضافي لعرض الأنبوب مقارنة بحجم الكرة
-	local teleportOffset = 15     -- المسافة المطلوبة للنقل خلف الكرة (15 Studs)
-	local wallBuffer = 2.5        -- مسافة أمان للابتعاد عن الجدار
+	local frontZoneLength = 15    -- طول الأنبوب أمام الكرة (15 Studs)
+	local extraWidthBuffer = 6    -- عرض الأنبوب
+	local maxTeleportOffset = 15  -- أقصى مدى للنقل خلف الكرة (15 Studs)
+	local minSafeDistance = 5     -- الحد الأدنى المسموح به لخلف الكرة (5 Studs)
+	local wallBuffer = 2.5        -- مسافة أمان قبل الجدار مباشرة
 	local cooldown = false
 	local updateConnection = nil
-
-	-- 🧠 فحص سلامة الموقع من أنابيب الكرات الأخرى
-	local function isPositionSafe(targetPos)
-		for _, zone in ipairs(activeTrajectories) do
-			if zone ~= hitbox and zone.Parent then
-				local relPos = zone.CFrame:PointToObjectSpace(targetPos)
-				local halfSize = zone.Size / 2
-
-				if math.abs(relPos.X) <= halfSize.X and 
-					math.abs(relPos.Y) <= halfSize.Y and 
-					math.abs(relPos.Z) <= halfSize.Z then
-					return false -- يتقاطع مع أنبوب كرة أخرى
-				end
-			end
-		end
-		return true
-	end
 
 	-- 2. المراقبة المستمرة وحساب الأبعاد داخل Heartbeat
 	updateConnection = runService.Heartbeat:Connect(function()
@@ -299,14 +283,12 @@ local function setupSmartAutoDodge(ball)
 			local ballDiameter = math.max(ball.Size.X, ball.Size.Y, ball.Size.Z)
 			local zoneWidth = ballDiameter + extraWidthBuffer
 
-			-- 📏 تعيين حجم الأنبوب: الطول 15 Studs أمام الكرة
+			-- تعيين حجم وموقع الأنبوب أمام الكرة
 			hitbox.Size = Vector3.new(zoneWidth, zoneWidth, frontZoneLength)
-
-			-- وضع مركز الأنبوب متقدماً بـ (7.5 Studs) أمام الكرة ليمتد بالضبط 15 Studs أمامها
 			local centerPos = ball.Position + (direction * (frontZoneLength / 2))
 			hitbox.CFrame = CFrame.lookAt(centerPos, centerPos + direction)
 
-			-- 🧠 المراقبة المستمرة لموقع اللاعب داخل الأنبوب بدون Touched
+			-- المراقبة عند دخول اللاعب في النطاق
 			if autoDodgeState and not cooldown then
 				local char = LocalPlayer.Character
 				local rootPart = char and char:FindFirstChild("HumanoidRootPart")
@@ -322,60 +304,53 @@ local function setupSmartAutoDodge(ball)
 
 					if isInsideZone then
 						local ballPos = ball.Position
-						local rayDirection = -direction * teleportOffset
 
-						-- 🎯 1. فحص الجدران خلف الكرة عبر Raycast
+						-- إعدادات الـ Raycast الاستثناءات
 						local raycastParams = RaycastParams.new()
 						raycastParams.FilterDescendantsInstances = {char, ball, hitbox}
 						raycastParams.IgnoreWater = true
 
-						local rayResult = workspace:Raycast(ballPos, rayDirection, raycastParams)
-						local targetPosition
-
-						if rayResult then
-							local hitDistance = rayResult.Distance
-
-							-- 🛑 إلغاء النقل إذا كان الجدار خلف الكرة قريب جداً (أقل من 5 Studs)
-							if hitDistance < 5 then
-								return 
-							end
-
-							local safeDistance = math.max(1, hitDistance - wallBuffer)
-							targetPosition = ballPos - (direction * safeDistance)
-						else
-							targetPosition = ballPos - (direction * teleportOffset)
-
-							local attempts = 0
-							local finalOffset = teleportOffset
-							while not isPositionSafe(targetPosition) and attempts < 5 do
-								attempts += 1
-								finalOffset += 15
-								targetPosition = ballPos - (direction * finalOffset)
-							end
+						-- -------------------------------------------------------------
+						-- 🧠 1. فحص الجدار الأمامي (أمام الكرة)
+						-- -------------------------------------------------------------
+						local frontRayResult = workspace:Raycast(ballPos, direction * 5, raycastParams)
+						if frontRayResult then
+							-- يوجد جدار أمامي قريب جداً من الكرة -> إلغاء النقل نهائياً
+							return
 						end
 
-						-- 🧱 2. الفحص الجديد والضروري: التأكد من عدم وجود جدار بين موقع اللاعب الحالي ونقطة الهدف
-						local myPosition = rootPart.Position
-						local pathVector = targetPosition - myPosition
-						local pathDistance = pathVector.Magnitude
+						-- -------------------------------------------------------------
+						-- 🧠 2. فحص المسار الخلفي الكامل (من الكرة إلى خلفها بـ 15 Studs)
+						-- -------------------------------------------------------------
+						local backRayResult = workspace:Raycast(ballPos, -direction * maxTeleportOffset, raycastParams)
+						local targetPosition = nil
 
-						if pathDistance > 0.5 then
-							local pathRayResult = workspace:Raycast(myPosition, pathVector.Unit * pathDistance, raycastParams)
+						if backRayResult then
+							local hitDistance = backRayResult.Distance
 
-							-- إذا وجد جدار بين اللاعب والهدف يمنعه من الانتقال، يتم إلغاء النقل نهائياً
-							if pathRayResult then
+							-- إذا كان الجدار خلف الكرة بأقل من 5 أمتار -> إلغاء النقل
+							if hitDistance < minSafeDistance then
 								return
+							else
+								-- الجدار موجود بين 5 و 15 متراً -> النقل للمسافة المتاحة قبل الجدار
+								local safeDist = math.max(minSafeDistance, hitDistance - wallBuffer)
+								targetPosition = ballPos - (direction * safeDist)
 							end
+						else
+							-- لا يوجد جدار -> النقل لأقصى مدى (15 Studs)
+							targetPosition = ballPos - (direction * maxTeleportOffset)
 						end
 
-						-- 🚀 تفعيل التهدئة وتنفيذ النقل اللحظي الآمن بعد استيفاء جميع شروط السلامة
-						cooldown = true
-						rootPart.CFrame = CFrame.new(targetPosition, targetPosition + rootPart.CFrame.LookVector)
-						rootPart.AssemblyLinearVelocity = Vector3.zero
+						-- 🚀 تنفيذ النقل الآمن
+						if targetPosition then
+							cooldown = true
+							rootPart.CFrame = CFrame.new(targetPosition, targetPosition + rootPart.CFrame.LookVector)
+							rootPart.AssemblyLinearVelocity = Vector3.zero
 
-						task.delay(0.35, function()
-							cooldown = false
-						end)
+							task.delay(0.35, function()
+								cooldown = false
+							end)
+						end
 					end
 				end
 			end
@@ -392,7 +367,7 @@ local function setupSmartAutoDodge(ball)
 	end)
 end
 
--- 3. تشغيل الدالة والربط
+-- 3. تشغيل المراقبة
 task.spawn(function()
 	while not ballsFolder do task.wait(0.5) end
 
