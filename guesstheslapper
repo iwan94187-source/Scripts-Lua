@@ -265,7 +265,7 @@ local autoDodgePlate = newPlate(autoDodgeBtn)
 local autoDodgeKnob=newKnob(autoDodgePlate)
 
 local turnSlapState = false
-local turnSlapBtn = newBtn(" Slap sWItch",0.45,Mainframe)
+local turnSlapBtn = newBtn(" Slap sWItch",0.4,Mainframe)
 turnSlapBtn.TextXAlignment=Enum.TextXAlignment.Left
 local turnSlapPlate = newPlate(turnSlapBtn)
 local turnSlapKnob=newKnob(turnSlapPlate)
