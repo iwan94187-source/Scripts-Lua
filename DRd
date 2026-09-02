@@ -58,7 +58,7 @@ Mainframe.Parent=screenGui
 
 local frameTitle = Instance.new("TextLabel")
 frameTitle.Size=UDim2.new(1,0,0.1,0)
-frameTitle.Text="   Dodge or Die V6.3333"
+frameTitle.Text="   Dodge or Die V6.999"
 frameTitle.TextXAlignment=Enum.TextXAlignment.Left
 frameTitle.TextColor=BrickColor.new("White")
 frameTitle.BackgroundColor3=blk_color
@@ -266,6 +266,24 @@ local function setupSmartAutoDodge(ball)
 	local cooldown = false
 	local updateConnection = nil
 
+	-- 🧠 0. فحص أمان النقطة: هل تقع داخل أنبوب كرة أخرى؟
+	local function isPositionInsideOtherZone(targetPos)
+		for _, zone in ipairs(activeTrajectories) do
+			if zone ~= hitbox and zone.Parent then
+				local relPos = zone.CFrame:PointToObjectSpace(targetPos)
+				local halfSize = zone.Size / 2
+
+				-- إذا كانت النقطة داخل أبعاد أنبوب كرة أخرى
+				if math.abs(relPos.X) <= halfSize.X and 
+					math.abs(relPos.Y) <= halfSize.Y and 
+					math.abs(relPos.Z) <= halfSize.Z then
+					return true -- النقطة خطرة (داخل مسار كرة أخرى)
+				end
+			end
+		end
+		return false -- النقطة آمنة
+	end
+
 	-- 2. المراقبة المستمرة وحساب الأبعاد داخل Heartbeat
 	updateConnection = runService.Heartbeat:Connect(function()
 		if not ball or not ball.Parent or not ball:IsDescendantOf(workspace) then
@@ -333,7 +351,7 @@ local function setupSmartAutoDodge(ball)
 							if backRayResult and backRayResult.Instance and backRayResult.Instance.CanCollide then
 								local hitDistance = backRayResult.Distance
 								if hitDistance < minSafeDistance then
-									isBlocked = true -- الجدار قريب جداً خلف الكرة
+									isBlocked = true -- الجدار قريب جداً
 								else
 									local safeDist = math.max(minSafeDistance, hitDistance - wallBuffer)
 									targetPosition = ballPos - (direction * safeDist)
@@ -351,28 +369,45 @@ local function setupSmartAutoDodge(ball)
 							local pathRay = workspace:Raycast(myPos, pathToTarget, raycastParams)
 
 							if pathRay and pathRay.Instance and pathRay.Instance.CanCollide then
-								isBlocked = true -- يوجد جدار يعترض طريق النقل
+								isBlocked = true
 							end
 						end
 
 						-- -------------------------------------------------------------
-						-- 🛡️ 4. خطة الطوارئ: النقل العكسي لوراء اللاعب (15 Studs) عند حظر المكان الأول
+						-- 🛑 4. فحص الخطر الرئيسي: هل النقطة خلف الكرة تقع داخل كرة أخرى؟
+						-- -------------------------------------------------------------
+						if targetPosition and not isBlocked then
+							if isPositionInsideOtherZone(targetPosition) then
+								isBlocked = true -- إلغاء النقل للخلف لأن الكرة الثانية متواجدة هناك!
+							end
+						end
+
+						-- -------------------------------------------------------------
+						-- 🛡️ 5. خطة الطوارئ: النقل العكسي لوراء اللاعب بشرط ألا يكون داخل كرة أخرى
 						-- -------------------------------------------------------------
 						if isBlocked or not targetPosition then
 							local playerBackDir = -rootPart.CFrame.LookVector
 							local fallbackRay = workspace:Raycast(myPos, playerBackDir * maxTeleportOffset, raycastParams)
 
+							local fallbackPos = nil
 							if fallbackRay and fallbackRay.Instance and fallbackRay.Instance.CanCollide then
 								local hitDist = fallbackRay.Distance
 								if hitDist > wallBuffer then
-									targetPosition = myPos + (playerBackDir * (hitDist - wallBuffer))
+									fallbackPos = myPos + (playerBackDir * (hitDist - wallBuffer))
 								end
 							else
-								targetPosition = myPos + (playerBackDir * maxTeleportOffset)
+								fallbackPos = myPos + (playerBackDir * maxTeleportOffset)
+							end
+
+							-- التأكد من أن موقع الطوارئ خالٍ أيضاً من مسارات الكرات
+							if fallbackPos and not isPositionInsideOtherZone(fallbackPos) then
+								targetPosition = fallbackPos
+							else
+								targetPosition = nil -- إلغاء النقل تماماً إذا كانت كل الخيارات خطرة
 							end
 						end
 
-						-- 🚀 5. تنفيذ النقل النهائي الآمن
+						-- 🚀 6. تنفيذ النقل النهائي الآمن
 						if targetPosition then
 							cooldown = true
 							rootPart.CFrame = CFrame.new(targetPosition, targetPosition + rootPart.CFrame.LookVector)
