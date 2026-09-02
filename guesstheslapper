@@ -259,7 +259,7 @@ slideFill.BackgroundColor=BrickColor.new("White")
 local lastClickTime = 0
 
 local autododgeState = false
-local autoDodgeBtn = newBtn(" Auto Dodge",0.275,Mainframe)
+local autoDodgeBtn = newBtn(" Auto Dodge",0.3,Mainframe)
 autoDodgeBtn.TextXAlignment=Enum.TextXAlignment.Left
 local autoDodgePlate = newPlate(autoDodgeBtn)
 local autoDodgeKnob=newKnob(autoDodgePlate)
