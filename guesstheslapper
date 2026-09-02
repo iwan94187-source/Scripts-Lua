@@ -114,7 +114,7 @@ end
 
 local function newBtn(name,pos,parent)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0.9, 0, 0.12, 0)
+	btn.Size = UDim2.new(0.9, 0, 0.14, 0)
 	btn.Position=UDim2.new(0.05,0,pos,0)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
@@ -126,7 +126,7 @@ end
 
 local function newLbl(name,pos,parent)
 	local btn = Instance.new("TextLabel")
-	btn.Size = UDim2.new(0.9, 0, 0.12, 0)
+	btn.Size = UDim2.new(0.9, 0, 0.14, 0)
 	btn.Position=UDim2.new(0.05,0,pos,0)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
@@ -259,22 +259,22 @@ slideFill.BackgroundColor=BrickColor.new("White")
 
 local lastClickTime = 0
 
-local autoDodgeBtn = newBtn(" Auto Dodge", 0.28, Mainframe)
+local autoDodgeBtn = newBtn(" Auto Dodge", 0.31, Mainframe)
 autoDodgeBtn.TextXAlignment = Enum.TextXAlignment.Left
 local autoDodgePlate = newPlate(autoDodgeBtn)
 local autoDodgeKnob = newKnob(autoDodgePlate)
 
-local autoGuessBtn = newBtn(" Auto Guess", 0.43, Mainframe)
+local autoGuessBtn = newBtn(" Auto Guess", 0.49, Mainframe)
 autoGuessBtn.TextXAlignment = Enum.TextXAlignment.Left
 local autoGuessPlate = newPlate(autoGuessBtn)
 local autoGuessKnob = newKnob(autoGuessPlate)
 
-local turnSlapBtn = newBtn(" Slap Switch", 0.58, Mainframe)
+local turnSlapBtn = newBtn(" Slap Switch", 0.67, Mainframe)
 turnSlapBtn.TextXAlignment = Enum.TextXAlignment.Left
 local turnSlapPlate = newPlate(turnSlapBtn)
 local turnSlapKnob = newKnob(turnSlapPlate)
 
-local autoSlapBtn = newBtn(" Auto Slap", 0.73, Mainframe)
+local autoSlapBtn = newBtn(" Auto Slap", 0.85, Mainframe)
 autoSlapBtn.TextXAlignment = Enum.TextXAlignment.Left
 local autoSlapPlate = newPlate(autoSlapBtn)
 local autoSlapKnob = newKnob(autoSlapPlate)
