@@ -297,8 +297,11 @@ local function updateSlider(input)
 	knob.Position = UDim2.new(percentage, -10, 0.5, -8)
 
 	-- تحويل النسبة لقيمة (مثلاً من 1 إلى 50 استود للمسافة)
-	local value = string.format("%.2f",percentage * 1) 
-	slapSlideBtn.Text,valueLabel = "%"..tostring(value*100),tonumber(value)
+	local percentValue = percentage * 100
+	local value = tonumber(string.format("%.2f", percentage))
+	-- تحديث النص والمتغير بشكل صحيح وآمن
+	slapSlideBtn.Text = "%" .. string.format("%.0f", percentValue) -- يعرض النسبة بدون أرقام عشرية مثل %100
+	valueLabel = value
 
 	return value
 end
