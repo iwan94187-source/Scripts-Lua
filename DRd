@@ -61,6 +61,7 @@ frameTitle.Size=UDim2.new(1,0,0.1,0)
 frameTitle.Text="   Dodge or Die V6.84884"
 frameTitle.TextXAlignment=Enum.TextXAlignment.Left
 frameTitle.TextColor=BrickColor.new("White")
+frameTitle.TextTransparency=1
 frameTitle.BackgroundColor3=blk_color
 frameTitle.TextSize=7
 frameTitle.Parent=Mainframe
@@ -246,7 +247,7 @@ dodgeAuraBtn.TextXAlignment=Enum.TextXAlignment.Left
 local dodgeAuraPlate = newPlate(dodgeAuraBtn)
 local dodgeAuraTerm = newKnob(dodgeAuraPlate)
 
-fixedTxt(upState,0.6)
+fixedTxt(upBtn,0.6)
 fixedTxt(autoDodgeBtn,0.6)
 fixedTxt(dodgeAuraBtn,0.6)
 fixedTxt(antiTrapBtn,0.6)
