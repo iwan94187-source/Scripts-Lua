@@ -404,110 +404,56 @@ task.spawn(function()
 	end)
 end)
 
-local function setupBallTrajectory(ball)
-	if not ball:IsA("BasePart") then return end
+local extraSafetyBuffer = 12 -- مسافة الأمان إضافية بالـ Studs
+local pushSpeed = 80         -- قوة الدفع الجانبي
+local upSpeed = 20           -- قوة الدفع للأعلى
 
-	-- إنشاء مجسم الخط (Laser Line)
-	local linePart = Instance.new("Part")
-	linePart.Name = "TrajectoryLine"
-	linePart.Anchored = true
-	linePart.CanCollide = false
-	linePart.Material = Enum.Material.ForceField
-	linePart.Color = Color3.fromRGB(255, 50, 50) -- لون أحمر نيون
-	linePart.Transparency = 1
-	linePart.Size = Vector3.new(0.6, 0.6, 1)
-	linePart.Parent = workspace
+local function checkAndPushMyChar(part)
+	if not part or not part:IsA("BasePart") then return end
 
-	local lineLength = 150 -- طول الخط
-	local extraSafetyBuffer = 10 -- مسافة التأمين الإضافية بالـ Studs
-	local updateConnection = nil
+	local char = LocalPlayer.Character
+	local rootPart = char and char:FindFirstChild("HumanoidRootPart")
+	local humanoid = char and char:FindFirstChildOfClass("Humanoid")
 
-	updateConnection = runService.Heartbeat:Connect(function()
-		if not ball or not ball.Parent or not ball:IsDescendantOf(workspace) then
-			if updateConnection then updateConnection:Disconnect() end
-			if linePart then linePart:Destroy() end
-			return
-		end
+	if not rootPart or not humanoid or humanoid.Health <= 0 then return end
 
-		-- 🧠 فحص شرط التفعيل الرئيسي هنا داخل Heartbeat
-		if dodgeAuraState then
-			local velocity = ball.AssemblyLinearVelocity
+	local partSize = part.Size
+	local partCFrame = part.CFrame
+	local lineForward = partCFrame.LookVector
+	local lineCenter = part.Position
+	local lineLength = partSize.Z
 
-			-- إذا كانت الكرة تتحرك
-			if velocity.Magnitude > 1 then
-				local direction = velocity.Unit
+	-- حساب نصف قطر منطقة الأمان بناءً على العرض
+	local dynamicSafetyRadius = (math.max(partSize.X, partSize.Y) / 2) + extraSafetyBuffer
 
-				-- ربط موقع واتجاه الخط بالكرة
-				local lineCenter = ball.Position + (direction * (lineLength / 2))
-				linePart.Size = Vector3.new(0.6, 0.6, lineLength)
-				linePart.CFrame = CFrame.lookAt(lineCenter, lineCenter + direction)
+	local playerPos = rootPart.Position
+	local vecToPlayer = playerPos - lineCenter
 
-				-- حساب مسافة الأمان أوتوماتيكياً
-				local ballRadius = math.max(ball.Size.X, ball.Size.Y, ball.Size.Z) / 2
-				local dynamicSafetyRadius = ballRadius + extraSafetyBuffer
+	-- حساب المسافة الطولية والعمودية بالنسبة للقطعة
+	local forwardDist = math.abs(vecToPlayer:Dot(lineForward))
+	local projection = vecToPlayer:Dot(lineForward) * lineForward
+	local perpendicularVec = vecToPlayer - projection
+	local perpendicularDist = perpendicularVec.Magnitude
 
-				local lineCFrame = linePart.CFrame
-				local lineForward = lineCFrame.LookVector
+	-- إذا دخلت شخصيتك في نطاق Plot أو Line يتم إبعادك فوراً
+	if forwardDist <= (lineLength / 2) and perpendicularDist <= dynamicSafetyRadius then
+		local pushDir = perpendicularDist > 0.1 and perpendicularVec.Unit or partCFrame.RightVector
+		rootPart.AssemblyLinearVelocity = (pushDir * pushSpeed) + Vector3.new(0, upSpeed, 0)
+	end
+end
 
-				-- فحص موقع كل لاعب بالنسبة لهالة الأمان
-				for _, plr in ipairs(Players:GetPlayers()) do
-					local char = plr.Character
-					local rootPart = char and char:FindFirstChild("HumanoidRootPart")
-					local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+-- الحلقة الرئيسية (تعمل 60 مرة بالثانية)
+runService.Heartbeat:Connect(function()
+	if not dodgeAuraState then return end
 
-					if rootPart and humanoid and humanoid.Health > 0 then
-						local playerPos = rootPart.Position
-						local vecToPlayer = playerPos - lineCenter
-
-						-- حساب المسافة الطولية والعمودية
-						local forwardDist = math.abs(vecToPlayer:Dot(lineForward))
-						local projection = vecToPlayer:Dot(lineForward) * lineForward
-						local perpendicularVec = vecToPlayer - projection
-						local perpendicularDist = perpendicularVec.Magnitude
-
-						-- إذا دخل اللاعب في نطاق هالة الأمان
-						if forwardDist <= (lineLength / 2) and perpendicularDist <= dynamicSafetyRadius then
-							local pushDir = perpendicularDist > 0.1 and perpendicularVec.Unit or lineCFrame.RightVector
-
-							local pushSpeed = 60
-							local upSpeed = 15
-
-							rootPart.AssemblyLinearVelocity = (pushDir * pushSpeed) + Vector3.new(0, upSpeed, 0)
-						end
-					end
-				end
-			else
-				-- إخفاء الخط إذا كانت الكرة متوقفة
-				linePart.Transparency = 1
+	-- فحص Workspace بالكامل عن TrajectoryLine و BallTrajectoryZone
+	for _, item in ipairs(workspace:GetDescendants()) do
+		if item:IsA("BasePart") then
+			if item.Name == "TrajectoryLine" or item.Name == "BallTrajectoryZone" then
+				checkAndPushMyChar(item)
 			end
-		else
-			-- إذا كان safeLineState مساوياً لـ false، يتم إخفاء الخط وتجاهل الدفع
-			linePart.Transparency = 1
 		end
-	end)
-
-	-- تنظيف الخط عند حذف الكرة
-	ball.Destroying:Connect(function()
-		if updateConnection then updateConnection:Disconnect() end
-		if linePart then linePart:Destroy() end
-	end)
-end
-
--- 3. تشغيل المراقبة للكرات الحالية والجديدة
-for _, item in ipairs(ballsFolder:GetChildren()) do
-	task.spawn(setupBallTrajectory, item)
-end
-
-for _, item in ipairs(practiceBalls:GetChildren()) do
-	task.spawn(setupBallTrajectory, item)
-end
-
-ballsFolder.ChildAdded:Connect(function(child)
-	task.spawn(setupBallTrajectory, child)
-end)
-
-practiceBalls.ChildAdded:Connect(function(child)
-	task.spawn(setupBallTrajectory, child)
+	end
 end)
 
 newUi(Mainframe)
