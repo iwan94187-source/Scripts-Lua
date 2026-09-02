@@ -435,8 +435,8 @@ RunService.Heartbeat:Connect(function()
 					guessEvent:FireServer(foundPlayer.Name)
 				end
 				-- التأكد من أن الزوم/الزر ظاهر ومفعل (AbsoluteSize > 0)
-				if autododgeState then
-					
+				if autododgeState and dodgeBtn and dodgeBtn.Visible and dodgeBtn.AbsoluteSize.X > 0 and (os.clock() - lastClickTime > 0.15) then
+					lastClickTime = os.clock()
 					dodgeEvent:FireServer(true)
 					--safeClickDodge(dodgeBtn)
 				end
@@ -501,6 +501,10 @@ autoSlapBtn.MouseButton1Click:Connect(function()
 		autoSlapPlate.BackgroundColor3 = blk_color
 	end
 end)
+
+local lastSendTime = 0
+
+
 
 local lastSendTime = 0
 
