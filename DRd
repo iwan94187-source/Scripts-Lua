@@ -58,8 +58,7 @@ Mainframe.Parent=screenGui
 
 local frameTitle = Instance.new("TextLabel")
 frameTitle.Size=UDim2.new(1,0,0.1,0)
-frameTitle.Text="   Dodge or Die V7.0"
-frameTitle.TextTransparency=1
+frameTitle.Text="   Dodge or Die V6.84884"
 frameTitle.TextXAlignment=Enum.TextXAlignment.Left
 frameTitle.TextColor=BrickColor.new("White")
 frameTitle.BackgroundColor3=blk_color
@@ -71,7 +70,7 @@ txt.Size=UDim2.new(0.7,0,1,0)
 txt.Position=UDim2.new(0.05,0,0,0)
 txt.TextColor=BrickColor.new("White")
 txt.BackgroundTransparency=1
-txt.Text="Dodge or Die"
+txt.Text="Dodge or Die >"
 txt.TextScaled=true
 txt.Parent=frameTitle
 
@@ -126,7 +125,7 @@ local function txtBox(parent)
 	box.Position=UDim2.new(0.1,0,0.4,0)
 	box.BackgroundColor3=blk_color
 	box.Text="Number"
-	box.TextScaled=true
+	box.TextSize=5
 	box.TextColor=BrickColor.new("White")
 	box.Parent=parent
 	return box
@@ -140,7 +139,7 @@ local function newBtn(name,pos,parent)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
 	btn.Text=name
-	btn.TextSize=2
+	btn.TextSize=7
 	btn.Parent=parent
 	return btn
 end
@@ -152,7 +151,7 @@ local function newLbl(name,pos,parent)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
 	btn.Text=name
-	btn.TextSize=2
+	btn.TextSize=7
 	btn.Parent=parent
 	return btn
 end
@@ -184,6 +183,20 @@ local function newPlate(parent)
 	frame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 	frame.Parent=parent
 	return frame
+end
+
+local function fixedTxt(parent,siz)
+	parent.TextTransparency=1
+	
+	local lbl = Instance.new("TextLabel")
+	lbl.Size=UDim2.new(siz,0,1,0)
+	lbl.Position=UDim2.new(0.05,0,0,0)
+	lbl.TextColor=BrickColor.new("White")
+	lbl.BackgroundTransparency=1
+	lbl.Text=parent.Text
+	lbl.TextScaled=true
+	lbl.Parent=parent
+	
 end
 
 local upState = false
@@ -232,6 +245,12 @@ local dodgeAuraBtn = newBtn(" Dodge Aura",0.55,Mainframe)
 dodgeAuraBtn.TextXAlignment=Enum.TextXAlignment.Left
 local dodgeAuraPlate = newPlate(dodgeAuraBtn)
 local dodgeAuraTerm = newKnob(dodgeAuraPlate)
+
+fixedTxt(upState,0.6)
+fixedTxt(autoDodgeBtn,0.6)
+fixedTxt(dodgeAuraBtn,0.6)
+fixedTxt(antiTrapBtn,0.6)
+fixedTxt(flyBtn,0.6)
 
 local function newUi(parent) 
 	local ui = Instance.new("UICorner")
@@ -750,5 +769,3 @@ antiTrapBtn.MouseButton1Click:Connect(function()
 		antiTrapPlate.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
 	end
 end)
-
-
