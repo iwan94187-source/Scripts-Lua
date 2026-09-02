@@ -58,7 +58,7 @@ Mainframe.Parent=screenGui
 
 local frameTitle = Instance.new("TextLabel")
 frameTitle.Size=UDim2.new(1,0,0.1,0)
-frameTitle.Text="   Dodge or Die V6.12"
+frameTitle.Text="   Dodge or Die V6.144"
 frameTitle.TextXAlignment=Enum.TextXAlignment.Left
 frameTitle.TextColor=BrickColor.new("White")
 frameTitle.BackgroundColor3=blk_color
@@ -283,7 +283,7 @@ local function setupSmartAutoDodge(ball)
 		return true
 	end
 
-	-- 🛡️ فحص حاسم: هل النقطة المستهدفة تقع داخل جدار أو جسم صلب؟
+	-- 🛡️ فحص: هل النقطة المستهدفة تقع داخل جدار أو جسم صلب؟
 	local function isLocationInsideWall(targetPos, char)
 		local overlapParams = OverlapParams.new()
 		overlapParams.FilterDescendantsInstances = {char, ball, hitbox}
@@ -293,23 +293,22 @@ local function setupSmartAutoDodge(ball)
 		local parts = workspace:GetPartBoundsInRadius(targetPos, 2, overlapParams)
 		for _, part in ipairs(parts) do
 			if part.CanCollide and part.Transparency < 1 then
-				return true -- النقطة داخل جدار!
+				return true
 			end
 		end
 		return false
 	end
 
-	-- 🛡️ فحص مسار الانتقال باستخدام Blockcast (صندوق بحجم الشخصية)
+	-- 🛡️ فحص مسار الانتقال باستخدام Blockcast
 	local function checkPathSafety(startPos, endPos, raycastParams)
 		local direction = endPos - startPos
 		local distance = direction.Magnitude
 		if distance == 0 then return true, endPos end
 
-		local charSize = Vector3.new(2, 5, 2) -- حجم الشخصية المعتاد
+		local charSize = Vector3.new(2, 5, 2)
 		local sweepResult = workspace:Blockcast(CFrame.new(startPos, endPos), charSize, direction.Unit * distance, raycastParams)
 
 		if sweepResult and sweepResult.Instance and sweepResult.Instance.CanCollide then
-			-- وجد جداراً في المسار -> إرجاع المسافة المتاحة قبل الجدار
 			local safeDist = math.max(0, sweepResult.Distance - wallBuffer)
 			local safePos = startPos + (direction.Unit * safeDist)
 			return false, safePos, sweepResult.Distance
@@ -361,10 +360,19 @@ local function setupSmartAutoDodge(ball)
 						raycastParams.IgnoreWater = true
 						raycastParams.RespectCanCollide = true
 
+						-- -------------------------------------------------------------
+						-- 🛑 1. الشرط القاطع: فحص إذا كان هناك جدار أمام الكرة مباشرة
+						-- -------------------------------------------------------------
+						local frontRayResult = workspace:Raycast(ballPos, direction * 5, raycastParams)
+						if frontRayResult and frontRayResult.Instance and frontRayResult.Instance.CanCollide then
+							-- جدار أمام الكرة بمسافة أقل من 5 أمتار -> إلغاء النقل تماماً
+							return
+						end
+
 						local chosenTarget = nil
 
 						-- -------------------------------------------------------------
-						-- 🧠 1. تجربة النقل للخلف (من موقع اللاعب إلى خلف الكرة)
+						-- 🧠 2. تجربة النقل للخلف (يجب ألا يقل عن 5 أمتار خلف الكرة)
 						-- -------------------------------------------------------------
 						local idealBackPos = ballPos - (direction * maxTeleportOffset)
 						local isBackClear, safeBackPos, backDist = checkPathSafety(myPos, idealBackPos, raycastParams)
@@ -378,7 +386,7 @@ local function setupSmartAutoDodge(ball)
 						end
 
 						-- -------------------------------------------------------------
-						-- 🧠 2. إذا فشل الخلف -> تجربة اليمين واليسار
+						-- 🧠 3. إذا فشل الخلف -> تجربة اليمين واليسار
 						-- -------------------------------------------------------------
 						if not chosenTarget then
 							local rightVector = hitbox.CFrame.RightVector
@@ -398,7 +406,6 @@ local function setupSmartAutoDodge(ball)
 							elseif leftValid then
 								chosenTarget = idealLeftPos
 							else
-								-- تجربة المساحات المتبقية قبل الجدران الجانبية بشرط ألا تقل عن 5 أمتار
 								if rightDist and rightDist >= minSafeDistance and isPositionSafe(safeRightPos) and not isLocationInsideWall(safeRightPos, char) then
 									chosenTarget = safeRightPos
 								elseif leftDist and leftDist >= minSafeDistance and isPositionSafe(safeLeftPos) and not isLocationInsideWall(safeLeftPos, char) then
@@ -407,7 +414,7 @@ local function setupSmartAutoDodge(ball)
 							end
 						end
 
-						-- 🚀 3. التنفيذ النهائي المضمون
+						-- 🚀 4. التنفيذ النهائي
 						if chosenTarget then
 							cooldown = true
 							rootPart.CFrame = CFrame.new(chosenTarget, chosenTarget + rootPart.CFrame.LookVector)
