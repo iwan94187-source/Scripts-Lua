@@ -58,7 +58,7 @@ Mainframe.Parent=screenGui
 
 local frameTitle = Instance.new("TextLabel")
 frameTitle.Size=UDim2.new(1,0,0.1,0)
-frameTitle.Text="   Dodge or Die V6.5"
+frameTitle.Text="   Dodge or Die V6.0"
 frameTitle.TextXAlignment=Enum.TextXAlignment.Left
 frameTitle.TextColor=BrickColor.new("White")
 frameTitle.BackgroundColor3=blk_color
@@ -261,7 +261,7 @@ local function setupSmartAutoDodge(ball)
 	local frontZoneLength = 15    -- طول الأنبوب أمام الكرة 15 Studs
 	local extraWidthBuffer = 6    -- أمان إضافي لعرض الأنبوب مقارنة بحجم الكرة
 	local teleportOffset = 15     -- المسافة المطلوبة للنقل خلف الكرة (15 Studs)
-	local wallBuffer = 2.5        -- مسافة أمان للابتعاد عن الجدار حتى لا تلتصق به تماماً أو تسقط
+	local wallBuffer = 2.5        -- مسافة أمان للابتعاد عن الجدار
 	local cooldown = false
 	local updateConnection = nil
 
@@ -313,11 +313,9 @@ local function setupSmartAutoDodge(ball)
 				local humanoid = char and char:FindFirstChildOfClass("Humanoid")
 
 				if rootPart and humanoid and humanoid.Health > 0 then
-					-- تحويل موقع اللاعب إلى المساحة المحلية للأنبوب (Object Space)
 					local relPos = hitbox.CFrame:PointToObjectSpace(rootPart.Position)
 					local halfSize = hitbox.Size / 2
 
-					-- فحص ما إذا كان اللاعب داخل أبعاد الأنبوب الـ 15 Studs حالياً
 					local isInsideZone = math.abs(relPos.X) <= halfSize.X and 
 						math.abs(relPos.Y) <= halfSize.Y and 
 						math.abs(relPos.Z) <= halfSize.Z
@@ -326,7 +324,7 @@ local function setupSmartAutoDodge(ball)
 						local ballPos = ball.Position
 						local rayDirection = -direction * teleportOffset
 
-						-- 🎯 إعدادات فحص الجدران عبر Raycast
+						-- 🎯 1. فحص الجدران خلف الكرة عبر Raycast
 						local raycastParams = RaycastParams.new()
 						raycastParams.FilterDescendantsInstances = {char, ball, hitbox}
 						raycastParams.IgnoreWater = true
@@ -337,19 +335,16 @@ local function setupSmartAutoDodge(ball)
 						if rayResult then
 							local hitDistance = rayResult.Distance
 
-							-- 🛑 إلغاء النقل نهائياً إذا كان الجدار خلف الكرة بمسافة تقل عن 5 Studs
+							-- 🛑 إلغاء النقل إذا كان الجدار خلف الكرة قريب جداً (أقل من 5 Studs)
 							if hitDistance < 5 then
 								return 
 							end
 
-							-- 🧱 إذا وجد جدار بمسافة آمنة: الوقوف أمامه مباشرة مع مسافة أمان
 							local safeDistance = math.max(1, hitDistance - wallBuffer)
 							targetPosition = ballPos - (direction * safeDistance)
 						else
-							-- 🟢 إذا لم يكن هناك جدار: الانتقال العادي بمسافة 15 Studs
 							targetPosition = ballPos - (direction * teleportOffset)
 
-							-- إذا كان الموقع يتقاطع مع أنبوب كرة أخرى، نبتعد أبعد
 							local attempts = 0
 							local finalOffset = teleportOffset
 							while not isPositionSafe(targetPosition) and attempts < 5 do
@@ -359,7 +354,21 @@ local function setupSmartAutoDodge(ball)
 							end
 						end
 
-						-- 🚀 تفعيل التهدئة وتنفيذ النقل اللحظي الآمن
+						-- 🧱 2. الفحص الجديد والضروري: التأكد من عدم وجود جدار بين موقع اللاعب الحالي ونقطة الهدف
+						local myPosition = rootPart.Position
+						local pathVector = targetPosition - myPosition
+						local pathDistance = pathVector.Magnitude
+
+						if pathDistance > 0.5 then
+							local pathRayResult = workspace:Raycast(myPosition, pathVector.Unit * pathDistance, raycastParams)
+
+							-- إذا وجد جدار بين اللاعب والهدف يمنعه من الانتقال، يتم إلغاء النقل نهائياً
+							if pathRayResult then
+								return
+							end
+						end
+
+						-- 🚀 تفعيل التهدئة وتنفيذ النقل اللحظي الآمن بعد استيفاء جميع شروط السلامة
 						cooldown = true
 						rootPart.CFrame = CFrame.new(targetPosition, targetPosition + rootPart.CFrame.LookVector)
 						rootPart.AssemblyLinearVelocity = Vector3.zero
@@ -449,7 +458,7 @@ runService.Heartbeat:Connect(function()
 	-- فحص Workspace بالكامل عن TrajectoryLine و BallTrajectoryZone
 	for _, item in ipairs(workspace:GetDescendants()) do
 		if item:IsA("BasePart") then
-			if item.Name == "TrajectoryLine" or item.Name == "BallTrajectoryZone" then
+			if item.Name == "BallTrajectoryZone" then
 				checkAndPushMyChar(item)
 			end
 		end
