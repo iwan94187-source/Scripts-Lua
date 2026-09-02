@@ -228,7 +228,7 @@ local function safeClickDodge(targetButton)
 end
 
 
-local slapSlideBtn = newLbl(" %100",0.15,Mainframe)
+local slapSlideBtn = newLbl(" %100",0.10,Mainframe)
 slapSlideBtn.TextXAlignment="Left"
 
 local sliderBack = Instance.new("Frame", slapSlideBtn)
@@ -258,29 +258,25 @@ slideFill.BackgroundColor=BrickColor.new("White")
 
 local lastClickTime = 0
 
-local autododgeState = false
-local autoDodgeBtn = newBtn(" Auto Dodge",0.325,Mainframe)
-autoDodgeBtn.TextXAlignment=Enum.TextXAlignment.Left
+local autoDodgeBtn  = newBtn(" Auto Dodge",  0.25, Mainframe)
+autoDodgeBtn.TextXAlignment = Enum.TextXAlignment.Left
 local autoDodgePlate = newPlate(autoDodgeBtn)
-local autoDodgeKnob=newKnob(autoDodgePlate)
+local autoDodgeKnob  = newKnob(autoDodgePlate)
 
-local turnSlapState = false
-local turnSlapBtn = newBtn(" Slap sWItch",0.625,Mainframe)
-turnSlapBtn.TextXAlignment=Enum.TextXAlignment.Left
-local turnSlapPlate = newPlate(turnSlapBtn)
-local turnSlapKnob=newKnob(turnSlapPlate)
-
-local autoGuessState = false
-local autoGuessBtn = newBtn(" Auto Guess",0.475,Mainframe)
-autoGuessBtn.TextXAlignment=Enum.TextXAlignment.Left
+local autoGuessBtn  = newBtn(" Auto Guess",  0.40, Mainframe)
+autoGuessBtn.TextXAlignment = Enum.TextXAlignment.Left
 local autoGuessPlate = newPlate(autoGuessBtn)
-local autoGuessKnob=newKnob(autoGuessPlate)
+local autoGuessKnob  = newKnob(autoGuessPlate)
 
-local autoSlapState = false
-local autoSlapBtn = newBtn(" Auto Slap",0.775,Mainframe)
-autoSlapBtn.TextXAlignment=Enum.TextXAlignment.Left
+local turnSlapBtn   = newBtn(" Slap Switch", 0.55, Mainframe)
+turnSlapBtn.TextXAlignment = Enum.TextXAlignment.Left
+local turnSlapPlate = newPlate(turnSlapBtn)
+local turnSlapKnob  = newKnob(turnSlapPlate)
+
+local autoSlapBtn    = newBtn(" Auto Slap",   0.70, Mainframe)
+autoSlapBtn.TextXAlignment = Enum.TextXAlignment.Left
 local autoSlapPlate = newPlate(autoSlapBtn)
-local autoSlapKnob=newKnob(autoSlapPlate)
+local autoSlapKnob  = newKnob(autoSlapPlate)
 
 local dragging = false
 
@@ -508,4 +504,3 @@ end)
 local lastSendTime = 0
 
 
- 
