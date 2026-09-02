@@ -227,7 +227,7 @@ local function safeClickDodge(targetButton)
 end
 
 
-local slapSlideBtn = newLbl(" %",0.1,Mainframe)
+local slapSlideBtn = newLbl(" %",0.15,Mainframe)
 slapSlideBtn.TextXAlignment="Left"
 
 local sliderBack = Instance.new("Frame", slapSlideBtn)
@@ -250,7 +250,7 @@ valueLabel.Size = UDim2.new(1, 0, 0, 30)
 valueLabel.Position = UDim2.new(0, 30, 0, -3)
 valueLabel.BackgroundTransparency = 1
 valueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-valueLabel.TextSize = 10
+valueLabel.TextSize = 2
 valueLabel.Text = "0"
 
 local slideFill = Instance.new("TextLabel", sliderBack)
@@ -265,25 +265,25 @@ slideFill.BackgroundColor=BrickColor.new("White")
 local lastClickTime = 0
 
 local autododgeState = false
-local autoDodgeBtn = newBtn(" Auto Dodge",0.3,Mainframe)
+local autoDodgeBtn = newBtn(" Auto Dodge",0.35,Mainframe)
 autoDodgeBtn.TextXAlignment=Enum.TextXAlignment.Left
 local autoDodgePlate = newPlate(autoDodgeBtn)
 local autoDodgeKnob=newKnob(autoDodgePlate)
 
 local turnSlapState = false
-local turnSlapBtn = newBtn(" Slap sWItch",0.45,Mainframe)
+local turnSlapBtn = newBtn(" Slap sWItch",0.5,Mainframe)
 turnSlapBtn.TextXAlignment=Enum.TextXAlignment.Left
 local turnSlapPlate = newPlate(turnSlapBtn)
 local turnSlapKnob=newKnob(turnSlapPlate)
 
 local autoGuessState = false
-local autoGuessBtn = newBtn(" Auto Guess",6,Mainframe)
+local autoGuessBtn = newBtn(" Auto Guess",0.65,Mainframe)
 autoGuessBtn.TextXAlignment=Enum.TextXAlignment.Left
 local autoGuessPlate = newPlate(autoGuessBtn)
 local autoGuessKnob=newKnob(autoGuessPlate)
 
 local autoSlapState = false
-local autoSlapBtn = newBtn(" Auto Slap",0.75,Mainframe)
+local autoSlapBtn = newBtn(" Auto Slap",0.8,Mainframe)
 autoSlapBtn.TextXAlignment=Enum.TextXAlignment.Left
 local autoSlapPlate = newPlate(autoSlapBtn)
 local autoSlapKnob=newKnob(autoSlapPlate)
@@ -303,7 +303,7 @@ local function updateSlider(input)
 	knob.Position = UDim2.new(percentage, -10, 0.5, -8)
 
 	-- تحويل النسبة لقيمة (مثلاً من 1 إلى 50 استود للمسافة)
-	local value = math.floor(percentage * 1) 
+	local value = string.format("%.2f",percentage * 1) 
 	valueLabel.Text = tostring(value)
 
 	return value
@@ -349,6 +349,12 @@ newUi(autoGuessKnob)
 newUi(autoSlapBtn)
 newUi(autoSlapPlate)
 newUi(autoSlapKnob)
+
+newUi(slapSlideBtn)
+
+newUi(knob)
+newUi(sliderBack)
+newUi(slideFill)
 
 newCustomUi(frameTitle,10,10,10,10)
 newCustomUi(destroyBtn,10,10,10,10)
@@ -417,7 +423,7 @@ RunService.Heartbeat:Connect(function()
 							if isPartInsidePart(otherRoot, slaptp) then
 								if useSlap then
 									useSlap=false
-									sendSlapEvent:FireServer(valueLabel.Text/10)
+									sendSlapEvent:FireServer(tonumber(valueLabel.Text))
 								end
 									
 								
