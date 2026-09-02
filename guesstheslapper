@@ -298,7 +298,7 @@ local function updateSlider(input)
 
 	-- تحويل النسبة لقيمة (مثلاً من 1 إلى 50 استود للمسافة)
 	local value = string.format("%.2f",percentage * 1) 
-	slapSlideBtn.Text = "%"..tostring(value)
+	slapSlideBtn.Text,valueLabel = "%"..tostring(value),tonumber(value)
 
 	return value
 end
@@ -417,7 +417,7 @@ RunService.Heartbeat:Connect(function()
 							if isPartInsidePart(otherRoot, slaptp) then
 								if useSlap then
 									useSlap=false
-									sendSlapEvent:FireServer(tonumber(valueLabel.Text))
+									sendSlapEvent:FireServer(tonumber(valueLabel))
 								end
 									
 								
