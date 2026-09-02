@@ -59,6 +59,7 @@ Mainframe.Parent=screenGui
 local frameTitle = Instance.new("TextLabel")
 frameTitle.Size=UDim2.new(1,0,0.1,0)
 frameTitle.Text="   Dodge or Die V7.0"
+frameTitle.TextTransparency=1
 frameTitle.TextXAlignment=Enum.TextXAlignment.Left
 frameTitle.TextColor=BrickColor.new("White")
 frameTitle.BackgroundColor3=blk_color
@@ -70,7 +71,7 @@ txt.Size=UDim2.new(0.7,0,1,0)
 txt.Position=UDim2.new(0.05,0,0,0)
 txt.TextColor=BrickColor.new("White")
 txt.BackgroundTransparency=1
-txt.Text="Dodge or Die v7.0"
+txt.Text="Dodge or Die"
 txt.TextScaled=true
 txt.Parent=frameTitle
 
