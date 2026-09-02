@@ -125,7 +125,7 @@ local function txtBox(parent)
 	box.Position=UDim2.new(0.1,0,0.4,0)
 	box.BackgroundColor3=blk_color
 	box.Text="Number"
-	box.TextSize=5
+	box.TextScaled=true
 	box.TextColor=BrickColor.new("White")
 	box.Parent=parent
 	return box
@@ -139,7 +139,7 @@ local function newBtn(name,pos,parent)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
 	btn.Text=name
-	btn.TextSize=7
+	btn.TextSize=2
 	btn.Parent=parent
 	return btn
 end
@@ -151,7 +151,7 @@ local function newLbl(name,pos,parent)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
 	btn.Text=name
-	btn.TextSize=7
+	btn.TextSize=2
 	btn.Parent=parent
 	return btn
 end
