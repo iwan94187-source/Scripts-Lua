@@ -265,13 +265,13 @@ local autoDodgePlate = newPlate(autoDodgeBtn)
 local autoDodgeKnob=newKnob(autoDodgePlate)
 
 local turnSlapState = false
-local turnSlapBtn = newBtn(" Slap sWItch",0.45,Mainframe)
+local turnSlapBtn = newBtn(" Slap sWItch",0.6,Mainframe)
 turnSlapBtn.TextXAlignment=Enum.TextXAlignment.Left
 local turnSlapPlate = newPlate(turnSlapBtn)
 local turnSlapKnob=newKnob(turnSlapPlate)
 
 local autoGuessState = false
-local autoGuessBtn = newBtn(" Auto Guess",0.6,Mainframe)
+local autoGuessBtn = newBtn(" Auto Guess",0.45,Mainframe)
 autoGuessBtn.TextXAlignment=Enum.TextXAlignment.Left
 local autoGuessPlate = newPlate(autoGuessBtn)
 local autoGuessKnob=newKnob(autoGuessPlate)
