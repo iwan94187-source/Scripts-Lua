@@ -58,7 +58,7 @@ Mainframe.Parent=screenGui
 
 local frameTitle = Instance.new("TextLabel")
 frameTitle.Size=UDim2.new(1,0,0.1,0)
-frameTitle.Text="   Dodge or Die V6.8"
+frameTitle.Text="   Dodge or Die V6.1"
 frameTitle.TextXAlignment=Enum.TextXAlignment.Left
 frameTitle.TextColor=BrickColor.new("White")
 frameTitle.BackgroundColor3=blk_color
@@ -308,41 +308,52 @@ local function setupSmartAutoDodge(ball)
 						-- إعدادات الـ Raycast الاستثناءات
 						local raycastParams = RaycastParams.new()
 						raycastParams.FilterDescendantsInstances = {char, ball, hitbox}
+						raycastParams.FilterType = Enum.RaycastFilterType.Exclude
 						raycastParams.IgnoreWater = true
+						raycastParams.RespectCanCollide = true -- 👈 تجبر السكربت على اكتشاف الجدران المخفية (Transparency = 1)
 
 						-- -------------------------------------------------------------
 						-- 🧠 1. فحص الجدار الأمامي (أمام الكرة)
 						-- -------------------------------------------------------------
 						local frontRayResult = workspace:Raycast(ballPos, direction * 5, raycastParams)
-						if frontRayResult then
-							-- يوجد جدار أمامي قريب جداً من الكرة -> إلغاء النقل نهائياً
+						if frontRayResult and frontRayResult.Instance and frontRayResult.Instance.CanCollide then
+							-- يوجد جدار أمامي (حتى لو شفاف) -> إلغاء النقل
 							return
 						end
 
 						-- -------------------------------------------------------------
-						-- 🧠 2. فحص المسار الخلفي الكامل (من الكرة إلى خلفها بـ 15 Studs)
+						-- 🧠 2. فحص المسار الخلفي لحساب نقطة النقل
 						-- -------------------------------------------------------------
 						local backRayResult = workspace:Raycast(ballPos, -direction * maxTeleportOffset, raycastParams)
 						local targetPosition = nil
 
-						if backRayResult then
+						if backRayResult and backRayResult.Instance and backRayResult.Instance.CanCollide then
 							local hitDistance = backRayResult.Distance
 
-							-- إذا كان الجدار خلف الكرة بأقل من 5 أمتار -> إلغاء النقل
 							if hitDistance < minSafeDistance then
-								return
+								return -- الجدار قريب جداً خلف الكرة
 							else
-								-- الجدار موجود بين 5 و 15 متراً -> النقل للمسافة المتاحة قبل الجدار
 								local safeDist = math.max(minSafeDistance, hitDistance - wallBuffer)
 								targetPosition = ballPos - (direction * safeDist)
 							end
 						else
-							-- لا يوجد جدار -> النقل لأقصى مدى (15 Studs)
 							targetPosition = ballPos - (direction * maxTeleportOffset)
 						end
 
-						-- 🚀 تنفيذ النقل الآمن
+						-- -------------------------------------------------------------
+						-- 🧠 3. فحص إضافي: التأكد من عدم وجود جدار مخفي بين موقعك الحقيقي ونقطة النقل
+						-- -------------------------------------------------------------
 						if targetPosition then
+							local myPos = rootPart.Position
+							local pathToTarget = targetPosition - myPos
+							local pathRay = workspace:Raycast(myPos, pathToTarget, raycastParams)
+
+							if pathRay and pathRay.Instance and pathRay.Instance.CanCollide then
+								-- يوجد جدار مخفي بينك وبين المكان المستهدف -> إلغاء النقل
+								return
+							end
+
+							-- 🚀 تنفيذ النقل الآمن
 							cooldown = true
 							rootPart.CFrame = CFrame.new(targetPosition, targetPosition + rootPart.CFrame.LookVector)
 							rootPart.AssemblyLinearVelocity = Vector3.zero
