@@ -187,7 +187,7 @@ end
 
 local function fixedTxt(parent,siz)
 	parent.TextTransparency=1
-	
+
 	local lbl = Instance.new("TextLabel")
 	lbl.Size=UDim2.new(siz,0,1,0)
 	lbl.Position=UDim2.new(0.05,0,0,0)
@@ -196,7 +196,7 @@ local function fixedTxt(parent,siz)
 	lbl.Text=parent.Text
 	lbl.TextScaled=true
 	lbl.Parent=parent
-	
+
 end
 
 local upState = false
@@ -769,3 +769,5 @@ antiTrapBtn.MouseButton1Click:Connect(function()
 		antiTrapPlate.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
 	end
 end)
+
+
