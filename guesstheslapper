@@ -232,7 +232,7 @@ slapSlideBtn.TextXAlignment="Left"
 
 local sliderBack = Instance.new("Frame", slapSlideBtn)
 sliderBack.Size = UDim2.new(0, 140, 0, 5) -- الخط الممتد
-sliderBack.Position = UDim2.new(0.75, -100, 0.7, 0)
+sliderBack.Position = UDim2.new(0.75, -100, 0.5, 0)
 sliderBack.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 sliderBack.BorderSizePixel = 0
 
@@ -245,13 +245,7 @@ knob.Text = ""
 knob.ZIndex=2
 
 -- 3. نص لعرض القيمة الحالية
-local valueLabel = Instance.new("TextLabel", slapSlideBtn)
-valueLabel.Size = UDim2.new(1, 0, 0, 30)
-valueLabel.Position = UDim2.new(0, 30, 0, -3)
-valueLabel.BackgroundTransparency = 1
-valueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-valueLabel.TextSize = 2
-valueLabel.Text = "0"
+local valueLabel = 0
 
 local slideFill = Instance.new("TextLabel", sliderBack)
 slideFill.Size=UDim2.new(1,0,1,0)
@@ -304,7 +298,7 @@ local function updateSlider(input)
 
 	-- تحويل النسبة لقيمة (مثلاً من 1 إلى 50 استود للمسافة)
 	local value = string.format("%.2f",percentage * 1) 
-	valueLabel.Text = tostring(value)
+	slapSlideBtn.Text = "%"..tostring(value)
 
 	return value
 end
