@@ -31,7 +31,7 @@ local useSlap = true
 local vb = nil 
 
 local Mainframe = Instance.new("Frame")
-Mainframe.Size=UDim2.new(0,250,0,200)
+Mainframe.Size=UDim2.new(0,250,0,225)
 Mainframe.Position=UDim2.new(0.125,0,0,0)
 Mainframe.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 Mainframe.Visible=false
@@ -113,7 +113,7 @@ end
 
 local function newBtn(name,pos,parent)
 	local btn = Instance.new("TextButton")
-	btn.Size=UDim2.new(0.9,0,0.15,0)
+	btn.Size=UDim2.new(0.9,0,0.13,0)
 	btn.Position=UDim2.new(0.05,0,pos,0)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
@@ -125,7 +125,7 @@ end
 
 local function newLbl(name,pos,parent)
 	local btn = Instance.new("TextLabel")
-	btn.Size=UDim2.new(0.9,0,0.15,0)
+	btn.Size=UDim2.new(0.9,0,0.13,0)
 	btn.Position=UDim2.new(0.05,0,pos,0)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
@@ -259,7 +259,7 @@ slideFill.BackgroundColor=BrickColor.new("White")
 local lastClickTime = 0
 
 local autododgeState = false
-local autoDodgeBtn = newBtn(" Auto Dodge",0.325,Mainframe)
+local autoDodgeBtn = newBtn(" Auto Dodge",0.35,Mainframe)
 autoDodgeBtn.TextXAlignment=Enum.TextXAlignment.Left
 local autoDodgePlate = newPlate(autoDodgeBtn)
 local autoDodgeKnob=newKnob(autoDodgePlate)
@@ -277,7 +277,7 @@ local autoGuessPlate = newPlate(autoGuessBtn)
 local autoGuessKnob=newKnob(autoGuessPlate)
 
 local autoSlapState = false
-local autoSlapBtn = newBtn(" Auto Slap",0.825,Mainframe)
+local autoSlapBtn = newBtn(" Auto Slap",0.85,Mainframe)
 autoSlapBtn.TextXAlignment=Enum.TextXAlignment.Left
 local autoSlapPlate = newPlate(autoSlapBtn)
 local autoSlapKnob=newKnob(autoSlapPlate)
