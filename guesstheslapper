@@ -240,7 +240,7 @@ sliderBack.BorderSizePixel = 0
 -- 2. الزر القابل للحركة (Slider Knob)
 local knob = Instance.new("TextButton", sliderBack)
 knob.Size = UDim2.new(0, 15, 0, 15) -- الدائرة/الزر
-knob.Position = UDim2.new(0, -10, 0.5, -8) -- يبدأ من اليسار
+knob.Position = UDim2.new(1, -10, 0.5, -8) -- يبدأ من اليسار
 knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 knob.Text = ""
 knob.ZIndex=2
@@ -259,25 +259,25 @@ slideFill.BackgroundColor=BrickColor.new("White")
 local lastClickTime = 0
 
 local autododgeState = false
-local autoDodgeBtn = newBtn(" Auto Dodge",0.35,Mainframe)
+local autoDodgeBtn = newBtn(" Auto Dodge",0.325,Mainframe)
 autoDodgeBtn.TextXAlignment=Enum.TextXAlignment.Left
 local autoDodgePlate = newPlate(autoDodgeBtn)
 local autoDodgeKnob=newKnob(autoDodgePlate)
 
 local turnSlapState = false
-local turnSlapBtn = newBtn(" Slap sWItch",0.5,Mainframe)
+local turnSlapBtn = newBtn(" Slap sWItch",0.475,Mainframe)
 turnSlapBtn.TextXAlignment=Enum.TextXAlignment.Left
 local turnSlapPlate = newPlate(turnSlapBtn)
 local turnSlapKnob=newKnob(turnSlapPlate)
 
 local autoGuessState = false
-local autoGuessBtn = newBtn(" Auto Guess",0.65,Mainframe)
+local autoGuessBtn = newBtn(" Auto Guess",0.625,Mainframe)
 autoGuessBtn.TextXAlignment=Enum.TextXAlignment.Left
 local autoGuessPlate = newPlate(autoGuessBtn)
 local autoGuessKnob=newKnob(autoGuessPlate)
 
 local autoSlapState = false
-local autoSlapBtn = newBtn(" Auto Slap",0.8,Mainframe)
+local autoSlapBtn = newBtn(" Auto Slap",0.775,Mainframe)
 autoSlapBtn.TextXAlignment=Enum.TextXAlignment.Left
 local autoSlapPlate = newPlate(autoSlapBtn)
 local autoSlapKnob=newKnob(autoSlapPlate)
@@ -501,10 +501,6 @@ autoSlapBtn.MouseButton1Click:Connect(function()
 		autoSlapPlate.BackgroundColor3 = blk_color
 	end
 end)
-
-local lastSendTime = 0
-
-
 
 local lastSendTime = 0
 
