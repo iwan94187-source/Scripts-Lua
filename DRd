@@ -126,7 +126,7 @@ local function txtBox(parent)
 	box.Position=UDim2.new(0.1,0,0.4,0)
 	box.BackgroundColor3=blk_color
 	box.Text="Number"
-	box.TextSize=5
+	box.TextScaled=true
 	box.TextColor=BrickColor.new("White")
 	box.Parent=parent
 	return box
@@ -197,6 +197,7 @@ local function fixedTxt(parent,siz)
 	lbl.Text=parent.Text
 	lbl.TextScaled=true
 	lbl.Parent=parent
+    return lbl
 
 end
 
@@ -252,6 +253,11 @@ fixedTxt(autoDodgeBtn,0.6)
 fixedTxt(dodgeAuraBtn,0.6)
 fixedTxt(antiTrapBtn,0.6)
 fixedTxt(flyBtn,0.6)
+
+local fixspeedslide = fixedTxt(speedSlideBtn,0.6)
+fixspeedslide.Size=UDin2.new(0.6,0,0.2,0)
+fixspeedslide.Position=UDin2.new(0.3,0,0,0)
+
 
 local function newUi(parent) 
 	local ui = Instance.new("UICorner")
