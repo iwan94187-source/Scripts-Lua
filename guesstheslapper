@@ -228,7 +228,7 @@ local function safeClickDodge(targetButton)
 end
 
 
-local slapSlideBtn = newLbl(" %",0.15,Mainframe)
+local slapSlideBtn = newLbl(" %100",0.15,Mainframe)
 slapSlideBtn.TextXAlignment="Left"
 
 local sliderBack = Instance.new("Frame", slapSlideBtn)
@@ -245,7 +245,7 @@ knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 knob.Text = ""
 knob.ZIndex=2
 
-local valueLabel = 0
+local valueLabel = 1
 
 local slideFill = Instance.new("TextLabel", sliderBack)
 slideFill.Size=UDim2.new(1,0,1,0)
@@ -298,7 +298,7 @@ local function updateSlider(input)
 
 	-- تحويل النسبة لقيمة (مثلاً من 1 إلى 50 استود للمسافة)
 	local value = string.format("%.2f",percentage * 1) 
-	slapSlideBtn.Text,valueLabel = "%"..tostring(value),tonumber(value)
+	slapSlideBtn.Text,valueLabel = "%"..tostring(value*100),tonumber(value)
 
 	return value
 end
