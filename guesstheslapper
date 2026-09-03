@@ -71,7 +71,7 @@ txt.Size=UDim2.new(0.7,0,1,0)
 txt.Position=UDim2.new(0.05,0,0,0)
 txt.TextColor=BrickColor.new("White")
 txt.BackgroundTransparency=1
-txt.Text="Guess the Slapper ."
+txt.Text="Guess the Slapper88"
 txt.TextScaled=true
 txt.Parent=frameTitle
 
