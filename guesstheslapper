@@ -26,9 +26,27 @@ local screenGui = Instance.new("ScreenGui", PlayerGui)
 screenGui.Name = "SkullGui"
 screenGui.ResetOnSpawn = false
 
+
 local blk_color = Color3.fromRGB(24,24,24)
 local useSlap = true
 local vb = nil 
+
+local helperTextLabel = Instance.new("TextLabel")
+helperTextLabel.Size=UDim2.new(0,200,0,50)
+helperTextLabel.Transparency=0.5
+helperTextLabel.BackgroundColor3=blk_color
+helperTextLabel.TextColor=BrickColor.new("White")
+helperTextLabel.TextScaled=true
+helperTextLabel.Parent=screenGui
+
+local function printlog(txt,set)
+	if set then 
+		helperTextLabel.TextColor=BrickColor.new("Really red")
+	else
+		helperTextLabel.TextColor=BrickColor.new("Lime green")
+	end
+	helperTextLabel.Text=txt
+end
 
 local Mainframe = Instance.new("Frame")
 Mainframe.Size=UDim2.new(0,250,0,225)
@@ -386,7 +404,7 @@ RunService.Heartbeat:Connect(function()
 	end
 
 	if currentMyArena then
-		
+
 		local slaptp = currentMyArena:FindFirstChild("slaptp")
 		local chair = currentMyArena:FindFirstChild("Chair")
 		local seat = chair and chair:FindFirstChild("Seat")
@@ -397,7 +415,7 @@ RunService.Heartbeat:Connect(function()
 				useSlap=true
 			end
 		end
-		
+
 		if slaptp and slaptp:IsA("BasePart") then
 			local foundPlayer = nil
 
@@ -419,18 +437,18 @@ RunService.Heartbeat:Connect(function()
 									useSlap=false
 									sendSlapEvent:FireServer(tonumber(valueLabel))
 								end
-									
-								
+
+
 							end
-							
+
 						end
 					end
-					
+
 				end
 			end
 
 			if foundPlayer then
-				
+
 				if autoGuessState and suspk and suspk.Visible then 
 					guessEvent:FireServer(foundPlayer.Name)
 				end
@@ -441,12 +459,16 @@ RunService.Heartbeat:Connect(function()
 					--safeClickDodge(dodgeBtn)
 				end
 			else
+				printlog("No player yet",false)
 				if turnSlapState then
 					if slapbut.Visible then 
+						printlog("Susseccful btn trigged",false)
 						slapTurn:FireServer()
 					else
+						printlog("Slapbut not visible",true)
 					end
 				else
+					printlog("Btn not activate yet",true)
 				end
 			end
 
