@@ -196,7 +196,9 @@ newCustomUi(frameTitle,10,10,10,10)
 newCustomUi(destroyBtn,10,10,10,10)
 newCustomUi(hideBtn,10,10,10,10)
 
+
 RunService.Heartbeat:Connect(function()
+	printlog("22323",false)
 	local myChar = LocalPlayer.Character
 	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then 
 		return 
