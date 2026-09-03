@@ -201,7 +201,7 @@ newCustomUi(hideBtn,10,10,10,10)
 
 local BeBtn = nil
 
-printlog("8874",false)
+printlog("9898",false)
 RunService.Heartbeat:Connect(function()
 	local myChar = LocalPlayer.Character
 	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then 
@@ -286,7 +286,7 @@ RunService.Heartbeat:Connect(function()
 			end
 			
 			if targetslot then 
-				printlog(targetslot.Name.." Chair!", false)
+				--printlog(targetslot.Name.." Chair!", false)
 				if timerModel then 
 					local base = timerModel:FindFirstChild(targetslot.Name)
 					if base then 
