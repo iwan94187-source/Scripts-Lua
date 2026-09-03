@@ -1,0 +1,255 @@
+local Players = game:GetService("Players")
+local camera = workspace.CurrentCamera
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local RunService = game:GetService("RunService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local gameFolder = workspace:WaitForChild("GameStations"):WaitForChild("Normal")
+
+-- 1. إنشاء الواجهة والخط الرئيسي (Slider Frame)
+local screenGui = Instance.new("ScreenGui", PlayerGui)
+screenGui.Name = "SkullGui"
+screenGui.ResetOnSpawn = false
+
+
+local blk_color = Color3.fromRGB(24,24,24)
+local isCamTarget = false
+local vb = nil 
+
+local helperTextLabel = Instance.new("TextLabel")
+helperTextLabel.Size=UDim2.new(0,200,0,50)
+helperTextLabel.Transparency=0.5
+helperTextLabel.BackgroundColor3=blk_color
+helperTextLabel.TextColor=BrickColor.new("White")
+helperTextLabel.TextScaled=true
+helperTextLabel.Parent=screenGui
+
+local function printlog(txt,set)
+	if set then 
+		helperTextLabel.TextColor=BrickColor.new("Really red")
+	else
+		helperTextLabel.TextColor=BrickColor.new("Lime green")
+	end
+	helperTextLabel.Text=txt
+end
+
+local Mainframe = Instance.new("Frame")
+Mainframe.Size=UDim2.new(0,250,0,225)
+Mainframe.Position=UDim2.new(0.125,0,0,0)
+Mainframe.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+Mainframe.Visible=false
+Mainframe.Active=true
+Mainframe.Draggable=true
+Mainframe.Parent=screenGui
+
+local frameTitle = Instance.new("TextLabel")
+frameTitle.Size=UDim2.new(1,0,0.1,0)
+frameTitle.TextXAlignment=Enum.TextXAlignment.Left
+frameTitle.TextColor=BrickColor.new("White")
+frameTitle.BackgroundColor3=blk_color
+frameTitle.TextSize=1
+frameTitle.TextTransparency=1
+frameTitle.Parent=Mainframe
+
+local txt = Instance.new("TextLabel")
+txt.Size=UDim2.new(0.7,0,1,0)
+txt.Position=UDim2.new(0.05,0,0,0)
+txt.TextColor=BrickColor.new("White")
+txt.BackgroundTransparency=1
+txt.Text="Guess the Slapper ."
+txt.TextScaled=true
+txt.Parent=frameTitle
+
+local iconFrame = Instance.new("ImageButton")
+iconFrame.Size=UDim2.new(0,40,0,40)
+iconFrame.Position=UDim2.new(0.3,0,0.3,0)
+iconFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+iconFrame.Image = "rbxassetid://85847690672478"
+iconFrame.Active=true
+iconFrame.Draggable=true
+iconFrame.Parent=screenGui
+
+local destroyBtn = Instance.new("TextButton")
+destroyBtn.Size=UDim2.new(0,20,0,20)
+destroyBtn.Position=UDim2.new(0.915,0,0,0)
+destroyBtn.BackgroundColor3=Color3.fromRGB(255, 0, 0)
+destroyBtn.TextColor=BrickColor.new("White")
+destroyBtn.Text="x"
+destroyBtn.Parent=frameTitle
+
+local hideBtn = Instance.new("TextButton")
+hideBtn.Size=UDim2.new(0,20,0,20)
+hideBtn.Position=UDim2.new(0.82,0,0,0)
+hideBtn.BackgroundColor3=Color3.fromRGB(0, 170, 255)
+hideBtn.TextColor=BrickColor.new("White")
+hideBtn.Text="–"
+hideBtn.Parent=frameTitle
+
+iconFrame.MouseButton1Click:Connect(function()
+	iconFrame.Visible=not iconFrame.Visible
+	if iconFrame.Visible then 
+		Mainframe.Visible=false
+	else
+		Mainframe.Position=iconFrame.Position
+		Mainframe.Visible=true
+	end
+end)
+
+hideBtn.MouseButton1Click:Connect(function()
+	Mainframe.Visible=false
+	iconFrame.Position=Mainframe.Position
+	iconFrame.Visible=true
+end)
+
+destroyBtn.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+end)
+
+local function boxFrame() 
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0.9, 0,0.1,0)
+	frame.Position=UDim2.new(0.1,0,0.1,0)
+	frame.BackgroundColor=BrickColor.new("Black")
+	frame.Parent=Mainframe
+	return frame
+
+end
+
+local function newBtn(name,pos,parent)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0.9, 0, 0.14, 0)
+	btn.Position=UDim2.new(0.05,0,pos,0)
+	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextSize=2
+	btn.Parent=parent
+	return btn
+end
+
+local function newLbl(name,pos,parent)
+	local btn = Instance.new("TextLabel")
+	btn.Size = UDim2.new(0.9, 0, 0.14, 0)
+	btn.Position=UDim2.new(0.05,0,pos,0)
+	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextSize=2
+	btn.Parent=parent
+	return btn
+end
+
+local function newTrem(parent)
+	local trem = Instance.new("TextLabel")
+	trem.Size = UDim2.new(0,25,1,0)
+	trem.Position=UDim2.new(0.85,0,0,0)
+	trem.BackgroundTransparency=1
+	trem.Text="🔴"
+	trem.TextSize=20
+	trem.Parent=parent
+	return trem
+end
+
+local function newKnob(parent)
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0,10,0,10)
+	frame.Position=UDim2.new(0.1,0,0.65,-8)
+	frame.BackgroundColor3=Color3.fromRGB(255, 255, 255)
+	frame.Parent=parent
+	return frame
+end
+
+local function newPlate(parent)
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0,30,0,15)
+	frame.Position=UDim2.new(0.75,0,0.29,0)
+	frame.BackgroundColor3=blk_color
+	frame.Parent=parent
+	return frame
+end
+
+local function newUi(parent) 
+	local ui = Instance.new("UICorner")
+	ui.CornerRadius = UDim.new(0,10)
+	ui.Parent=parent
+	return ui
+end
+
+local function newCustomUi(parent, rb,lb,ru,lu) 
+	local ui = Instance.new("UICorner")
+	ui.BottomLeftRadius =UDim.new(0,lb)
+	ui.BottomRightRadius=UDim.new(0,rb)
+	ui.TopLeftRadius=UDim.new(0,lu)
+	ui.TopRightRadius=UDim.new(0,ru)
+	ui.Parent=parent
+	return ui
+end
+
+
+newUi(iconFrame)
+newUi(Mainframe)
+
+newCustomUi(frameTitle,10,10,10,10)
+newCustomUi(destroyBtn,10,10,10,10)
+newCustomUi(hideBtn,10,10,10,10)
+
+RunService.Heartbeat:Connect(function()
+	local myChar = LocalPlayer.Character
+	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then 
+		return 
+	end
+
+	local myRoot = myChar.HumanoidRootPart
+	local currentMyArea = nil
+
+	for _, child in ipairs(gameFolder:GetChildren()) do
+		if child:IsA("Model") then
+			local isInside = false
+			local primaryPart = child.PrimaryPart or child:FindFirstChildWhichIsA("BasePart")
+			if primaryPart then
+				local cframe, size = child:GetBoundingBox()
+				local localPos = cframe:PointToObjectSpace(myRoot.Position)
+				if math.abs(localPos.X) <= (size.X / 2) and
+					math.abs(localPos.Y) <= (size.Y / 2) and
+					math.abs(localPos.Z) <= (size.Z / 2) then
+					isInside = true
+				end
+			end
+
+			if isInside then
+				currentMyArea = child
+				break
+			end
+		end
+	end
+game:GetDescendants()
+	if currentMyArea then
+		local mytable = currentMyArea:FindFirstChild("Table")
+		if mytable then 
+			for _, dex in ipairs(mytable:GetDescendants()) do
+				if dex:IsA("TextLabel") and dex.Name == "TimeToSet" then 
+
+					-- استخراج السلسلة الرقمية من داخل النص
+					local numberString = string.match(dex.Text, ">(%d+)%s*</font>")
+
+					if numberString then
+						-- تحويل النص إلى رقم
+						local extractedNumber = tonumber(numberString)
+
+						printlog("الرقم المستخرج هو:".. extractedNumber,false)
+
+						-- يمكنك الآن استخدام المتغير extractedNumber هنا أو إرساله للـ Server
+						
+					end
+				else
+					printlog("TextLabel not found",true)
+				end
+				
+			end
+		end
+	end
+end)
+
