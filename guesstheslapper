@@ -448,7 +448,7 @@ RunService.Heartbeat:Connect(function()
 			end
 
 			if foundPlayer then
-
+				printlog("Player founded",true)
 				if autoGuessState and suspk and suspk.Visible then 
 					guessEvent:FireServer(foundPlayer.Name)
 				end
