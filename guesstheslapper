@@ -458,7 +458,11 @@ RunService.Heartbeat:Connect(function()
 end)
 
 RunService.Heartbeat:Connect(function()
-
+	if autoSlapState and useSlap and tonumber(valueLabel) then
+		useSlap=false
+		sendSlapEvent:FireServer(tonumber(valueLabel))
+		printlog("Susseccful send to server.",false)
+	end
 end)
 
 autoDodgeBtn.MouseButton1Click:Connect(function()
