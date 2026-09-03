@@ -372,6 +372,8 @@ newCustomUi(frameTitle,10,10,10,10)
 newCustomUi(destroyBtn,10,10,10,10)
 newCustomUi(hideBtn,10,10,10,10)
 
+local currentMyArena = nil
+
 RunService.Heartbeat:Connect(function()
 	local myChar = LocalPlayer.Character
 	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then 
@@ -379,9 +381,8 @@ RunService.Heartbeat:Connect(function()
 	end
 
 	local myRoot = myChar.HumanoidRootPart
-
-	local currentMyArena = nil
-
+	currentMyArena = nil
+	
 	for _, child in ipairs(areanasFolder:GetChildren()) do
 		if child:IsA("Model") and (child.Name:lower() == "arena") then
 			local isInside = false
@@ -521,20 +522,19 @@ autoSlapBtn.MouseButton1Click:Connect(function()
 		autoSlapPlate.BackgroundColor3 = blk_color
 	end
 end)
-
+Instance.new("Part"):GetDescendants()
 printlog("Waiting for Event",false)
 changecamEvent.OnClientEvent:Connect(function(cam)
 	-- التحقق من أن الإشارة المرسلة هي بالضبط slapcam الساحة الثانية
-	if cam == workspace.arenas:GetChildren()[2].slapcam 
-		or cam == workspace.arenas:GetChildren()[3].slapcam
-		or cam == workspace.arenas:GetChildren()[4].slapcam
-	then
-		printlog("Cam is the target",false)
-		-- قيمة valueLabel (تأكد من تحديد مسار النص الصحيح في الـ GUI لديك)
+	if turnSlapState and currentMyArena then
+		if cam == workspace.arenas.currentMyArena.slapcam then
+			printlog("Cam is the target",false)
+			-- قيمة valueLabel (تأكد من تحديد مسار النص الصحيح في الـ GUI لديك)
 
-		if tonumber(valueLabel) then
-			sendSlapEvent:FireServer(tonumber(valueLabel))
-			printlog("Susseccful send to server.",false)
+			if tonumber(valueLabel) then
+				sendSlapEvent:FireServer(tonumber(valueLabel))
+				printlog("Susseccful send to server.",false)
+			end
 		end
 	else
 		printlog("Cam not is the target.",true)
