@@ -198,7 +198,7 @@ newCustomUi(hideBtn,10,10,10,10)
 
 
 RunService.Heartbeat:Connect(function()
-	printlog("34321",false)
+	printlog("34444",false)
 	local myChar = LocalPlayer.Character
 	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then 
 		return 
@@ -233,11 +233,11 @@ RunService.Heartbeat:Connect(function()
 		local chairs = currentMyArea:FindFirstChild("Chairs")
 		local mytable = currentMyArea:FindFirstChild("Table")
 		local timerModel = currentMyArea:FindFirstChild("Timer")
+		local buttons = currentMyArea:FindFirstChild("Buttons")
 		
 		local timerStop = nil
 		local targetslot = nil
 		local targetTimer = nil 
-
 		
 		if mytable then 
 			for _, dex in ipairs(mytable:GetDescendants()) do
@@ -293,16 +293,30 @@ RunService.Heartbeat:Connect(function()
 						end
 					end
 				else
-					printlog("player model not found", true)
+					--printlog("player model not found", true)
+				end
+				
+				if buttons then 
+					local model = buttons:FindFirstChild(targetslot.Name)
+					if model then 
+						local base = model:FindFirstChild("Button")
+						if base then 
+							printlog("Button was found",false)
+						end
+						
+					else
+						printlog("Model was not-found",true)
+					end
+					
+				else
+					printlog("Btn not found",true)
 				end
 			else
-				printlog("Chair not found", true)
+				--printlog("Chair not found", true)
 			end
 		else
-			printlog("Folder not found", true)
+			--printlog("Folder not found", true)
 		end
-		
-		printlog(targetTimer.Name..", "..targetslot.Name..", "..timerStop.Text,false)
 		
 	end
 	
