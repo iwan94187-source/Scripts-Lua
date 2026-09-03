@@ -1,54 +1,46 @@
-
 local Players = game:GetService("Players")
+local camera = workspace.CurrentCamera
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
-local runService = game:GetService("RunService")
+local RunService = game:GetService("RunService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local GuiService = game:GetService("GuiService")
+local Stats = game:GetService("Stats")
 
-local ff = Instance.new("Folder")
-ff.Name="Upgrades"
-ff.Parent=LocalPlayer
-
-local UpFolder = LocalPlayer:WaitForChild("Upgrades")
-local ballsFolder = nil
-local practiceBalls=nil
-
-for _, folder in ipairs(workspace:GetChildren()) do 
-	if folder:IsA("Folder") and folder.Name == "Lobby" then 
-		local hasSubFolder = false
-
-		-- فحص هل يحتوي على مجلدات فرعية؟
-		for _, item in ipairs(folder:GetChildren()) do 
-			if item:IsA("Folder") then
-				if item.Name=="PracticeArea" and item:FindFirstChild("PracticeBalls") then 
-					practiceBalls=item:FindFirstChild("PracticeBalls")
-				end
-				hasSubFolder = true
-				break
-			end
-		end
-
-		-- إذا لم يكن يحتوي على مجلد فرعي، إذن هذا هو المجلد المطلوب!
-		if not hasSubFolder then
-			ballsFolder = folder
-			break -- التوقف عن البحث في بقية الـ Workspace
-		end
-	end
-end
-
-if not ballsFolder then
-	warn("⚠️ لم يتم العثور على مجلد الكرات Folder'Ball'")
-	return
-end
+local gameFolder = workspace:WaitForChild("GameStations"):WaitForChild("Normal")
 
 -- 1. إنشاء الواجهة والخط الرئيسي (Slider Frame)
 local screenGui = Instance.new("ScreenGui", PlayerGui)
+screenGui.Name = "SkullGui"
 screenGui.ResetOnSpawn = false
 
+
 local blk_color = Color3.fromRGB(24,24,24)
+local isCamTarget = false
+local vb = nil 
+
+local helperTextLabel = Instance.new("TextLabel")
+helperTextLabel.Size=UDim2.new(0,200,0,50)
+helperTextLabel.Transparency=0.5
+helperTextLabel.BackgroundColor3=blk_color
+helperTextLabel.TextColor=BrickColor.new("White")
+helperTextLabel.TextScaled=true
+helperTextLabel.Parent=screenGui
+
+local function printlog(txt,set)
+	if set then 
+		helperTextLabel.TextColor=BrickColor.new("Really red")
+	else
+		helperTextLabel.TextColor=BrickColor.new("Lime green")
+	end
+	helperTextLabel.Text=txt
+end
 
 local Mainframe = Instance.new("Frame")
-Mainframe.Size=UDim2.new(0,250,0,300)
+Mainframe.Size=UDim2.new(0,200,0,75)
 Mainframe.Position=UDim2.new(0.125,0,0,0)
 Mainframe.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 Mainframe.Visible=false
@@ -57,21 +49,21 @@ Mainframe.Draggable=true
 Mainframe.Parent=screenGui
 
 local frameTitle = Instance.new("TextLabel")
-frameTitle.Size=UDim2.new(1,0,0.1,0)
-frameTitle.Text="   Dodge or Die V6.84884"
+frameTitle.Size=UDim2.new(1,0,0.25,0)
 frameTitle.TextXAlignment=Enum.TextXAlignment.Left
 frameTitle.TextColor=BrickColor.new("White")
-frameTitle.TextTransparency=1
 frameTitle.BackgroundColor3=blk_color
-frameTitle.TextSize=7
+frameTitle.TextSize=1
+frameTitle.TextTransparency=1
 frameTitle.Parent=Mainframe
 
 local txt = Instance.new("TextLabel")
-txt.Size=UDim2.new(0.7,0,1,0)
+txt.Size=UDim2.new(0.6,0,1,0)
 txt.Position=UDim2.new(0.05,0,0,0)
 txt.TextColor=BrickColor.new("White")
 txt.BackgroundTransparency=1
-txt.Text="Dodge or Die >>"
+txt.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+txt.Text="Stop the Timer (OP💯)"
 txt.TextScaled=true
 txt.Parent=frameTitle
 
@@ -85,7 +77,7 @@ iconFrame.Draggable=true
 iconFrame.Parent=screenGui
 
 local destroyBtn = Instance.new("TextButton")
-destroyBtn.Size=UDim2.new(0,22.5,0,22.5)
+destroyBtn.Size=UDim2.new(0,20,0,20)
 destroyBtn.Position=UDim2.new(0.915,0,0,0)
 destroyBtn.BackgroundColor3=Color3.fromRGB(255, 0, 0)
 destroyBtn.TextColor=BrickColor.new("White")
@@ -93,8 +85,8 @@ destroyBtn.Text="x"
 destroyBtn.Parent=frameTitle
 
 local hideBtn = Instance.new("TextButton")
-hideBtn.Size=UDim2.new(0,22.5,0,22.5)
-hideBtn.Position=UDim2.new(0.82,0,0,0)
+hideBtn.Size=UDim2.new(0,20,0,20)
+hideBtn.Position=UDim2.new(0.80,0,0,0)
 hideBtn.BackgroundColor3=Color3.fromRGB(0, 170, 255)
 hideBtn.TextColor=BrickColor.new("White")
 hideBtn.Text="–"
@@ -120,39 +112,36 @@ destroyBtn.MouseButton1Click:Connect(function()
 	screenGui:Destroy()
 end)
 
-local function txtBox(parent) 
-	local box = Instance.new("TextBox")
-	box.Size=UDim2.new(0.8, 0,0.4,0)
-	box.Position=UDim2.new(0.1,0,0.4,0)
-	box.BackgroundColor3=blk_color
-	box.Text="Number"
-	box.TextScaled=true
-	box.TextColor=BrickColor.new("White")
-	box.Parent=parent
-	return box
+local function boxFrame() 
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0.9, 0,0.1,0)
+	frame.Position=UDim2.new(0.1,0,0.1,0)
+	frame.BackgroundColor=BrickColor.new("Black")
+	frame.Parent=Mainframe
+	return frame
 
 end
 
 local function newBtn(name,pos,parent)
 	local btn = Instance.new("TextButton")
-	btn.Size=UDim2.new(0.9,0,0.12,0)
+	btn.Size = UDim2.new(0.9, 0, 0.5, 0)
 	btn.Position=UDim2.new(0.05,0,pos,0)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
 	btn.Text=name
-	btn.TextSize=7
+	btn.TextScaled=true
 	btn.Parent=parent
 	return btn
 end
 
 local function newLbl(name,pos,parent)
 	local btn = Instance.new("TextLabel")
-	btn.Size=UDim2.new(0.9,0,0.12,0)
+	btn.Size = UDim2.new(0.9, 0, 0.14, 0)
 	btn.Position=UDim2.new(0.05,0,pos,0)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
 	btn.Text=name
-	btn.TextSize=7
+	btn.TextSize=2
 	btn.Parent=parent
 	return btn
 end
@@ -170,8 +159,8 @@ end
 
 local function newKnob(parent)
 	local frame = Instance.new("Frame")
-	frame.Size=UDim2.new(0,15,0,15)
-	frame.Position=UDim2.new(0,-10,0.5,-8)
+	frame.Size=UDim2.new(0,10,0,10)
+	frame.Position=UDim2.new(0.1,0,0.65,-8)
 	frame.BackgroundColor3=Color3.fromRGB(255, 255, 255)
 	frame.Parent=parent
 	return frame
@@ -179,99 +168,12 @@ end
 
 local function newPlate(parent)
 	local frame = Instance.new("Frame")
-	frame.Size=UDim2.new(0,20,0,10)
-	frame.Position=UDim2.new(0.8,0,0.49,0)
-	frame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	frame.Size=UDim2.new(0,30,0,15)
+	frame.Position=UDim2.new(0.75,0,0.29,0)
+	frame.BackgroundColor3=blk_color
 	frame.Parent=parent
 	return frame
 end
-
-local function fixedTxt(parent,siz)
-	parent.TextTransparency=1
-
-	local lbl = Instance.new("TextLabel")
-	lbl.Size=UDim2.new(siz,0,1,0)
-	lbl.Position=UDim2.new(0.05,0,0,0)
-	lbl.TextColor=BrickColor.new("White")
-	lbl.BackgroundTransparency=1
-	lbl.Text=parent.Text
-	lbl.TextScaled=true
-	lbl.Parent=parent
-
-end
-
-local function fixedTxt2(parent,siz)
-	parent.TextTransparency=1
-
-	local lbl = Instance.new("TextLabel")
-	lbl.Size=UDim2.new(0.6,0,0.4,0)
-	lbl.Position=UDim2.new(0.15,0,0,0)
-	lbl.TextColor=BrickColor.new("White")
-	lbl.BackgroundTransparency=1
-	lbl.Text=parent.Text
-	lbl.TextScaled=true
-	lbl.Parent=parent
-
-end
-
-
-local upState = false
-local upBtn = newBtn(" Upgrades Enabled",0.10,Mainframe)
-upBtn.TextXAlignment="Left"
-local upPlate = newPlate(upBtn)
-local upTerm = newKnob(upPlate)
-
-local speedSlideBtn = newLbl("Speed",0.25,Mainframe)
-speedSlideBtn.Size=UDim2.new(0.260,0,0.13,0)
-speedSlideBtn.TextYAlignment=Enum.TextYAlignment.Top
-local speedBox = txtBox(speedSlideBtn)
-
-local dashBtn = newLbl("Dash",0.25,Mainframe)
-dashBtn.Size=UDim2.new(0.260,0,0.13,0)
-dashBtn.Position=UDim2.new(0.375,0,0.25,0)
-dashBtn.TextYAlignment=Enum.TextYAlignment.Top
-local dashbox = txtBox(dashBtn)
-
-local jumpBtn = newLbl("Jump",0.25,Mainframe)
-jumpBtn.Size=UDim2.new(0.260,0,0.13,0)
-jumpBtn.Position=UDim2.new(0.7,0,0.25,0)
-jumpBtn.TextYAlignment=Enum.TextYAlignment.Top
-local jumpBox = txtBox(jumpBtn)
-
-local autoDodgeState=false
-local autoDodgeBtn = newBtn(" Auto Dodge",0.4,Mainframe)
-autoDodgeBtn.TextXAlignment=Enum.TextXAlignment.Left
-local autoDodgePlate = newPlate(autoDodgeBtn)
-local autoDodgeTerm = newKnob(autoDodgePlate)
-
-local flyState = false
-local flyBtn = newBtn(" Fly", 0.7, Mainframe)
-flyBtn.TextXAlignment = Enum.TextXAlignment.Left
-local flyPlate = newPlate(flyBtn)
-local flyTerm = newKnob(flyPlate)
-
-local antiTrapState = false
-local antiTrapBtn = newBtn(" Anti Trap", 0.85, Mainframe)
-antiTrapBtn.TextXAlignment = Enum.TextXAlignment.Left
-local antiTrapPlate = newPlate(antiTrapBtn)
-local antiTrapTerm = newKnob(antiTrapPlate)
-
-local dodgeAuraState=false
-local dodgeAuraBtn = newBtn(" Dodge Aura",0.55,Mainframe)
-dodgeAuraBtn.TextXAlignment=Enum.TextXAlignment.Left
-local dodgeAuraPlate = newPlate(dodgeAuraBtn)
-local dodgeAuraTerm = newKnob(dodgeAuraPlate)
-
-fixedTxt(upBtn,0.6)
-fixedTxt(autoDodgeBtn,0.6)
-fixedTxt(dodgeAuraBtn,0.6)
-fixedTxt(antiTrapBtn,0.6)
-fixedTxt(flyBtn,0.6)
-
-fixedTxt2(speedSlideBtn)
-fixedTxt2(jumpBtn)
-fixedTxt2(dashBtn)
-
 
 local function newUi(parent) 
 	local ui = Instance.new("UICorner")
@@ -290,505 +192,239 @@ local function newCustomUi(parent, rb,lb,ru,lu)
 	return ui
 end
 
-local activeTrajectories = {}
+local function fixedTxt(parent,siz)
+	parent.TextTransparency=1
 
-local function setupSmartAutoDodge(ball)
-	if not ball or not ball:IsA("BasePart") then return end
+	local lbl = Instance.new("TextLabel")
+	lbl.Size=UDim2.new(siz,0,0.4,0)
+	lbl.Position=UDim2.new(0,-10,0.3,0)
+	lbl.TextColor=BrickColor.new("White")
+	lbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+	lbl.TextStrokeTransparency=0
+	lbl.TextStrokeColor3=blk_color
+	lbl.BackgroundTransparency=1
+	lbl.Text=parent.Text
+	lbl.TextScaled=true
+	lbl.Parent=parent
 
-	-- 1. إنشاء الأنبوب (Zone Part)
-	local hitbox = Instance.new("Part")
-	hitbox.Name = "BallTrajectoryZone"
-	hitbox.Anchored = true
-	hitbox.CanCollide = false
-	hitbox.CanTouch = false
-	hitbox.Transparency = 1
-	hitbox.Material = Enum.Material.ForceField
-	hitbox.Color = Color3.fromRGB(255, 0, 0)
-	hitbox.Parent = workspace
-
-	table.insert(activeTrajectories, hitbox)
-
-	local frontZoneLength = 15    -- طول الأنبوب أمام الكرة (15 Studs)
-	local extraWidthBuffer = 6    -- عرض الأنبوب
-	local maxTeleportOffset = 15  -- أقصى مدى للنقل (15 Studs)
-	local minSafeDistance = 5     -- الحد الأدنى المسموح به لخلف الكرة (5 Studs)
-	local wallBuffer = 2.5        -- مسافة أمان قبل الجدار مباشرة
-	local cooldown = false
-	local updateConnection = nil
-
-	-- 🧠 0. فحص أمان النقطة: هل تقع داخل أنبوب كرة أخرى؟
-	local function isPositionInsideOtherZone(targetPos)
-		for _, zone in ipairs(activeTrajectories) do
-			if zone ~= hitbox and zone.Parent then
-				local relPos = zone.CFrame:PointToObjectSpace(targetPos)
-				local halfSize = zone.Size / 2
-
-				-- إذا كانت النقطة داخل أبعاد أنبوب كرة أخرى
-				if math.abs(relPos.X) <= halfSize.X and 
-					math.abs(relPos.Y) <= halfSize.Y and 
-					math.abs(relPos.Z) <= halfSize.Z then
-					return true -- النقطة خطرة (داخل مسار كرة أخرى)
-				end
-			end
-		end
-		return false -- النقطة آمنة
-	end
-
-	-- 2. المراقبة المستمرة وحساب الأبعاد داخل Heartbeat
-	updateConnection = runService.Heartbeat:Connect(function()
-		if not ball or not ball.Parent or not ball:IsDescendantOf(workspace) then
-			if updateConnection then updateConnection:Disconnect() end
-			if hitbox then hitbox:Destroy() end
-			local index = table.find(activeTrajectories, hitbox)
-			if index then table.remove(activeTrajectories, index) end
-			return
-		end
-
-		local velocity = ball.AssemblyLinearVelocity
-
-		if velocity.Magnitude > 2 then
-			local direction = velocity.Unit
-			local ballDiameter = math.max(ball.Size.X, ball.Size.Y, ball.Size.Z)
-			local zoneWidth = ballDiameter + extraWidthBuffer
-
-			-- تعيين حجم وموقع الأنبوب أمام الكرة
-			hitbox.Size = Vector3.new(zoneWidth, zoneWidth, frontZoneLength)
-			local centerPos = ball.Position + (direction * (frontZoneLength / 2))
-			hitbox.CFrame = CFrame.lookAt(centerPos, centerPos + direction)
-
-			-- المراقبة عند دخول اللاعب في النطاق
-			if autoDodgeState and not cooldown then
-				local char = LocalPlayer.Character
-				local rootPart = char and char:FindFirstChild("HumanoidRootPart")
-				local humanoid = char and char:FindFirstChildOfClass("Humanoid")
-
-				if rootPart and humanoid and humanoid.Health > 0 then
-					local relPos = hitbox.CFrame:PointToObjectSpace(rootPart.Position)
-					local halfSize = hitbox.Size / 2
-
-					local isInsideZone = math.abs(relPos.X) <= halfSize.X and 
-						math.abs(relPos.Y) <= halfSize.Y and 
-						math.abs(relPos.Z) <= halfSize.Z
-
-					if isInsideZone then
-						local ballPos = ball.Position
-						local myPos = rootPart.Position
-
-						-- إعدادات الـ Raycast
-						local raycastParams = RaycastParams.new()
-						raycastParams.FilterDescendantsInstances = {char, ball, hitbox}
-						raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-						raycastParams.IgnoreWater = true
-						raycastParams.RespectCanCollide = true
-
-						local targetPosition = nil
-						local isBlocked = false
-
-						-- -------------------------------------------------------------
-						-- 🧠 1. فحص الجدار الأمامي (أمام الكرة)
-						-- -------------------------------------------------------------
-						local frontRayResult = workspace:Raycast(ballPos, direction * 5, raycastParams)
-						if frontRayResult and frontRayResult.Instance and frontRayResult.Instance.CanCollide then
-							isBlocked = true
-						end
-
-						-- -------------------------------------------------------------
-						-- 🧠 2. فحص المسار الخلفي لحساب نقطة النقل الأساسية (خلف الكرة)
-						-- -------------------------------------------------------------
-						if not isBlocked then
-							local backRayResult = workspace:Raycast(ballPos, -direction * maxTeleportOffset, raycastParams)
-
-							if backRayResult and backRayResult.Instance and backRayResult.Instance.CanCollide then
-								local hitDistance = backRayResult.Distance
-								if hitDistance < minSafeDistance then
-									isBlocked = true -- الجدار قريب جداً
-								else
-									local safeDist = math.max(minSafeDistance, hitDistance - wallBuffer)
-									targetPosition = ballPos - (direction * safeDist)
-								end
-							else
-								targetPosition = ballPos - (direction * maxTeleportOffset)
-							end
-						end
-
-						-- -------------------------------------------------------------
-						-- 🧠 3. فحص الجدار بين موقعك ونقطة النقل الخلفية
-						-- -------------------------------------------------------------
-						if targetPosition and not isBlocked then
-							local pathToTarget = targetPosition - myPos
-							local pathRay = workspace:Raycast(myPos, pathToTarget, raycastParams)
-
-							if pathRay and pathRay.Instance and pathRay.Instance.CanCollide then
-								isBlocked = true
-							end
-						end
-
-						-- -------------------------------------------------------------
-						-- 🛑 4. فحص الخطر الرئيسي: هل النقطة خلف الكرة تقع داخل كرة أخرى؟
-						-- -------------------------------------------------------------
-						if targetPosition and not isBlocked then
-							if isPositionInsideOtherZone(targetPosition) then
-								isBlocked = true -- إلغاء النقل للخلف لأن الكرة الثانية متواجدة هناك!
-							end
-						end
-
-						-- -------------------------------------------------------------
-						-- 🛡️ 5. خطة الطوارئ: النقل العكسي لوراء اللاعب بشرط ألا يكون داخل كرة أخرى
-						-- -------------------------------------------------------------
-						if isBlocked or not targetPosition then
-							local playerBackDir = -rootPart.CFrame.LookVector
-							local fallbackRay = workspace:Raycast(myPos, playerBackDir * maxTeleportOffset, raycastParams)
-
-							local fallbackPos = nil
-							if fallbackRay and fallbackRay.Instance and fallbackRay.Instance.CanCollide then
-								local hitDist = fallbackRay.Distance
-								if hitDist > wallBuffer then
-									fallbackPos = myPos + (playerBackDir * (hitDist - wallBuffer))
-								end
-							else
-								fallbackPos = myPos + (playerBackDir * maxTeleportOffset)
-							end
-
-							-- التأكد من أن موقع الطوارئ خالٍ أيضاً من مسارات الكرات
-							if fallbackPos and not isPositionInsideOtherZone(fallbackPos) then
-								targetPosition = fallbackPos
-							else
-								targetPosition = nil -- إلغاء النقل تماماً إذا كانت كل الخيارات خطرة
-							end
-						end
-
-						-- 🚀 6. تنفيذ النقل النهائي الآمن
-						if targetPosition then
-							cooldown = true
-							rootPart.CFrame = CFrame.new(targetPosition, targetPosition + rootPart.CFrame.LookVector)
-							rootPart.AssemblyLinearVelocity = Vector3.zero
-
-							task.delay(0.35, function()
-								cooldown = false
-							end)
-						end
-					end
-				end
-			end
-		else
-			hitbox.Size = Vector3.new(0.1, 0.1, 0.1)
-		end
-	end)
-
-	ball.Destroying:Connect(function()
-		if updateConnection then updateConnection:Disconnect() end
-		if hitbox then hitbox:Destroy() end
-		local index = table.find(activeTrajectories, hitbox)
-		if index then table.remove(activeTrajectories, index) end
-	end)
 end
 
--- 3. تشغيل المراقبة
-task.spawn(function()
-	while not ballsFolder do task.wait(0.5) end
+local autoStopState=false
+local autoStopBtn = newBtn("Auto Stop", 0.35, Mainframe)
+autoStopBtn.TextXAlignment = Enum.TextXAlignment.Left
+local autoStopPlate = newPlate(autoStopBtn)
+local autoStopKnob = newKnob(autoStopPlate)
 
-	for _, item in ipairs(ballsFolder:GetChildren()) do
-		task.spawn(setupSmartAutoDodge, item)
-	end
+fixedTxt(autoStopBtn,0.6)
 
-	ballsFolder.ChildAdded:Connect(function(child)
-		task.spawn(setupSmartAutoDodge, child)
-	end)
-
-	for _, item in ipairs(practiceBalls:GetChildren()) do
-		task.spawn(setupSmartAutoDodge, item)
-	end
-
-	practiceBalls.ChildAdded:Connect(function(child)
-		task.spawn(setupSmartAutoDodge, child)
-	end)
-end)
-
-local extraSafetyBuffer = 12 -- مسافة الأمان إضافية بالـ Studs
-local pushSpeed = 80         -- قوة الدفع الجانبي
-local upSpeed = 20           -- قوة الدفع للأعلى
-
-local function checkAndPushMyChar(part)
-	if not part or not part:IsA("BasePart") then return end
-
-	local char = LocalPlayer.Character
-	local rootPart = char and char:FindFirstChild("HumanoidRootPart")
-	local humanoid = char and char:FindFirstChildOfClass("Humanoid")
-
-	if not rootPart or not humanoid or humanoid.Health <= 0 then return end
-
-	local partSize = part.Size
-	local partCFrame = part.CFrame
-	local lineForward = partCFrame.LookVector
-	local lineCenter = part.Position
-	local lineLength = partSize.Z
-
-	-- حساب نصف قطر منطقة الأمان بناءً على العرض
-	local dynamicSafetyRadius = (math.max(partSize.X, partSize.Y) / 2) + extraSafetyBuffer
-
-	local playerPos = rootPart.Position
-	local vecToPlayer = playerPos - lineCenter
-
-	-- حساب المسافة الطولية والعمودية بالنسبة للقطعة
-	local forwardDist = math.abs(vecToPlayer:Dot(lineForward))
-	local projection = vecToPlayer:Dot(lineForward) * lineForward
-	local perpendicularVec = vecToPlayer - projection
-	local perpendicularDist = perpendicularVec.Magnitude
-
-	-- إذا دخلت شخصيتك في نطاق Plot أو Line يتم إبعادك فوراً
-	if forwardDist <= (lineLength / 2) and perpendicularDist <= dynamicSafetyRadius then
-		local pushDir = perpendicularDist > 0.1 and perpendicularVec.Unit or partCFrame.RightVector
-		rootPart.AssemblyLinearVelocity = (pushDir * pushSpeed) + Vector3.new(0, upSpeed, 0)
-	end
-end
-
--- الحلقة الرئيسية (تعمل 60 مرة بالثانية)
-runService.Heartbeat:Connect(function()
-	if not dodgeAuraState then return end
-
-	-- فحص Workspace بالكامل عن TrajectoryLine و BallTrajectoryZone
-	for _, item in ipairs(workspace:GetDescendants()) do
-		if item:IsA("BasePart") then
-			if item.Name == "BallTrajectoryZone" then
-				checkAndPushMyChar(item)
-			end
-		end
-	end
-end)
-
+newUi(iconFrame)
 newUi(Mainframe)
 
-newUi(destroyBtn)
-newUi(hideBtn)
-newUi(iconFrame)
+newUi(autoStopBtn)
+newUi(autoStopPlate)
+newUi(autoStopKnob)
 
-newUi(upBtn)
-newUi(upPlate)
-newUi(upTerm)
+newCustomUi(frameTitle,10,10,10,10)
+newCustomUi(destroyBtn,10,10,10,10)
+newCustomUi(hideBtn,10,10,10,10)
 
-newUi(autoDodgeBtn)
-newUi(autoDodgePlate)
-newUi(autoDodgeTerm)
+local BeBtn = nil
+local ref = false
+local isWaitingForReset = false
+local lastClickedTimerValue = nil
 
-newUi(dodgeAuraBtn)
-newUi(dodgeAuraPlate)
-newUi(dodgeAuraTerm)
+printlog("34444",false)
+RunService.Heartbeat:Connect(function()
+	local myChar = LocalPlayer.Character
+	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then 
+		return 
+	end
 
-newUi(flyBtn)
-newUi(flyPlate)
-newUi(flyTerm)
+	local myRoot = myChar.HumanoidRootPart
+	local currentMyArea = nil
 
-newUi(antiTrapBtn)
-newUi(antiTrapPlate)
-newUi(antiTrapTerm)
-
-newUi(dashBtn)
-newUi(dashbox)
-newUi(jumpBtn)
-newUi(jumpBox)
-
-newUi(speedSlideBtn)
-newUi(speedBox)
-newCustomUi(frameTitle,0,0,10,10)
-
-runService.Heartbeat:Connect(function()
-	if upState then 
-		local human = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-		if human then 
-			if tonumber(speedBox.Text) then 
-				human.WalkSpeed=speedBox.Text
-			end
-			if tonumber(jumpBox.Text) then 
-				local jp = UpFolder:FindFirstChild("Jump")
-				if jp then 
-					jp.Value=jumpBox.Text
+	for _, child in ipairs(gameFolder:GetChildren()) do
+		if child:IsA("Model") then
+			local isInside = false
+			local primaryPart = child.PrimaryPart or child:FindFirstChildWhichIsA("BasePart")
+			if primaryPart then
+				local cframe, size = child:GetBoundingBox()
+				local localPos = cframe:PointToObjectSpace(myRoot.Position)
+				if math.abs(localPos.X) <= (size.X / 2) and
+					math.abs(localPos.Y) <= (size.Y / 2) and
+					math.abs(localPos.Z) <= (size.Z / 2) then
+					isInside = true
 				end
-				human.UseJumpPower=true
-				human.JumpPower=jumpBox.Text
 			end
-			if tonumber(dashbox.Text) then 
-				local dsh = UpFolder:FindFirstChild("Dashes")
-				if dsh then 
-					dsh.Value=dashbox.Text
-				end
+
+			if isInside then
+				currentMyArea = child
+				break
 			end
 		end
 	end
-end)
 
-local FLY_SPEED = 64
-local FLY_FORCE = 40000
+	if currentMyArea then
+		local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") 
+		local chairs = currentMyArea:FindFirstChild("Chairs")
+		local mytable = currentMyArea:FindFirstChild("Table")
+		local timerModel = currentMyArea:FindFirstChild("Timer")
+		local buttons = currentMyArea:FindFirstChild("Buttons")
 
-local bodyVelocity = nil
-local bodyGyro = nil
-local flyConnection = nil
+		local timerStop = nil
+		local targetslot = nil
+		local targetTimer = nil 
+		BeBtn=nil
+		local extractedNumber
 
--- دالة إيقاف الطيران وتنظيف الأجسام الفيزيائية
-local function stopFlying()
-	if flyConnection then
-		flyConnection:Disconnect()
-		flyConnection = nil
-	end
+		if mytable then 
+			for _, dex in ipairs(mytable:GetDescendants()) do
+				if dex:IsA("TextLabel") and dex.Name == "TimeToSet" then 
+					targetTimer=dex
+					break				
+				end
+			end
 
-	if bodyVelocity then
-		bodyVelocity:Destroy()
-		bodyVelocity = nil
-	end
+			if targetTimer then 
+				--printlog("TextLabel founded", false)
 
-	if bodyGyro then
-		bodyGyro:Destroy()
-		bodyGyro = nil
-	end
+				-- 1. تنظيف النص كلياً من أي وسوم مثل <font color="..."> أو </font>
+				local cleanText = string.gsub(targetTimer.Text, "<[^>]+>", "")
 
-	local char = LocalPlayer.Character
-	local humanoid = char and char:FindFirstChildOfClass("Humanoid")
-	if humanoid then
-		humanoid.PlatformStand = false
-	end
-end
+				-- 2. استخراج الرقم العشري أو الصحيح من النص بعد تنظيفه
+				local numberString = string.match(cleanText, "%d+%.?%d*")
 
-local function startFlying()
-	stopFlying()
-
-	local char = LocalPlayer.Character
-	local rootPart = char and char:FindFirstChild("HumanoidRootPart")
-	local humanoid = char and char:FindFirstChildOfClass("Humanoid")
-	local camera = workspace.CurrentCamera
-
-	if not rootPart or not humanoid or humanoid.Health <= 0 then return end
-
-	bodyVelocity = Instance.new("BodyVelocity")
-	bodyVelocity.Name = "FlyVelocity"
-	bodyVelocity.MaxForce = Vector3.new(FLY_FORCE, FLY_FORCE, FLY_FORCE)
-	bodyVelocity.Velocity = Vector3.zero
-	bodyVelocity.Parent = rootPart
-
-	bodyGyro = Instance.new("BodyGyro")
-	bodyGyro.Name = "FlyGyro"
-	bodyGyro.MaxTorque = Vector3.new(400000, 400000, 400000)
-	bodyGyro.P = 10000
-	bodyGyro.D = 500
-	bodyGyro.CFrame = rootPart.CFrame
-	bodyGyro.Parent = rootPart
-
-	humanoid.PlatformStand = true
-
-	flyConnection = runService.RenderStepped:Connect(function()
-		if not flyState or not char or not rootPart or humanoid.Health <= 0 then
-			stopFlying()
-			return
+				if numberString then
+					extractedNumber = tonumber(numberString)
+					--printlog("الرقم المستخرج الصحيح هو: " .. extractedNumber, false)
+				else
+					--printlog("لم يتم العثور على أرقام في النص المنظف: " .. tostring(cleanText), true)
+				end
+			else
+				--printlog("TextLabel not found", true)
+			end
 		end
 
-		bodyGyro.CFrame = camera.CFrame
+		if chairs then  
+			for _, dex in ipairs(chairs:GetDescendants()) do
+				if dex:IsA("Weld") and dex.Name=="SeatWeld" then 
+					if dex.Part1==myRoot then 
+						targetslot=dex.parent.parent
+						break
+					end
+				end 
 
-		local moveDir = humanoid.MoveDirection
+			end
 
-		if moveDir.Magnitude > 0 then
-			-- 🎯 تحويل اتجاه الحركة ليتضمن المحور Y كاملاً بناءً على زاوية توجيه الكاميرا
-			local camCFrame = camera.CFrame
+			if targetslot then 
+				--printlog(targetslot.Name.." Chair!", false)
+				if timerModel then 
+					local base = timerModel:FindFirstChild(targetslot.Name)
+					if base then 
+						for _, dex in ipairs(base:GetDescendants()) do 
+							if dex:IsA("TextLabel") and dex.Name=="TimerText" then 
+								timerStop=dex
+								break
+							end
+						end
+					end
+				else
+					--printlog("player model not found", true)
+				end
 
-			-- اتجاه الأمام والخلف من الكاميرا (يشمل Y)
-			local forward = camCFrame.LookVector
-			-- اتجاه اليمين واليسار الأفقي
-			local right = camCFrame.RightVector
+				if buttons then 
+					local model = buttons:FindFirstChild(targetslot.Name)
+					if model then 
+						local base = model:FindFirstChild("Button")
+						if base then 
+							BeBtn=base
+							--printlog(BeBtn.Name.." was found",false)
+						end
 
-			-- تحويل مدخلات الحركة الكلاسيكية إلى اتجاه الكاميرا الحقيقي
-			local localMove = camCFrame:VectorToObjectSpace(moveDir)
-			local targetDirection = (forward * -localMove.Z) + (right * localMove.X)
+					else
+						--printlog("Model was not-found",true)
+					end
 
-			if targetDirection.Magnitude > 0 then
-				bodyVelocity.Velocity = targetDirection.Unit * FLY_SPEED
+				else
+					--printlog("Btn not found",true)
+				end
+			else
+				--printlog("Chair not found", true)
 			end
 		else
-			bodyVelocity.Velocity = Vector3.zero
+			--printlog("Folder not found", true)
 		end
-	end)
-end
 
-runService.Heartbeat:Connect(function()
-	if flyState then
-		if not bodyVelocity or not bodyVelocity.Parent then
-			startFlying()
-		end
-	else
-		if bodyVelocity then
-			stopFlying()
-		end
-	end
-	if antiTrapState then 
-		local folderMap = workspace:FindFirstChild("CurrentMap")
-		if folderMap then 
-			-- 1. البحث عن Lava وحذفها
-			local lava = folderMap:FindFirstChild("Lava")
-			if lava then 
-				lava:Destroy() 
-			end
+		if timerStop and extractedNumber and BeBtn then
+			local cleanTimerStopText = string.gsub(timerStop.Text, "<[^>]+>", "")
+			local currentTimerValue = tonumber(string.match(cleanTimerStopText, "%d+%.?%d*"))
 
-			-- 2. البحث عن SpinningLazer ثم Lazer داخلها وحذفها بشكل آمن
-			local spinningLazer = folderMap:FindFirstChild("SpinningLazer")
-			if spinningLazer then
-				local lazer = spinningLazer:FindFirstChild("Lazer")
-				if lazer then
-					lazer:Destroy()
+			if currentTimerValue then
+
+				-- 1. إذا كنا في حالة انتظار: ننتظر حتى تتغير قيمة المؤقت (تصفير أو إعادة تشغيل)
+				if isWaitingForReset then
+					if currentTimerValue ~= lastClickedTimerValue then
+						isWaitingForReset = false
+						lastClickedTimerValue = nil
+						printlog("تم تغير المؤقت، جاري التجهيز للدورة القادمة...", false)
+					end
 				end
+
+				-- 2. تنفيذ الضغط فور وصول المؤقت للرقم المطلوب بشرط ألا نكون في حالة انتظار
+				if autoStopState and not isWaitingForReset and currentTimerValue >= extractedNumber then
+					local camera = workspace.CurrentCamera
+					local screenPosition, isOnScreen = camera:WorldToScreenPoint(BeBtn.Position)
+				
+					if isOnScreen then
+						local hiddenGuis = {}
+						
+						if PlayerGui then
+							for _, gui in ipairs(PlayerGui:GetChildren()) do
+								if gui:IsA("ScreenGui") and gui.Enabled then
+									gui.Enabled = false
+									table.insert(hiddenGuis, gui)
+								end
+							end
+						end
+						
+						local topbarOffset = GuiService:GetGuiInset()
+						local x = screenPosition.X + topbarOffset.X
+						local y = screenPosition.Y + topbarOffset.Y
+
+						-- محاكاة النقر
+						VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 0)
+						VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
+						
+						for _, gui in ipairs(hiddenGuis) do
+							gui.Enabled = true
+						end
+						
+						printlog("تم الوصول للوقت المطلوب والنقر بنجاح!", false)
+
+						-- قفل العملية حتى تتغير القيمة من اللعبة
+						isWaitingForReset = true
+						lastClickedTimerValue = currentTimerValue
+					end
+				end
+
 			end
 		end
 	end
+
 end)
 
-upBtn.MouseButton1Click:Connect(function()
-	upState=not upState
-	if upState then 
-		upTerm.Position=UDim2.new(1,-10,0.5,-8)
-		upPlate.BackgroundColor3=Color3.fromRGB(255, 255, 255)
+
+autoStopBtn.MouseButton1Click:Connect(function()
+	autoStopState = not autoStopState
+	if autoStopState then 
+		autoStopKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
+		autoStopPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
 	else 
-		upTerm.Position=UDim2.new(0,-10,0.5,-8)
-		upPlate.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+		autoStopKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
+		autoStopPlate.BackgroundColor3 = blk_color
 	end
 end)
 
-autoDodgeBtn.MouseButton1Click:Connect(function()
-	autoDodgeState=not autoDodgeState
-	if autoDodgeState then 
-		autoDodgeTerm.Position=UDim2.new(1,-10,0.5,-8)
-		autoDodgePlate.BackgroundColor3=Color3.fromRGB(255, 255, 255)
-	else 
-		autoDodgeTerm.Position=UDim2.new(0,-10,0.5,-8)
-		autoDodgePlate.BackgroundColor3=Color3.fromRGB(24, 24, 24)
-	end
-end)
 
-dodgeAuraBtn.MouseButton1Click:Connect(function()
-	dodgeAuraState=not dodgeAuraState
-	if dodgeAuraState then 
-		dodgeAuraTerm.Position=UDim2.new(1,-10,0.5,-8)
-		dodgeAuraPlate.BackgroundColor3=Color3.fromRGB(255, 255, 255)
-	else 
-		dodgeAuraTerm.Position=UDim2.new(0,-10,0.5,-8)
-		dodgeAuraPlate.BackgroundColor3=Color3.fromRGB(24, 24, 24)
-	end
-end)
-
-flyBtn.MouseButton1Click:Connect(function()
-	flyState = not flyState
-	if flyState then 
-		flyTerm.Position = UDim2.new(1, -10, 0.5, -8)
-		flyPlate.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	else 
-		flyTerm.Position = UDim2.new(0, -10, 0.5, -8)
-		flyPlate.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
-	end
-end)
-
-antiTrapBtn.MouseButton1Click:Connect(function()
-	antiTrapState = not antiTrapState
-	if antiTrapState then 
-		antiTrapTerm.Position = UDim2.new(1, -10, 0.5, -8)
-		antiTrapPlate.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	else 
-		antiTrapTerm.Position = UDim2.new(0, -10, 0.5, -8)
-		antiTrapPlate.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
-	end
-end)
 
 
