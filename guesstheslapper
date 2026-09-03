@@ -522,7 +522,7 @@ changecamEvent.OnClientEvent:Connect(function(cam)
 
 	if currentMyArena then
 		-- التأكد من كائن الكاميرا المطلوبة داخل الساحة
-		local targetObject = currentMyArena.slapbut
+		local targetObject = currentMyArena.slapcam
 
 		if cam == targetObject then
 			isCamTarget = true
