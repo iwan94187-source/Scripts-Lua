@@ -188,17 +188,21 @@ local function newCustomUi(parent, rb,lb,ru,lu)
 	return ui
 end
 
+local testClick = newBtn(" Click",0.1,Mainframe)
 
 newUi(iconFrame)
 newUi(Mainframe)
+
+newUi(testClick)
 
 newCustomUi(frameTitle,10,10,10,10)
 newCustomUi(destroyBtn,10,10,10,10)
 newCustomUi(hideBtn,10,10,10,10)
 
+local BeBtn = nil
 
 RunService.Heartbeat:Connect(function()
-	printlog("2323",false)
+	printlog("3989",false)
 	local myChar = LocalPlayer.Character
 	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then 
 		return 
@@ -238,6 +242,7 @@ RunService.Heartbeat:Connect(function()
 		local timerStop = nil
 		local targetslot = nil
 		local targetTimer = nil 
+		BeBtn=nil
 		
 		if mytable then 
 			for _, dex in ipairs(mytable:GetDescendants()) do
@@ -301,7 +306,8 @@ RunService.Heartbeat:Connect(function()
 					if model then 
 						local base = model:FindFirstChild("Button")
 						if base then 
-							printlog("Button was found",false)
+							BeBtn=base
+							printlog(BeBtn.Name.." was found",false)
 						end
 						
 					else
@@ -321,4 +327,19 @@ RunService.Heartbeat:Connect(function()
 	end
 	
 end)
+
+testClick.MouseButton1Click:Connect(function()
+	if not BeBtn then return end
+	if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+		local hrp = LocalPlayer.Character.HumanoidRootPart
+
+		-- محاكاة اللمس
+		firetouchinterest(hrp, BeBtn, 0) -- بدء اللمس
+		task.wait(0.1)
+		firetouchinterest(hrp, BeBtn, 1) -- إنهاء اللمس
+		print("تمت محاكاة لمس الزر!")
+	end
+end)
+
+
 
