@@ -229,26 +229,30 @@ game:GetDescendants()
 	if currentMyArea then
 		local mytable = currentMyArea:FindFirstChild("Table")
 		if mytable then 
+			local targetTimer = nil 
 			for _, dex in ipairs(mytable:GetDescendants()) do
 				if dex:IsA("TextLabel") and dex.Name == "TimeToSet" then 
-					printlog("TextLabel founded",false)
-					-- استخراج السلسلة الرقمية من داخل النص
-					local numberString = string.match(dex.Text, ">(%d+)%s*</font>")
-
-					if numberString then
-						-- تحويل النص إلى رقم
-						local extractedNumber = tonumber(numberString)
-
-						printlog("الرقم المستخرج هو:".. extractedNumber,false)
-
-						-- يمكنك الآن استخدام المتغير extractedNumber هنا أو إرساله للـ Server
-						
-					end
-				else
-					printlog("TextLabel not found",true)
+					targetTimer=dex
+					break				
 				end
-				
 			end
+				
+			if targetTimer then 
+				printlog("TextLabel founded",false)
+				local numberString = string.match(targetTimer.Text, ">(%d+)%s*</font>")
+
+				if numberString then
+						-- تحويل النص إلى رقم
+					local extractedNumber = tonumber(numberString)
+
+					printlog("الرقم المستخرج هو:".. extractedNumber,false)
+						-- يمكنك الآن استخدام المتغير extractedNumber هنا أو إرساله للـ Server
+
+				end
+			else
+				printlog("TextLabel not found",true)
+			end
+			
 		end
 	end
 end)
