@@ -411,11 +411,6 @@ RunService.Heartbeat:Connect(function()
 		local seat = chair and chair:FindFirstChild("Seat")
 		local mainCam = currentMyArena:FindFirstChild("maincam")
 		local blocks = currentMyArena:FindFirstChild("blocks")
-		if meter then
-			if not meter.Visible then 
-				useSlap=true
-			end
-		end
 
 		if slaptp and slaptp:IsA("BasePart") then
 			local foundPlayer = nil
@@ -427,19 +422,6 @@ RunService.Heartbeat:Connect(function()
 						if isPartInsidePart(otherRoot, slaptp) then
 							foundPlayer = player
 							break
-						end
-					end
-				else
-					if autoSlapState then
-						if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-							local otherRoot = player.Character.HumanoidRootPart
-							if isPartInsidePart(otherRoot, slaptp) then
-								if useSlap then
-									useSlap=false
-									--sendSlapEvent:FireServer(tonumber(valueLabel))
-								end
-							end
-
 						end
 					end
 
@@ -522,22 +504,28 @@ autoSlapBtn.MouseButton1Click:Connect(function()
 		autoSlapPlate.BackgroundColor3 = blk_color
 	end
 end)
+
 Instance.new("Part"):GetDescendants()
 printlog("Waiting for Event",false)
 changecamEvent.OnClientEvent:Connect(function(cam)
 	-- التحقق من أن الإشارة المرسلة هي بالضبط slapcam الساحة الثانية
-	if turnSlapState and currentMyArena then
+	if currentMyArena then
 		if cam == workspace.arenas.currentMyArena.slapcam then
+			useSlap=true
 			printlog("Cam is the target",false)
 			-- قيمة valueLabel (تأكد من تحديد مسار النص الصحيح في الـ GUI لديك)
-
-			if tonumber(valueLabel) then
+			
+			if autoSlapState and useSlap and tonumber(valueLabel) then
+				useSlap=false
 				sendSlapEvent:FireServer(tonumber(valueLabel))
 				printlog("Susseccful send to server.",false)
 			end
+		else
+			printlog("Cam not is the target.",true)
+			useSlap=false
 		end
 	else
-		printlog("Cam not is the target.",true)
+		printlog("Not in target arena.",true)
 	end
 end)
 
