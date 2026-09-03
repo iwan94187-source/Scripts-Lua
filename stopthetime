@@ -225,7 +225,7 @@ RunService.Heartbeat:Connect(function()
 			end
 		end
 	end
-game:GetDescendants()
+
 	if currentMyArea then
 		local mytable = currentMyArea:FindFirstChild("Table")
 		if mytable then 
@@ -247,7 +247,8 @@ game:GetDescendants()
 
 					printlog("الرقم المستخرج هو:".. extractedNumber,false)
 						-- يمكنك الآن استخدام المتغير extractedNumber هنا أو إرساله للـ Server
-
+				else
+					printlog("لم يعمل الفلترة",true)
 				end
 			else
 				printlog("TextLabel not found",true)
