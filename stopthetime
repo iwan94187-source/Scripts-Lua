@@ -231,7 +231,7 @@ game:GetDescendants()
 		if mytable then 
 			for _, dex in ipairs(mytable:GetDescendants()) do
 				if dex:IsA("TextLabel") and dex.Name == "TimeToSet" then 
-
+					printlog("TextLabel founded",false)
 					-- استخراج السلسلة الرقمية من داخل النص
 					local numberString = string.match(dex.Text, ">(%d+)%s*</font>")
 
