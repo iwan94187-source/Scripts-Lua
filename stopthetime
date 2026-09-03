@@ -6,6 +6,9 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local RunService = game:GetService("RunService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local GuiService = game:GetService("GuiService")
+local Stats = game:GetService("Stats")
 
 local gameFolder = workspace:WaitForChild("GameStations"):WaitForChild("Normal")
 
@@ -37,7 +40,7 @@ local function printlog(txt,set)
 end
 
 local Mainframe = Instance.new("Frame")
-Mainframe.Size=UDim2.new(0,250,0,225)
+Mainframe.Size=UDim2.new(0,200,0,75)
 Mainframe.Position=UDim2.new(0.125,0,0,0)
 Mainframe.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 Mainframe.Visible=false
@@ -46,7 +49,7 @@ Mainframe.Draggable=true
 Mainframe.Parent=screenGui
 
 local frameTitle = Instance.new("TextLabel")
-frameTitle.Size=UDim2.new(1,0,0.1,0)
+frameTitle.Size=UDim2.new(1,0,0.25,0)
 frameTitle.TextXAlignment=Enum.TextXAlignment.Left
 frameTitle.TextColor=BrickColor.new("White")
 frameTitle.BackgroundColor3=blk_color
@@ -55,11 +58,12 @@ frameTitle.TextTransparency=1
 frameTitle.Parent=Mainframe
 
 local txt = Instance.new("TextLabel")
-txt.Size=UDim2.new(0.7,0,1,0)
+txt.Size=UDim2.new(0.6,0,1,0)
 txt.Position=UDim2.new(0.05,0,0,0)
 txt.TextColor=BrickColor.new("White")
 txt.BackgroundTransparency=1
-txt.Text="Guess the Slapper ."
+txt.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+txt.Text="Stop the Timer (OP💯)"
 txt.TextScaled=true
 txt.Parent=frameTitle
 
@@ -82,7 +86,7 @@ destroyBtn.Parent=frameTitle
 
 local hideBtn = Instance.new("TextButton")
 hideBtn.Size=UDim2.new(0,20,0,20)
-hideBtn.Position=UDim2.new(0.82,0,0,0)
+hideBtn.Position=UDim2.new(0.80,0,0,0)
 hideBtn.BackgroundColor3=Color3.fromRGB(0, 170, 255)
 hideBtn.TextColor=BrickColor.new("White")
 hideBtn.Text="–"
@@ -120,12 +124,12 @@ end
 
 local function newBtn(name,pos,parent)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0.9, 0, 0.14, 0)
+	btn.Size = UDim2.new(0.9, 0, 0.5, 0)
 	btn.Position=UDim2.new(0.05,0,pos,0)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
 	btn.Text=name
-	btn.TextSize=2
+	btn.TextScaled=true
 	btn.Parent=parent
 	return btn
 end
@@ -188,20 +192,48 @@ local function newCustomUi(parent, rb,lb,ru,lu)
 	return ui
 end
 
-local testClick = newBtn(" Click",0.1,Mainframe)
+local function fixedTxt(parent,siz)
+	parent.TextTransparency=1
+
+	local lbl = Instance.new("TextLabel")
+	lbl.Size=UDim2.new(siz,0,0.4,0)
+	lbl.Position=UDim2.new(0,-10,0.3,0)
+	lbl.TextColor=BrickColor.new("White")
+	lbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+	lbl.TextStrokeTransparency=0
+	lbl.TextStrokeColor3=blk_color
+	lbl.BackgroundTransparency=1
+	lbl.Text=parent.Text
+	lbl.TextScaled=true
+	lbl.Parent=parent
+
+end
+
+local autoStopState=false
+local autoStopBtn = newBtn("Auto Stop", 0.35, Mainframe)
+autoStopBtn.TextXAlignment = Enum.TextXAlignment.Left
+local autoStopPlate = newPlate(autoStopBtn)
+local autoStopKnob = newKnob(autoStopPlate)
+
+fixedTxt(autoStopBtn,0.6)
 
 newUi(iconFrame)
 newUi(Mainframe)
 
-newUi(testClick)
+newUi(autoStopBtn)
+newUi(autoStopPlate)
+newUi(autoStopKnob)
 
 newCustomUi(frameTitle,10,10,10,10)
 newCustomUi(destroyBtn,10,10,10,10)
 newCustomUi(hideBtn,10,10,10,10)
 
 local BeBtn = nil
+local ref = false
+local isWaitingForReset = false
+local lastClickedTimerValue = nil
 
-printlog("9898",false)
+printlog("34444",false)
 RunService.Heartbeat:Connect(function()
 	local myChar = LocalPlayer.Character
 	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then 
@@ -238,12 +270,13 @@ RunService.Heartbeat:Connect(function()
 		local mytable = currentMyArea:FindFirstChild("Table")
 		local timerModel = currentMyArea:FindFirstChild("Timer")
 		local buttons = currentMyArea:FindFirstChild("Buttons")
-		
+
 		local timerStop = nil
 		local targetslot = nil
 		local targetTimer = nil 
 		BeBtn=nil
-		
+		local extractedNumber
+
 		if mytable then 
 			for _, dex in ipairs(mytable:GetDescendants()) do
 				if dex:IsA("TextLabel") and dex.Name == "TimeToSet" then 
@@ -251,7 +284,7 @@ RunService.Heartbeat:Connect(function()
 					break				
 				end
 			end
-				
+
 			if targetTimer then 
 				--printlog("TextLabel founded", false)
 
@@ -262,10 +295,8 @@ RunService.Heartbeat:Connect(function()
 				local numberString = string.match(cleanText, "%d+%.?%d*")
 
 				if numberString then
-					local extractedNumber = tonumber(numberString)
+					extractedNumber = tonumber(numberString)
 					--printlog("الرقم المستخرج الصحيح هو: " .. extractedNumber, false)
-
-					-- استخدم extractedNumber هنا
 				else
 					--printlog("لم يتم العثور على أرقام في النص المنظف: " .. tostring(cleanText), true)
 				end
@@ -273,7 +304,7 @@ RunService.Heartbeat:Connect(function()
 				--printlog("TextLabel not found", true)
 			end
 		end
-		
+
 		if chairs then  
 			for _, dex in ipairs(chairs:GetDescendants()) do
 				if dex:IsA("Weld") and dex.Name=="SeatWeld" then 
@@ -282,9 +313,9 @@ RunService.Heartbeat:Connect(function()
 						break
 					end
 				end 
-			
+
 			end
-			
+
 			if targetslot then 
 				--printlog(targetslot.Name.." Chair!", false)
 				if timerModel then 
@@ -300,7 +331,7 @@ RunService.Heartbeat:Connect(function()
 				else
 					--printlog("player model not found", true)
 				end
-				
+
 				if buttons then 
 					local model = buttons:FindFirstChild(targetslot.Name)
 					if model then 
@@ -309,11 +340,11 @@ RunService.Heartbeat:Connect(function()
 							BeBtn=base
 							--printlog(BeBtn.Name.." was found",false)
 						end
-						
+
 					else
 						--printlog("Model was not-found",true)
 					end
-					
+
 				else
 					--printlog("Btn not found",true)
 				end
@@ -323,30 +354,77 @@ RunService.Heartbeat:Connect(function()
 		else
 			--printlog("Folder not found", true)
 		end
-		
+
+		if timerStop and extractedNumber and BeBtn then
+			local cleanTimerStopText = string.gsub(timerStop.Text, "<[^>]+>", "")
+			local currentTimerValue = tonumber(string.match(cleanTimerStopText, "%d+%.?%d*"))
+
+			if currentTimerValue then
+
+				-- 1. إذا كنا في حالة انتظار: ننتظر حتى تتغير قيمة المؤقت (تصفير أو إعادة تشغيل)
+				if isWaitingForReset then
+					if currentTimerValue ~= lastClickedTimerValue then
+						isWaitingForReset = false
+						lastClickedTimerValue = nil
+						printlog("تم تغير المؤقت، جاري التجهيز للدورة القادمة...", false)
+					end
+				end
+
+				-- 2. تنفيذ الضغط فور وصول المؤقت للرقم المطلوب بشرط ألا نكون في حالة انتظار
+				if autoStopState and not isWaitingForReset and currentTimerValue >= extractedNumber then
+					local camera = workspace.CurrentCamera
+					local screenPosition, isOnScreen = camera:WorldToScreenPoint(BeBtn.Position)
+				
+					if isOnScreen then
+						local hiddenGuis = {}
+						
+						if PlayerGui then
+							for _, gui in ipairs(PlayerGui:GetChildren()) do
+								if gui:IsA("ScreenGui") and gui.Enabled then
+									gui.Enabled = false
+									table.insert(hiddenGuis, gui)
+								end
+							end
+						end
+						
+						local topbarOffset = GuiService:GetGuiInset()
+						local x = screenPosition.X + topbarOffset.X
+						local y = screenPosition.Y + topbarOffset.Y
+
+						-- محاكاة النقر
+						VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 0)
+						VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
+						
+						for _, gui in ipairs(hiddenGuis) do
+							gui.Enabled = true
+						end
+						
+						printlog("تم الوصول للوقت المطلوب والنقر بنجاح!", false)
+
+						-- قفل العملية حتى تتغير القيمة من اللعبة
+						isWaitingForReset = true
+						lastClickedTimerValue = currentTimerValue
+					end
+				end
+
+			end
+		end
 	end
-	
+
 end)
 
-local lock = false
-testClick.MouseButton1Click:Connect(function()
-	if not BeBtn then return end
-	printlog("Susseccful activate the btn",false)
-	if not lock and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-		lock=true
-		local hrp = LocalPlayer.Character.HumanoidRootPart
-		printlog("Susseccful click the btn",false)
-		-- محاكاة اللمس
-		firetouchinterest(hrp, BeBtn, 0) -- بدء اللمس
-		task.wait(0.1)
-		firetouchinterest(hrp, BeBtn, 1) -- إنهاء اللمس
-		task.wait(1)
-		
-		printlog("Wating",true)
-		
-	else printlog("character not found!",true)	
+
+autoStopBtn.MouseButton1Click:Connect(function()
+	autoStopState = not autoStopState
+	if autoStopState then 
+		autoStopKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
+		autoStopPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		autoStopKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
+		autoStopPlate.BackgroundColor3 = blk_color
 	end
 end)
+
 
 
 
