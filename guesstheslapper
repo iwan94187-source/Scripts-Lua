@@ -12,7 +12,7 @@ local slapTurn = Event and Event:WaitForChild("SlapQueue",5)
 local guessEvent = Event and Event:WaitForChild("Guess",5)
 local sendSlapEvent = Event and Event:WaitForChild("SendSlap",5)
 local dodgeEvent = Event and Event:WaitForChild("Dodge",5)
-
+local changecamEvent = Event and  Event:WaitForChild("CameraChange",5)
 local areanasFolder = workspace:WaitForChild("arenas",5)
 
 local gameScreenGui = PlayerGui:WaitForChild("ScreenGui",5)
@@ -435,10 +435,8 @@ RunService.Heartbeat:Connect(function()
 							if isPartInsidePart(otherRoot, slaptp) then
 								if useSlap then
 									useSlap=false
-									sendSlapEvent:FireServer(tonumber(valueLabel))
+									--sendSlapEvent:FireServer(tonumber(valueLabel))
 								end
-
-
 							end
 
 						end
@@ -448,7 +446,7 @@ RunService.Heartbeat:Connect(function()
 			end
 
 			if foundPlayer then
-				printlog("Player founded",true)
+				--printlog("Player founded",true)
 				if autoGuessState and suspk and suspk.Visible then 
 					guessEvent:FireServer(foundPlayer.Name)
 				end
@@ -459,16 +457,16 @@ RunService.Heartbeat:Connect(function()
 					--safeClickDodge(dodgeBtn)
 				end
 			else
-				printlog("No player yet",false)
+				--printlog("No player yet",false)
 				if turnSlapState then
 					if slapbut.Visible then 
-						printlog("Susseccful btn trigged",false)
+						--printlog("Susseccful btn trigged",false)
 						slapTurn:FireServer()
 					else
-						printlog("Slapbut not visible",true)
+						--printlog("Slapbut not visible",true)
 					end
 				else
-					printlog("Btn not activate yet",true)
+					--printlog("Btn not activate yet",true)
 				end
 			end
 
@@ -524,6 +522,20 @@ autoSlapBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-local lastSendTime = 0
+printlog("Waiting for Event",false)
+changecamEvent.OnClientEvent:Connect(function(cam)
+	-- التحقق من أن الإشارة المرسلة هي بالضبط slapcam الساحة الثانية
+	if cam == workspace.arenas:GetChildren()[2].slapcam then
+		printlog("Cam is the target",false)
+		-- قيمة valueLabel (تأكد من تحديد مسار النص الصحيح في الـ GUI لديك)
+
+		if tonumber(valueLabel) then
+			sendSlapEvent:FireServer(tonumber(valueLabel))
+			printlog("Susseccful send to server.",false)
+		end
+	else
+		printlog("Cam not is the target.",true)
+	end
+end)
 
 
