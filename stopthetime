@@ -376,16 +376,7 @@ RunService.Heartbeat:Connect(function()
 					local screenPosition, isOnScreen = camera:WorldToScreenPoint(BeBtn.Position)
 				
 					if isOnScreen then
-						local hiddenGuis = {}
 						
-						if PlayerGui then
-							for _, gui in ipairs(PlayerGui:GetChildren()) do
-								if gui:IsA("ScreenGui") and gui.Enabled then
-									gui.Enabled = false
-									table.insert(hiddenGuis, gui)
-								end
-							end
-						end
 						
 						local topbarOffset = GuiService:GetGuiInset()
 						local x = screenPosition.X + topbarOffset.X
@@ -395,9 +386,6 @@ RunService.Heartbeat:Connect(function()
 						VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 0)
 						VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
 						
-						for _, gui in ipairs(hiddenGuis) do
-							gui.Enabled = true
-						end
 						
 						printlog("تم الوصول للوقت المطلوب والنقر بنجاح!", false)
 
