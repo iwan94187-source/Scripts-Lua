@@ -201,8 +201,8 @@ newCustomUi(hideBtn,10,10,10,10)
 
 local BeBtn = nil
 
+printlog("8874",false)
 RunService.Heartbeat:Connect(function()
-	printlog("3989",false)
 	local myChar = LocalPlayer.Character
 	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then 
 		return 
@@ -307,15 +307,15 @@ RunService.Heartbeat:Connect(function()
 						local base = model:FindFirstChild("Button")
 						if base then 
 							BeBtn=base
-							printlog(BeBtn.Name.." was found",false)
+							--printlog(BeBtn.Name.." was found",false)
 						end
 						
 					else
-						printlog("Model was not-found",true)
+						--printlog("Model was not-found",true)
 					end
 					
 				else
-					printlog("Btn not found",true)
+					--printlog("Btn not found",true)
 				end
 			else
 				--printlog("Chair not found", true)
@@ -328,16 +328,23 @@ RunService.Heartbeat:Connect(function()
 	
 end)
 
+local lock = false
 testClick.MouseButton1Click:Connect(function()
 	if not BeBtn then return end
-	if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+	printlog("Susseccful activate the btn",false)
+	if not lock and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+		lock=true
 		local hrp = LocalPlayer.Character.HumanoidRootPart
-
+		printlog("Susseccful click the btn",false)
 		-- محاكاة اللمس
 		firetouchinterest(hrp, BeBtn, 0) -- بدء اللمس
 		task.wait(0.1)
 		firetouchinterest(hrp, BeBtn, 1) -- إنهاء اللمس
-		print("تمت محاكاة لمس الزر!")
+		task.wait(1)
+		
+		printlog("Wating",true)
+		
+	else printlog("character not found!",true)	
 	end
 end)
 
