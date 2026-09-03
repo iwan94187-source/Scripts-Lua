@@ -198,7 +198,7 @@ newCustomUi(hideBtn,10,10,10,10)
 
 
 RunService.Heartbeat:Connect(function()
-	printlog("22323",false)
+	printlog("34444",false)
 	local myChar = LocalPlayer.Character
 	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then 
 		return 
@@ -229,9 +229,14 @@ RunService.Heartbeat:Connect(function()
 	end
 
 	if currentMyArea then
+		local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") 
+		local chairs = currentMyArea:FindFirstChild("Chairs")
 		local mytable = currentMyArea:FindFirstChild("Table")
+		
+		local targetslot = nil
+		local targetTimer = nil 
+		
 		if mytable then 
-			local targetTimer = nil 
 			for _, dex in ipairs(mytable:GetDescendants()) do
 				if dex:IsA("TextLabel") and dex.Name == "TimeToSet" then 
 					targetTimer=dex
@@ -240,23 +245,47 @@ RunService.Heartbeat:Connect(function()
 			end
 				
 			if targetTimer then 
-				printlog("TextLabel founded",false)
-				local numberString = string.match(targetTimer.Text, ">(%d+)%s*</font>")
+				--printlog("TextLabel founded", false)
+
+				-- 1. تنظيف النص كلياً من أي وسوم مثل <font color="..."> أو </font>
+				local cleanText = string.gsub(targetTimer.Text, "<[^>]+>", "")
+
+				-- 2. استخراج الرقم العشري أو الصحيح من النص بعد تنظيفه
+				local numberString = string.match(cleanText, "%d+%.?%d*")
 
 				if numberString then
-						-- تحويل النص إلى رقم
 					local extractedNumber = tonumber(numberString)
+					--printlog("الرقم المستخرج الصحيح هو: " .. extractedNumber, false)
 
-					printlog("الرقم المستخرج هو:".. extractedNumber,false)
-						-- يمكنك الآن استخدام المتغير extractedNumber هنا أو إرساله للـ Server
+					-- استخدم extractedNumber هنا
 				else
-					printlog("لم يعمل الفلترة",true)
+					--printlog("لم يتم العثور على أرقام في النص المنظف: " .. tostring(cleanText), true)
 				end
 			else
-				printlog("TextLabel not found",true)
+				--printlog("TextLabel not found", true)
+			end
+		end
+		
+		if chairs then  
+			for _, dex in ipairs(chairs:GetDescendants()) do
+				if dex:IsA("Weld") and dex.Name=="SeatWeld" then 
+					if dex.Part1==myRoot then 
+						targetslot=dex.parent.parent
+						break
+					end
+				end 
+			
 			end
 			
+			if targetslot then 
+				printlog(targetslot.Name.." Chair!", false)
+			else
+				printlog("Chair not found", true)
+			end
+		else
+			printlog("Folder not found", true)
 		end
+		
 	end
 end)
 
