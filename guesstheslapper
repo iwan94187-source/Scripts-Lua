@@ -508,8 +508,10 @@ end)
 Instance.new("Part"):GetDescendants()
 printlog("Waiting for Event",false)
 changecamEvent.OnClientEvent:Connect(function(cam)
+	printlog("Event start.",false)
 	-- التحقق من أن الإشارة المرسلة هي بالضبط slapcam الساحة الثانية
 	if currentMyArena then
+		
 		if cam == workspace.arenas:FindFirstChild(currentMyArena).slapcam then
 			useSlap=true
 			printlog("Cam is the target",false)
