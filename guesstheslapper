@@ -28,7 +28,7 @@ screenGui.ResetOnSpawn = false
 
 
 local blk_color = Color3.fromRGB(24,24,24)
-local useSlap = true
+local isCamTarget = false
 local vb = nil 
 
 local helperTextLabel = Instance.new("TextLabel")
@@ -321,6 +321,16 @@ local function updateSlider(input)
 	return value
 end
 
+function checkAndSendSlap()
+	-- استخراج الرقم بأمان سواء كان valueLabel كائن GUI أو نص
+
+	if autoSlapState and isCamTarget and valueLabel then
+		sendSlapEvent:FireServer(valueLabel)
+		printlog("Successful send to server.", false)
+	end
+end
+
+
 knob.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 		dragging = true
@@ -457,13 +467,6 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
-RunService.Heartbeat:Connect(function()
-	if autoSlapState and useSlap and tonumber(valueLabel) then
-		useSlap=false
-		sendSlapEvent:FireServer(tonumber(valueLabel))
-		printlog("Susseccful send to server.",false)
-	end
-end)
 
 autoDodgeBtn.MouseButton1Click:Connect(function()
 	autododgeState = not autododgeState
@@ -507,31 +510,33 @@ autoSlapBtn.MouseButton1Click:Connect(function()
 		autoSlapKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
 		autoSlapPlate.BackgroundColor3 = blk_color
 	end
+	checkAndSendSlap()
 end)
 
-Instance.new("Part"):GetDescendants()
-printlog("Waiting for Event",false)
+
+-- 3. اطلب تنفيذ هذه الدالة فور تغيير زر الـ AutoSlap إلى (True)
+-- مثال: عند الضغط على الزر لتفعيل الـ AutoSlap
+
 changecamEvent.OnClientEvent:Connect(function(cam)
-	printlog("Event start.",false)
-	-- التحقق من أن الإشارة المرسلة هي بالضبط slapcam الساحة الثانية
+	printlog("Event start.", false)
+
 	if currentMyArena then
-		
-		if cam == currentMyArena.slapbut then
-			useSlap=true
-			printlog("Cam is the target",false)
-			-- قيمة valueLabel (تأكد من تحديد مسار النص الصحيح في الـ GUI لديك)
-			
-			if autoSlapState and useSlap and tonumber(valueLabel) then
-				useSlap=false
-				sendSlapEvent:FireServer(tonumber(valueLabel))
-				printlog("Susseccful send to server.",false)
-			end
+		-- التأكد من كائن الكاميرا المطلوبة داخل الساحة
+		local targetObject = currentMyArena.slapbut
+
+		if cam == targetObject then
+			isCamTarget = true
+			printlog("Cam is the target", false)
+
+			-- إذا كان الخيار مفعلاً بالفعل لحظة وصول الكاميرا، أرسل فوراً
+			checkAndSendSlap()
 		else
-			printlog("Cam not is the target.",true)
-			useSlap=false
+			isCamTarget = false
+			printlog("Cam is not the target.", true)
 		end
 	else
-		printlog("Not in target arena.",true)
+		isCamTarget = false
+		printlog("Not in target arena.", true)
 	end
 end)
 
