@@ -237,6 +237,7 @@ RunService.Heartbeat:Connect(function()
 		local timerStop = nil
 		local targetslot = nil
 		local targetTimer = nil 
+
 		
 		if mytable then 
 			for _, dex in ipairs(mytable:GetDescendants()) do
@@ -301,7 +302,7 @@ RunService.Heartbeat:Connect(function()
 			printlog("Folder not found", true)
 		end
 		
-		printlog(targetTimer, targetslot,timerStop)
+		printlog(targetTimer.Name..", "..targetslot.Name..", "..timerStop.Text,false)
 		
 	end
 	
