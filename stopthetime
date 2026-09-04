@@ -9,7 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local GuiService = game:GetService("GuiService")
 local Stats = game:GetService("Stats")
- 
+
 local gameFolder = workspace:WaitForChild("GameStations"):WaitForChild("Normal")
 
 -- 1. إنشاء الواجهة والخط الرئيسي (Slider Frame)
@@ -229,195 +229,167 @@ newCustomUi(frameTitle,10,10,10,10)
 newCustomUi(destroyBtn,10,10,10,10)
 newCustomUi(hideBtn,10,10,10,10)
 
+local targetTimer = nil
+local targetslot = nil
+local timerStop = nil
 local BeBtn = nil
-local ref = false
+local extractedNumber = nil
+
 local isWaitingForReset = false
 local lastClickedTimerValue = nil
+local lastTimerValue = nil
+local lastFrameTime = nil
+printlog("02939",false)
+task.spawn(function()
+	while true do
+		local myChar = LocalPlayer.Character
+		local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+		local currentMyArea = nil
 
-printlog("019",false)
-RunService.Heartbeat:Connect(function()
-	local myChar = LocalPlayer.Character
-	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then 
-		return 
-	end
-
-	local myRoot = myChar.HumanoidRootPart
-	local currentMyArea = nil
-
-	for _, child in ipairs(gameFolder:GetChildren()) do
-		if child:IsA("Model") then
-			local isInside = false
-			local primaryPart = child.PrimaryPart or child:FindFirstChildWhichIsA("BasePart")
-			if primaryPart then
-				local cframe, size = child:GetBoundingBox()
-				local localPos = cframe:PointToObjectSpace(myRoot.Position)
-				if math.abs(localPos.X) <= (size.X / 2) and
-					math.abs(localPos.Y) <= (size.Y / 2) and
-					math.abs(localPos.Z) <= (size.Z / 2) then
-					isInside = true
+		if myRoot and gameFolder then
+			for _, child in ipairs(gameFolder:GetChildren()) do
+				if child:IsA("Model") then
+					local primaryPart = child.PrimaryPart or child:FindFirstChildWhichIsA("BasePart")
+					if primaryPart then
+						local cframe, size = child:GetBoundingBox()
+						local localPos = cframe:PointToObjectSpace(myRoot.Position)
+						if math.abs(localPos.X) <= (size.X / 2) and
+							math.abs(localPos.Y) <= (size.Y / 2) and
+							math.abs(localPos.Z) <= (size.Z / 2) then
+							currentMyArea = child
+							break
+						end
+					end
 				end
-			end
-
-			if isInside then
-				currentMyArea = child
-				break
-			end
-		end
-	end
-
-	if currentMyArea then
-		local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") 
-		local chairs = currentMyArea:FindFirstChild("Chairs")
-		local mytable = currentMyArea:FindFirstChild("Table")
-		local timerModel = currentMyArea:FindFirstChild("Timer")
-		local buttons = currentMyArea:FindFirstChild("Buttons")
-
-		local timerStop = nil
-		local targetslot = nil
-		local targetTimer = nil 
-		BeBtn=nil
-		local extractedNumber
-
-		if mytable then 
-			for _, dex in ipairs(mytable:GetDescendants()) do
-				if dex:IsA("TextLabel") and dex.Name == "TimeToSet" then 
-					targetTimer=dex
-					break				
-				end
-			end
-
-			if targetTimer then 
-				--printlog("TextLabel founded", false)
-
-				-- 1. تنظيف النص كلياً من أي وسوم مثل <font color="..."> أو </font>
-				local cleanText = string.gsub(targetTimer.Text, "<[^>]+>", "")
-
-				-- 2. استخراج الرقم العشري أو الصحيح من النص بعد تنظيفه
-				local numberString = string.match(cleanText, "%d+%.?%d*")
-
-				if numberString then
-					extractedNumber = tonumber(numberString)
-					--printlog("الرقم المستخرج الصحيح هو: " .. extractedNumber, false)
-				else
-					--printlog("لم يتم العثور على أرقام في النص المنظف: " .. tostring(cleanText), true)
-				end
-			else
-				--printlog("TextLabel not found", true)
 			end
 		end
 
-		if chairs then  
-			for _, dex in ipairs(chairs:GetDescendants()) do
-				if dex:IsA("Weld") and dex.Name=="SeatWeld" then 
-					if dex.Part1==myRoot then 
-						targetslot=dex.parent.parent
+		if currentMyArea and myRoot then
+			local chairs = currentMyArea:FindFirstChild("Chairs")
+			local mytable = currentMyArea:FindFirstChild("Table")
+			local timerModel = currentMyArea:FindFirstChild("Timer")
+			local buttons = currentMyArea:FindFirstChild("Buttons")
+
+			-- العثور على الطاولة واستخراج الرقم المطلوب
+			if mytable then 
+				for _, dex in ipairs(mytable:GetDescendants()) do
+					if dex:IsA("TextLabel") and dex.Name == "TimeToSet" then 
+						targetTimer = dex
+						break				
+					end
+				end
+
+				if targetTimer then 
+					local cleanText = string.gsub(targetTimer.Text, "<[^>]+>", "")
+					local numberString = string.match(cleanText, "%d+%.?%d*")
+					if numberString then
+						extractedNumber = tonumber(numberString)
+					end
+				end
+			end
+
+			-- العثور على الكرسي والزر والمؤقت الخاص بك
+			if chairs then  
+				for _, dex in ipairs(chairs:GetDescendants()) do
+					if dex:IsA("Weld") and dex.Name == "SeatWeld" and dex.Part1 == myRoot then 
+						targetslot = dex.Parent and dex.Parent.Parent
 						break
 					end
 				end 
 
-			end
-
-			if targetslot then 
-				--printlog(targetslot.Name.." Chair!", false)
-				if timerModel then 
-					local base = timerModel:FindFirstChild(targetslot.Name)
-					if base then 
-						for _, dex in ipairs(base:GetDescendants()) do 
-							if dex:IsA("TextLabel") and dex.Name=="TimerText" then 
-								timerStop=dex
-								break
+				if targetslot then 
+					if timerModel then 
+						local base = timerModel:FindFirstChild(targetslot.Name)
+						if base then 
+							for _, dex in ipairs(base:GetDescendants()) do 
+								if dex:IsA("TextLabel") and dex.Name == "TimerText" then 
+									timerStop = dex
+									break
+								end
 							end
 						end
 					end
-				else
-					--printlog("player model not found", true)
-				end
 
-				if buttons then 
-					local model = buttons:FindFirstChild(targetslot.Name)
-					if model then 
-						local base = model:FindFirstChild("Button")
-						if base then 
-							BeBtn=base
-							--printlog(BeBtn.Name.." was found",false)
+					if buttons then 
+						local model = buttons:FindFirstChild(targetslot.Name)
+						if model and model:FindFirstChild("Button") then 
+							BeBtn = model.Button
 						end
-
-					else
-						--printlog("Model was not-found",true)
 					end
-
-				else
-					--printlog("Btn not found",true)
 				end
-			else
-				--printlog("Chair not found", true)
 			end
 		else
-			--printlog("Folder not found", true)
+			-- تصفير جميع المتغيرات عند الخروج من المنطقة
+			targetTimer = nil
+			targetslot = nil
+			timerStop = nil
+			BeBtn = nil
+			extractedNumber = nil
 		end
 
-		if timerStop and extractedNumber and BeBtn then
-			local cleanTimerStopText = string.gsub(timerStop.Text, "<[^>]+>", "")
-			local currentTimerValue = tonumber(string.match(cleanTimerStopText, "%d+%.?%d*"))
-			local currentTime = os.clock()
+		-- الانتظار ربع ثانية قبل الفحص القادم لخفيض الضغط عن اللعبة
+		task.wait(0.25)
+	end
+end)
 
-			if currentTimerValue then
-
-				-- 1. إعادة الضبط للدورة الجديدة عند تغير المؤقت
-				if isWaitingForReset then
-					if math.abs(currentTimerValue - (lastClickedTimerValue or 0)) > 0.05 then
-						isWaitingForReset = false
-						lastClickedTimerValue = nil
-						lastTimerValue = nil
-						lastFrameTime = nil
-						
-					end
-				end
-
-				-- 2. حساب سرعة زيادة المؤقت بين الإطارات ديناميكياً
-				local predictedNextValue = currentTimerValue
-
-				if lastTimerValue and lastFrameTime and not isWaitingForReset then
-					local deltaTime = currentTime - lastFrameTime
-					local valueChange = currentTimerValue - lastTimerValue
-
-					-- حساب السرعة (معدل التغير في الثانية)
-					if deltaTime > 0 and valueChange > 0 then
-						local currentRate = valueChange / deltaTime
-						-- التنبؤ بـ القيمة التي سيصل لها المؤقت في الإطار القادم تماماً
-						predictedNextValue = currentTimerValue + (currentRate * deltaTime)
-					end
-				end
-
-				-- تحديث أحدث السجلات للإطار القادم
-				lastTimerValue = currentTimerValue
-				lastFrameTime = currentTime
-
-				-- 3. تنفيذ الضغط إذا كانت القيمة الحالية أو المتوقعة للإطار القادم تصل للهدف
-				if autoStopState and not isWaitingForReset and (currentTimerValue >= extractedNumber or predictedNextValue >= extractedNumber) then
-					local camera = workspace.CurrentCamera
-					local screenPosition, isOnScreen = camera:WorldToScreenPoint(BeBtn.Position)
-
-					if isOnScreen then
-						local topbarOffset = GuiService:GetGuiInset()
-						local x = screenPosition.X + topbarOffset.X
-						local y = screenPosition.Y + topbarOffset.Y
-
-						-- تنفيذ الضغطة المباشرة
-						VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 0)
-						VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
-
-		
-
-						isWaitingForReset = true
-						lastClickedTimerValue = currentTimerValue
-					end
-				end
-
-			end
-		end
+-- 2. دالة المراقبة السريعة والنقر (تعمل مع كل إطار بلمح البصر)
+RunService.Heartbeat:Connect(function()
+	if not autoStopState or not timerStop or not extractedNumber or not BeBtn then
+		return
 	end
 
+	local cleanTimerStopText = string.gsub(timerStop.Text, "<[^>]+>", "")
+	local currentTimerValue = tonumber(string.match(cleanTimerStopText, "%d+%.?%d*"))
+	local currentTime = os.clock()
+
+	if currentTimerValue then
+
+		-- إعادة الضبط للدورة الجديدة عند تغير المؤقت
+		if isWaitingForReset then
+			if math.abs(currentTimerValue - (lastClickedTimerValue or 0)) > 0.05 then
+				isWaitingForReset = false
+				lastClickedTimerValue = nil
+				lastTimerValue = nil
+				lastFrameTime = nil
+			end
+			return
+		end
+
+		-- حساب سرعة زيادة المؤقت بين الإطارات ديناميكياً
+		local predictedNextValue = currentTimerValue
+
+		if lastTimerValue and lastFrameTime then
+			local deltaTime = currentTime - lastFrameTime
+			local valueChange = currentTimerValue - lastTimerValue
+
+			if deltaTime > 0 and valueChange > 0 then
+				local currentRate = valueChange / deltaTime
+				predictedNextValue = currentTimerValue + (currentRate * deltaTime)
+			end
+		end
+
+		lastTimerValue = currentTimerValue
+		lastFrameTime = currentTime
+
+		-- تنفيذ الضغط المباشر
+		if currentTimerValue >= extractedNumber or predictedNextValue >= extractedNumber then
+			local camera = workspace.CurrentCamera
+			local screenPosition, isOnScreen = camera:WorldToScreenPoint(BeBtn.Position)
+
+			if isOnScreen then
+				local topbarOffset = GuiService:GetGuiInset()
+				local x = screenPosition.X + topbarOffset.X
+				local y = screenPosition.Y + topbarOffset.Y
+
+				VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 0)
+				VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
+
+				isWaitingForReset = true
+				lastClickedTimerValue = currentTimerValue
+			end
+		end
+
+	end
 end)
 
 
@@ -431,3 +403,7 @@ autoStopBtn.MouseButton1Click:Connect(function()
 		autoStopPlate.BackgroundColor3 = blk_color
 	end
 end)
+
+
+
+
