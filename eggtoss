@@ -6,16 +6,6 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local runService = game:GetService("RunService")
 
 local eggvalue = nil
-
-while not eggvalue do
-	for _, dex in ipairs(PlayerGui:GetDescendants()) do 
-		if dex:IsA("IntValue") and dex.Name=="Eggs" then 
-			eggvalue=dex
-			break
-		end
-	end
-	task.wait(0.1)
-end
 	
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local remoteEvents = ReplicatedStorage:WaitForChild("RemoteEvents")
@@ -27,7 +17,37 @@ local StepBackEvent = remoteEvents:WaitForChild("StepBack")
 local screenGui = Instance.new("ScreenGui", PlayerGui)
 screenGui.ResetOnSpawn = false
 
+
 local blk_color, gry = Color3.fromRGB(24,24,24), Color3.fromRGB(52, 52, 52)
+
+local helperTextLabel = Instance.new("TextLabel")
+helperTextLabel.Size=UDim2.new(0,200,0,50)
+helperTextLabel.Transparency=0.5
+helperTextLabel.BackgroundColor3=blk_color
+helperTextLabel.TextColor=BrickColor.new("White")
+helperTextLabel.TextScaled=true
+helperTextLabel.Parent=screenGui
+
+local function printlog(txt,set)
+	if set then 
+		helperTextLabel.TextColor=BrickColor.new("Really red")
+	else
+		helperTextLabel.TextColor=BrickColor.new("Lime green")
+	end
+	helperTextLabel.Text=txt
+end
+
+while not eggvalue do
+	printlog("egg not found!",true)
+	for _, dex in ipairs(PlayerGui:GetDescendants()) do 
+		if dex:IsA("IntValue") and dex.Name=="Eggs" then 
+			eggvalue=dex
+			printlog("egg found!",false)
+			break
+		end
+	end
+	task.wait(0.1)
+end
 
 local Mainframe = Instance.new("Frame")
 Mainframe.Size=UDim2.new(0,250,0,300)
@@ -428,12 +448,6 @@ local function updateStepBackState(enabled)
 	end
 end
 
-eggvalue:GetPropertyChangedSignal("Value"):Connect(function()
-	if infEggState then 
-		eggvalue.Value=99
-	end
-end)
-
 -- 5. حماية إضافية: في حال قام الماب بربط اتصال جديد أثناء اللعب
 StepBackEvent.OnClientEvent:Connect(function()
 	if anitBackState then
@@ -528,8 +542,6 @@ end)
 infEggBtn.MouseButton1Click:Connect(function()
 	infEggState = not infEggState
 	if infEggState then 
-		
-		eggvalue.Value=99
 		
 		infEggKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
 		infEggPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
