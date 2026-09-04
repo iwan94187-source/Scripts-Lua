@@ -30,7 +30,7 @@ helperTextLabel.Transparency=0.5
 helperTextLabel.BackgroundColor3=blk_color
 helperTextLabel.TextColor=BrickColor.new("White")
 helperTextLabel.TextScaled=true
-helperTextLabel.Parent=screenGui
+--helperTextLabel.Parent=screenGui
 
 local function printlog(txt,set)
 	if set then 
@@ -240,7 +240,8 @@ local isWaitingForReset = false
 local lastClickedTimerValue = nil
 local lastTimerValue = nil
 local lastFrameTime = nil
-printlog("3223",false)
+printlog("6422",false)
+
 task.spawn(function()
 	while true do
 		local myChar = LocalPlayer.Character
@@ -333,14 +334,13 @@ task.spawn(function()
 	end
 end)
 
-local velocitySamples = {} -- مصفوفة لتخزين سرعات الفريمات الأخيرة وتنظيف التذبذب
+local velocitySamples = {}
 
 RunService.Heartbeat:Connect(function()
 	if not autoStopState or not timerStop or not extractedNumber or not BeBtn then
 		return
 	end
 
-	-- قراءة سريعة ومباشرة تحسباً للتأخير النصي
 	local rawText = timerStop.Text
 	local numberString = string.match(rawText, "%d+%.?%d*")
 	local currentTimerValue = numberString and tonumber(numberString)
@@ -360,8 +360,8 @@ RunService.Heartbeat:Connect(function()
 		return
 	end
 
-	-- 2. حساب السرعة وتنعيمها (Smooth Rate Prediction)
-	local predictedNextValue = currentTimerValue
+	-- 2. حساب وقت الوصول الدقيق للهدف
+	local shouldClick = false
 
 	if lastTimerValue and lastFrameTime then
 		local deltaTime = currentTime - lastFrameTime
@@ -370,7 +370,6 @@ RunService.Heartbeat:Connect(function()
 		if deltaTime > 0 and valueChange > 0 then
 			local instantRate = valueChange / deltaTime
 
-			-- إدراج السرعة الحالية لحساب المتوسط لأخر 3 فريمات
 			table.insert(velocitySamples, instantRate)
 			if #velocitySamples > 3 then
 				table.remove(velocitySamples, 1)
@@ -382,16 +381,28 @@ RunService.Heartbeat:Connect(function()
 			end
 			averageRate = averageRate / #velocitySamples
 
-			-- التنبؤ المباشر للفريم القادم بدقة عالية
-			predictedNextValue = currentTimerValue + (averageRate * deltaTime)
+			-- حساب المتبقي للوصول للهدف بالظبط
+			local remainingValue = extractedNumber - currentTimerValue
+			local timeToTarget = remainingValue / averageRate
+
+			-- النقر إذا كان الوقت المتبقي أقل من زمن الفريم + نصف فريم إضافي لحسم التأرجح
+			-- هذا يضمن عدم الوقوع في الفراغ بين 5.99 و 6.01
+			if timeToTarget <= (deltaTime * 0.85) then
+				shouldClick = true
+			end
 		end
 	end
 
 	lastTimerValue = currentTimerValue
 	lastFrameTime = currentTime
 
-	-- 3. شرط الضغط الدقيق
-	if currentTimerValue >= extractedNumber or predictedNextValue >= extractedNumber then
+	-- حماية عند الوصول المباشر
+	if currentTimerValue >= extractedNumber then
+		shouldClick = true
+	end
+
+	-- 3. تنفيذ النقر الفوري
+	if shouldClick then
 		local camera = workspace.CurrentCamera
 		local screenPosition, isOnScreen = camera:WorldToScreenPoint(BeBtn.Position)
 
@@ -420,7 +431,3 @@ autoStopBtn.MouseButton1Click:Connect(function()
 		autoStopPlate.BackgroundColor3 = blk_color
 	end
 end)
-
-
-
-
