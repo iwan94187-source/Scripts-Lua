@@ -17,7 +17,6 @@ local StepBackEvent = remoteEvents:WaitForChild("StepBack")
 local screenGui = Instance.new("ScreenGui", PlayerGui)
 screenGui.ResetOnSpawn = false
 
-
 local blk_color, gry = Color3.fromRGB(24,24,24), Color3.fromRGB(52, 52, 52)
 
 local helperTextLabel = Instance.new("TextLabel")
