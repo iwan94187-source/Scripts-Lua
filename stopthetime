@@ -30,6 +30,7 @@ helperTextLabel.Transparency=0.5
 helperTextLabel.BackgroundColor3=blk_color
 helperTextLabel.TextColor=BrickColor.new("White")
 helperTextLabel.TextScaled=true
+helperTextLabel.Parent=screenGui
 
 local function printlog(txt,set)
 	if set then 
