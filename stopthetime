@@ -9,7 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local GuiService = game:GetService("GuiService")
 local Stats = game:GetService("Stats")
-
+ 
 local gameFolder = workspace:WaitForChild("GameStations"):WaitForChild("Normal")
 
 -- 1. إنشاء الواجهة والخط الرئيسي (Slider Frame)
