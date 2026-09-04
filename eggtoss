@@ -5,6 +5,18 @@ local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local runService = game:GetService("RunService")
 
+local eggvalue = nil
+
+while not eggvalue do
+	for _, dex in ipairs(PlayerGui:GetDescendants()) do 
+		if dex:IsA("IntValue") and dex.Name=="Eggs" then 
+			eggvalue=dex
+			break
+		end
+	end
+	task.wait(0.1)
+end
+	
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local remoteEvents = ReplicatedStorage:WaitForChild("RemoteEvents")
 local eggThrowEvent = remoteEvents:WaitForChild("EggThrowEvent")
@@ -236,6 +248,12 @@ maxZoomBtn.TextXAlignment="Left"
 local maxZoomPlate = newPlate(maxZoomBtn)
 local maxZoomKnob = newKnob(maxZoomPlate)
 
+local infEggState = false
+local infEggBtn = newBtn(" Infinity Eggs",0.50,frame_1)
+infEggBtn.TextXAlignment="Left"
+local infEggPlate = newPlate(infEggBtn)
+local infEggKnob = newKnob(infEggPlate)
+
 local catchBtn = newBtn(" Catch Egg [Click]",0.05,frame_2)
 catchBtn.Size=UDim2.new(0.9,0,0.12,0)
 catchBtn.TextXAlignment="Left"
@@ -317,6 +335,10 @@ newUi(anitBackKnob)
 newUi(maxZoomBtn)
 newUi(maxZoomPlate)
 newUi(maxZoomKnob)
+
+newUi(infEggBtn)
+newUi(infEggPlate)
+newUi(infEggKnob)
 
 newUi(catchBtn)
 newUi(throwBtn)
@@ -406,6 +428,12 @@ local function updateStepBackState(enabled)
 	end
 end
 
+eggvalue:GetPropertyChangedSignal("Value"):Connect(function()
+	if infEggState then 
+		eggvalue.Value=99
+	end
+end)
+
 -- 5. حماية إضافية: في حال قام الماب بربط اتصال جديد أثناء اللعب
 StepBackEvent.OnClientEvent:Connect(function()
 	if anitBackState then
@@ -475,7 +503,7 @@ end)
 anitBackBtn.MouseButton1Click:Connect(function()
 	anitBackState = not anitBackState
 
-    updateStepBackState(anitBackState)
+	updateStepBackState(anitBackState)
 
 	if anitBackState then 
 		anitBackKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
@@ -494,5 +522,19 @@ maxZoomBtn.MouseButton1Click:Connect(function()
 	else 
 		maxZoomKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
 		maxZoomPlate.BackgroundColor3 = blk_color
+	end
+end)
+
+infEggBtn.MouseButton1Click:Connect(function()
+	infEggState = not infEggState
+	if infEggState then 
+		
+		eggvalue.Value=99
+		
+		infEggKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
+		infEggPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		infEggKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
+		infEggPlate.BackgroundColor3 = blk_color
 	end
 end)
