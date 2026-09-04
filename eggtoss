@@ -17,6 +17,7 @@ local StepBackEvent = remoteEvents:WaitForChild("StepBack")
 local screenGui = Instance.new("ScreenGui", PlayerGui)
 screenGui.ResetOnSpawn = false
 
+
 local blk_color, gry = Color3.fromRGB(24,24,24), Color3.fromRGB(52, 52, 52)
 
 local helperTextLabel = Instance.new("TextLabel")
@@ -34,18 +35,6 @@ local function printlog(txt,set)
 		helperTextLabel.TextColor=BrickColor.new("Lime green")
 	end
 	helperTextLabel.Text=txt
-end
-
-while not eggvalue do
-	printlog("egg not found!",true)
-	for _, dex in ipairs(PlayerGui:GetDescendants()) do 
-		if dex:IsA("IntValue") and dex.Name=="Eggs" then 
-			eggvalue=dex
-			printlog("egg found!",false)
-			break
-		end
-	end
-	task.wait(0.1)
 end
 
 local Mainframe = Instance.new("Frame")
