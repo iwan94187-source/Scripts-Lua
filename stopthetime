@@ -240,7 +240,7 @@ local isWaitingForReset = false
 local lastClickedTimerValue = nil
 local lastTimerValue = nil
 local lastFrameTime = nil
-printlog("02939",false)
+printlog("3223",false)
 task.spawn(function()
 	while true do
 		local myChar = LocalPlayer.Character
