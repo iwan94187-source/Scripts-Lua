@@ -17,7 +17,6 @@ local StepBackEvent = remoteEvents:WaitForChild("StepBack")
 local screenGui = Instance.new("ScreenGui", PlayerGui)
 screenGui.ResetOnSpawn = false
 
-
 local blk_color, gry = Color3.fromRGB(24,24,24), Color3.fromRGB(52, 52, 52)
 
 local helperTextLabel = Instance.new("TextLabel")
@@ -36,6 +35,10 @@ local function printlog(txt,set)
 	end
 	helperTextLabel.Text=txt
 end
+
+local eggvalue = LocalPlayer:WaitForChild("otherLeaderstats"):WaitForChild("Eggs")
+
+printlog("Susseccful found "..eggvalue.Name)
 
 local Mainframe = Instance.new("Frame")
 Mainframe.Size=UDim2.new(0,250,0,300)
@@ -436,6 +439,10 @@ local function updateStepBackState(enabled)
 	end
 end
 
+eggvalue:GetPropertyChangedSignal("Value"):Connect(function()
+	if infEggState then eggvalue.Value=99 end
+end)
+
 -- 5. حماية إضافية: في حال قام الماب بربط اتصال جديد أثناء اللعب
 StepBackEvent.OnClientEvent:Connect(function()
 	if anitBackState then
@@ -531,6 +538,7 @@ infEggBtn.MouseButton1Click:Connect(function()
 	infEggState = not infEggState
 	if infEggState then 
 		
+		eggvalue.Value=99
 		infEggKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
 		infEggPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
 	else 
