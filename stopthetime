@@ -30,7 +30,6 @@ helperTextLabel.Transparency=0.5
 helperTextLabel.BackgroundColor3=blk_color
 helperTextLabel.TextColor=BrickColor.new("White")
 helperTextLabel.TextScaled=true
-helperTextLabel.Parent=screenGui
 
 local function printlog(txt,set)
 	if set then 
@@ -240,7 +239,7 @@ local isWaitingForReset = false
 local lastClickedTimerValue = nil
 local lastTimerValue = nil
 local lastFrameTime = nil
-printlog("02939",false)
+printlog("9595",false)
 task.spawn(function()
 	while true do
 		local myChar = LocalPlayer.Character
@@ -333,63 +332,79 @@ task.spawn(function()
 	end
 end)
 
--- 2. دالة المراقبة السريعة والنقر (تعمل مع كل إطار بلمح البصر)
+local velocitySamples = {} -- مصفوفة لتخزين سرعات الفريمات الأخيرة وتنظيف التذبذب
+
 RunService.Heartbeat:Connect(function()
 	if not autoStopState or not timerStop or not extractedNumber or not BeBtn then
 		return
 	end
 
-	local cleanTimerStopText = string.gsub(timerStop.Text, "<[^>]+>", "")
-	local currentTimerValue = tonumber(string.match(cleanTimerStopText, "%d+%.?%d*"))
+	-- قراءة سريعة ومباشرة تحسباً للتأخير النصي
+	local rawText = timerStop.Text
+	local numberString = string.match(rawText, "%d+%.?%d*")
+	local currentTimerValue = numberString and tonumber(numberString)
 	local currentTime = os.clock()
 
-	if currentTimerValue then
+	if not currentTimerValue then return end
 
-		-- إعادة الضبط للدورة الجديدة عند تغير المؤقت
-		if isWaitingForReset then
-			if math.abs(currentTimerValue - (lastClickedTimerValue or 0)) > 0.05 then
-				isWaitingForReset = false
-				lastClickedTimerValue = nil
-				lastTimerValue = nil
-				lastFrameTime = nil
-			end
-			return
+	-- 1. إعادة الضبط للدورة الجديدة
+	if isWaitingForReset then
+		if math.abs(currentTimerValue - (lastClickedTimerValue or 0)) > 0.05 then
+			isWaitingForReset = false
+			lastClickedTimerValue = nil
+			lastTimerValue = nil
+			lastFrameTime = nil
+			velocitySamples = {}
 		end
+		return
+	end
 
-		-- حساب سرعة زيادة المؤقت بين الإطارات ديناميكياً
-		local predictedNextValue = currentTimerValue
+	-- 2. حساب السرعة وتنعيمها (Smooth Rate Prediction)
+	local predictedNextValue = currentTimerValue
 
-		if lastTimerValue and lastFrameTime then
-			local deltaTime = currentTime - lastFrameTime
-			local valueChange = currentTimerValue - lastTimerValue
+	if lastTimerValue and lastFrameTime then
+		local deltaTime = currentTime - lastFrameTime
+		local valueChange = currentTimerValue - lastTimerValue
 
-			if deltaTime > 0 and valueChange > 0 then
-				local currentRate = valueChange / deltaTime
-				predictedNextValue = currentTimerValue + (currentRate * deltaTime)
+		if deltaTime > 0 and valueChange > 0 then
+			local instantRate = valueChange / deltaTime
+
+			-- إدراج السرعة الحالية لحساب المتوسط لأخر 3 فريمات
+			table.insert(velocitySamples, instantRate)
+			if #velocitySamples > 3 then
+				table.remove(velocitySamples, 1)
 			end
-		end
 
-		lastTimerValue = currentTimerValue
-		lastFrameTime = currentTime
-
-		-- تنفيذ الضغط المباشر
-		if currentTimerValue >= extractedNumber or predictedNextValue >= extractedNumber then
-			local camera = workspace.CurrentCamera
-			local screenPosition, isOnScreen = camera:WorldToScreenPoint(BeBtn.Position)
-
-			if isOnScreen then
-				local topbarOffset = GuiService:GetGuiInset()
-				local x = screenPosition.X + topbarOffset.X
-				local y = screenPosition.Y + topbarOffset.Y
-
-				VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 0)
-				VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
-
-				isWaitingForReset = true
-				lastClickedTimerValue = currentTimerValue
+			local averageRate = 0
+			for _, rate in ipairs(velocitySamples) do
+				averageRate = averageRate + rate
 			end
-		end
+			averageRate = averageRate / #velocitySamples
 
+			-- التنبؤ المباشر للفريم القادم بدقة عالية
+			predictedNextValue = currentTimerValue + (averageRate * deltaTime)
+		end
+	end
+
+	lastTimerValue = currentTimerValue
+	lastFrameTime = currentTime
+
+	-- 3. شرط الضغط الدقيق
+	if currentTimerValue >= extractedNumber or predictedNextValue >= extractedNumber then
+		local camera = workspace.CurrentCamera
+		local screenPosition, isOnScreen = camera:WorldToScreenPoint(BeBtn.Position)
+
+		if isOnScreen then
+			local topbarOffset = GuiService:GetGuiInset()
+			local x = screenPosition.X + topbarOffset.X
+			local y = screenPosition.Y + topbarOffset.Y
+
+			VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 0)
+			VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
+
+			isWaitingForReset = true
+			lastClickedTimerValue = currentTimerValue
+		end
 	end
 end)
 
