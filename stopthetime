@@ -17,6 +17,8 @@ local screenGui = Instance.new("ScreenGui", PlayerGui)
 screenGui.Name = "SkullGui"
 screenGui.ResetOnSpawn = false
 
+local lastTimerValue = nil
+local lastFrameTime = nil
 
 local blk_color = Color3.fromRGB(24,24,24)
 local isCamTarget = false
@@ -28,7 +30,6 @@ helperTextLabel.Transparency=0.5
 helperTextLabel.BackgroundColor3=blk_color
 helperTextLabel.TextColor=BrickColor.new("White")
 helperTextLabel.TextScaled=true
-helperTextLabel.Parent=screenGui
 
 local function printlog(txt,set)
 	if set then 
@@ -233,7 +234,7 @@ local ref = false
 local isWaitingForReset = false
 local lastClickedTimerValue = nil
 
-printlog("2323",false)
+printlog("34444",false)
 RunService.Heartbeat:Connect(function()
 	local myChar = LocalPlayer.Character
 	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then 
@@ -358,38 +359,56 @@ RunService.Heartbeat:Connect(function()
 		if timerStop and extractedNumber and BeBtn then
 			local cleanTimerStopText = string.gsub(timerStop.Text, "<[^>]+>", "")
 			local currentTimerValue = tonumber(string.match(cleanTimerStopText, "%d+%.?%d*"))
+			local currentTime = os.clock()
 
 			if currentTimerValue then
 
-				-- 1. إذا كنا في حالة انتظار: ننتظر حتى تتغير قيمة المؤقت (تصفير أو إعادة تشغيل)
+				-- 1. إعادة الضبط للدورة الجديدة عند تغير المؤقت
 				if isWaitingForReset then
-					if currentTimerValue ~= lastClickedTimerValue then
+					if math.abs(currentTimerValue - (lastClickedTimerValue or 0)) > 0.05 then
 						isWaitingForReset = false
 						lastClickedTimerValue = nil
-						printlog("تم تغير المؤقت، جاري التجهيز للدورة القادمة...", false)
+						lastTimerValue = nil
+						lastFrameTime = nil
+						
 					end
 				end
 
-				-- 2. تنفيذ الضغط فور وصول المؤقت للرقم المطلوب بشرط ألا نكون في حالة انتظار
-				if autoStopState and not isWaitingForReset and currentTimerValue >= extractedNumber then
+				-- 2. حساب سرعة زيادة المؤقت بين الإطارات ديناميكياً
+				local predictedNextValue = currentTimerValue
+
+				if lastTimerValue and lastFrameTime and not isWaitingForReset then
+					local deltaTime = currentTime - lastFrameTime
+					local valueChange = currentTimerValue - lastTimerValue
+
+					-- حساب السرعة (معدل التغير في الثانية)
+					if deltaTime > 0 and valueChange > 0 then
+						local currentRate = valueChange / deltaTime
+						-- التنبؤ بـ القيمة التي سيصل لها المؤقت في الإطار القادم تماماً
+						predictedNextValue = currentTimerValue + (currentRate * deltaTime)
+					end
+				end
+
+				-- تحديث أحدث السجلات للإطار القادم
+				lastTimerValue = currentTimerValue
+				lastFrameTime = currentTime
+
+				-- 3. تنفيذ الضغط إذا كانت القيمة الحالية أو المتوقعة للإطار القادم تصل للهدف
+				if autoStopState and not isWaitingForReset and (currentTimerValue >= extractedNumber or predictedNextValue >= extractedNumber) then
 					local camera = workspace.CurrentCamera
 					local screenPosition, isOnScreen = camera:WorldToScreenPoint(BeBtn.Position)
-				
+
 					if isOnScreen then
-						
-						
 						local topbarOffset = GuiService:GetGuiInset()
 						local x = screenPosition.X + topbarOffset.X
 						local y = screenPosition.Y + topbarOffset.Y
 
-						-- محاكاة النقر
+						-- تنفيذ الضغطة المباشرة
 						VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 0)
 						VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
-						
-						
-						printlog("تم الوصول للوقت المطلوب والنقر بنجاح!", false)
 
-						-- قفل العملية حتى تتغير القيمة من اللعبة
+		
+
 						isWaitingForReset = true
 						lastClickedTimerValue = currentTimerValue
 					end
@@ -412,7 +431,3 @@ autoStopBtn.MouseButton1Click:Connect(function()
 		autoStopPlate.BackgroundColor3 = blk_color
 	end
 end)
-
-
-
-
