@@ -19,23 +19,6 @@ screenGui.ResetOnSpawn = false
 
 local blk_color, gry = Color3.fromRGB(24,24,24), Color3.fromRGB(52, 52, 52)
 
-local helperTextLabel = Instance.new("TextLabel")
-helperTextLabel.Size=UDim2.new(0,200,0,50)
-helperTextLabel.Transparency=0.5
-helperTextLabel.BackgroundColor3=blk_color
-helperTextLabel.TextColor=BrickColor.new("White")
-helperTextLabel.TextScaled=true
-helperTextLabel.Parent=screenGui
-
-local function printlog(txt,set)
-	if set then 
-		helperTextLabel.TextColor=BrickColor.new("Really red")
-	else
-		helperTextLabel.TextColor=BrickColor.new("Lime green")
-	end
-	helperTextLabel.Text=txt
-end
-
 local eggvalue = LocalPlayer:WaitForChild("otherLeaderstats"):WaitForChild("Eggs")
 
 printlog("Susseccful found "..eggvalue.Name)
