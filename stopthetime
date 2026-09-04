@@ -234,7 +234,7 @@ local ref = false
 local isWaitingForReset = false
 local lastClickedTimerValue = nil
 
-printlog("34444",false)
+printlog("9283",false)
 RunService.Heartbeat:Connect(function()
 	local myChar = LocalPlayer.Character
 	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then 
