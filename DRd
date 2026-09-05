@@ -1,1 +1,274 @@
 
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local runService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+
+-- 1. إنشاء الواجهة والخط الرئيسي (Slider Frame)
+local screenGui = Instance.new("ScreenGui", PlayerGui)
+screenGui.ResetOnSpawn = false
+
+local blk_color, gry = Color3.fromRGB(24,24,24), Color3.fromRGB(52, 52, 52)
+
+local helperTextLabel = Instance.new("TextLabel")
+helperTextLabel.Size=UDim2.new(0,200,0,50)
+helperTextLabel.Transparency=0.5
+helperTextLabel.BackgroundColor3=blk_color
+helperTextLabel.TextColor=BrickColor.new("White")
+helperTextLabel.TextScaled=true
+helperTextLabel.Parent=screenGui
+
+local function printlog(txt,set)
+	if set then 
+		helperTextLabel.TextColor=BrickColor.new("Really red")
+	else
+		helperTextLabel.TextColor=BrickColor.new("Lime green")
+	end
+	helperTextLabel.Text=txt
+end
+
+local dashFolder = PlayerGui:GetDescendants()["Dashes"]
+if dashFolder then printlog(dashFolder.Name.." folder found",false)
+else printlog("Not found",true)	
+end
+
+local Mainframe = Instance.new("Frame")
+Mainframe.Size=UDim2.new(0,225,0,300)
+Mainframe.Position=UDim2.new(0.125,0,0,0)
+Mainframe.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+Mainframe.Visible=false
+Mainframe.Active=true
+Mainframe.Draggable=true
+Mainframe.Parent=screenGui
+
+local frameTitle = Instance.new("TextLabel")
+frameTitle.Size=UDim2.new(1,0,0.1,0)
+frameTitle.Text="   Egg Toss V7.0"
+frameTitle.TextXAlignment=Enum.TextXAlignment.Left
+frameTitle.TextColor=BrickColor.new("White")
+frameTitle.BackgroundColor3=blk_color
+frameTitle.TextSize=7
+frameTitle.Parent=Mainframe
+
+local iconFrame = Instance.new("ImageButton")
+iconFrame.Size=UDim2.new(0,40,0,40)
+iconFrame.Position=UDim2.new(0.3,0,0.3,0)
+iconFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+iconFrame.Image = "rbxassetid://85847690672478"
+iconFrame.Active=true
+iconFrame.Draggable=true
+iconFrame.Parent=screenGui
+
+local destroyBtn = Instance.new("TextButton")
+destroyBtn.Size=UDim2.new(0,22.5,0,22.5)
+destroyBtn.Position=UDim2.new(0.915,0,0,0)
+destroyBtn.BackgroundColor3=Color3.fromRGB(255, 0, 0)
+destroyBtn.TextColor=BrickColor.new("White")
+destroyBtn.Text="x"
+destroyBtn.Parent=frameTitle
+
+local hideBtn = Instance.new("TextButton")
+hideBtn.Size=UDim2.new(0,22.5,0,22.5)
+hideBtn.Position=UDim2.new(0.82,0,0,0)
+hideBtn.BackgroundColor3=Color3.fromRGB(0, 170, 255)
+hideBtn.TextColor=BrickColor.new("White")
+hideBtn.Text="–"
+hideBtn.Parent=frameTitle
+
+iconFrame.MouseButton1Click:Connect(function()
+	iconFrame.Visible=not iconFrame.Visible
+	if iconFrame.Visible then 
+		Mainframe.Visible=false
+	else
+		Mainframe.Position=iconFrame.Position
+		Mainframe.Visible=true
+	end
+end)
+
+hideBtn.MouseButton1Click:Connect(function()
+	Mainframe.Visible=false
+	iconFrame.Position=Mainframe.Position
+	iconFrame.Visible=true
+end)
+
+destroyBtn.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+end)
+
+local function txtBox(parent) 
+	local box = Instance.new("TextBox")
+	box.Size=UDim2.new(0.8, 0,0.4,0)
+	box.Position=UDim2.new(0.1,0,0.4,0)
+	box.BackgroundColor3=blk_color
+	box.Text="Number"
+	box.TextSize=5
+	box.TextColor=BrickColor.new("White")
+	box.Parent=parent
+	return box
+
+end
+
+local function newBtn(name,pos,parent)
+	local btn = Instance.new("TextButton")
+	btn.Size=UDim2.new(0.9,0,0.06,0)
+	btn.Position=UDim2.new(0.05,0,pos,0)
+	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextSize=5
+	btn.Parent=parent
+	return btn
+end
+
+local function newLbl(name,pos,parent)
+	local btn = Instance.new("TextLabel")
+	btn.Size=UDim2.new(0.9,0,0.6,0)
+	btn.Position=UDim2.new(0.05,0,pos,0)
+	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextSize=5
+	btn.Parent=parent
+	return btn
+end
+
+local function newTrem(parent)
+	local trem = Instance.new("TextLabel")
+	trem.Size = UDim2.new(0,25,1,0)
+	trem.Position=UDim2.new(0.85,0,0,0)
+	trem.BackgroundTransparency=1
+	trem.Text="🔴"
+	trem.TextSize=20
+	trem.Parent=parent
+	return trem
+end
+
+local function newKnob(parent)
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0,8,0,8)
+	frame.Position=UDim2.new(0.1,0,0.8,-8)
+	frame.BackgroundColor3=Color3.fromRGB(255, 255, 255)
+	frame.Parent=parent
+	return frame
+end
+
+local function newPlate(parent)
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0,27.5,0,12.5)
+	frame.Position=UDim2.new(0.75,0,0.25,0)
+	frame.BackgroundColor3=blk_color
+	frame.Parent=parent
+	return frame
+end
+
+local function newsideBtn(name, pos)
+	local btn=Instance.new("TextButton")
+	btn.Size=UDim2.new(0.17,0,0.1,0)
+	btn.Position=UDim2.new(0.01,0,pos)
+	btn.BackgroundColor3=gry
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextScaled=true
+	btn.Parent=Mainframe
+	return btn
+end
+
+local function newBox(pos, parent)
+	local box = Instance.new("TextBox")
+	box.Size=UDim2.new(0.5,0,0.1,0)
+	box.Position=UDim2.new(0,0,pos,0)
+	box.BackgroundColor=BrickColor.new("Black")
+	box.TextColor=BrickColor.new("White")
+	box.TextScaled=true
+	box.Text="Number"
+	box.Parent=parent
+	return box
+end
+
+local upState = false
+local upBtn = newBtn(" Upgrades Enabled",0.1,Mainframe)
+upBtn.TextXAlignment="Left"
+local upPlate = newPlate(upBtn)
+local upTerm = newKnob(upPlate)
+
+local speedSlideBtn = newLbl("Speed",0.2,Mainframe)
+speedSlideBtn.Size=UDim2.new(0.250,0,0.06,0)
+speedSlideBtn.Position=UDim2.new(0.05,0,0.2,0)
+speedSlideBtn.TextYAlignment=Enum.TextYAlignment.Top
+local speedBox = txtBox(speedSlideBtn)
+
+local jumpBtn = newLbl("Jump",0.2,Mainframe)
+jumpBtn.Size=UDim2.new(0.250,0,0.06,0)
+jumpBtn.Position=UDim2.new(0.375,0,0.2,0)
+jumpBtn.TextYAlignment=Enum.TextYAlignment.Top
+local jumpBox = txtBox(jumpBtn)
+
+
+local dashBtn = newLbl("Dash",0.2,Mainframe)
+dashBtn.Size=UDim2.new(0.250,0,0.06,0)
+dashBtn.Position=UDim2.new(0.7,0,0.2,0)
+dashBtn.TextYAlignment=Enum.TextYAlignment.Top
+local dashBox = txtBox(dashBtn)
+
+local AutoDodgeState = false
+local AutoDodgeBtn = newBtn(" Auto Dodge",0.3,Mainframe)
+AutoDodgeBtn.TextXAlignment="Left"
+local AutoDodgePlate = newPlate(AutoDodgeBtn)
+local AutoDodgeKnob = newKnob(AutoDodgePlate)
+
+local DodgeAuraState = false
+local DodgeAuraBtn = newBtn(" Dodge Aura",0.4,Mainframe)
+DodgeAuraBtn.TextXAlignment="Left"
+local DodgeAuraPlate = newPlate(DodgeAuraBtn)
+local DodgeAuraKnob = newKnob(DodgeAuraPlate)
+
+local function newUi(parent) 
+	local ui = Instance.new("UICorner")
+	ui.CornerRadius = UDim.new(0,10)
+	ui.Parent=parent
+	return ui
+end
+
+local function newCustomUi(parent, rb,lb,ru,lu) 
+	local ui = Instance.new("UICorner")
+	ui.BottomLeftRadius =UDim.new(0,lb)
+	ui.BottomRightRadius=UDim.new(0,rb)
+	ui.TopLeftRadius=UDim.new(0,lu)
+	ui.TopRightRadius=UDim.new(0,ru)
+	ui.Parent=parent
+	return ui
+end
+
+newUi(destroyBtn)
+newUi(hideBtn)
+
+newUi(Mainframe)
+newCustomUi(frameTitle,0,0,10,10)
+newUi(iconFrame)
+
+newUi(upBtn)
+newUi(upPlate)
+newUi(upTerm)
+
+newUi(speedSlideBtn)
+newUi(speedBox)
+
+newUi(jumpBtn)
+newUi(jumpBox)
+
+newUi(dashBtn)
+newUi(dashBox)
+
+upBtn.MouseButton1Click:Connect(function()
+	upState = not upState
+	if upState then 
+		upTerm.Position = UDim2.new(0.65, 0, 0.8, -8)
+		upPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		upTerm.Position = UDim2.new(0.1, 0, 0.8, -8)
+		upPlate.BackgroundColor3 = blk_color
+	end
+end)
