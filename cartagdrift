@@ -1,1 +1,687 @@
 
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local runService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local camera = workspace.CurrentCamera
+
+-- 1. إنشاء الواجهة والخط الرئيسي (Slider Frame)
+local screenGui = Instance.new("ScreenGui", PlayerGui)
+screenGui.Name="SkullGui"
+screenGui.ResetOnSpawn = false
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "CustomDynamicThumbstickGui"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Enabled = false 
+ScreenGui.DisplayOrder = -1
+ScreenGui.Parent = PlayerGui
+
+local blk_color, gry = Color3.fromRGB(24,24,24), Color3.fromRGB(52, 52, 52)
+
+local helperTextLabel = Instance.new("TextLabel")
+helperTextLabel.Size=UDim2.new(0,200,0,50)
+helperTextLabel.Transparency=0.5
+helperTextLabel.BackgroundColor3=blk_color
+helperTextLabel.TextColor=BrickColor.new("White")
+helperTextLabel.TextScaled=true
+helperTextLabel.Parent=screenGui
+
+local function printlog(txt,set)
+	if set then 
+		helperTextLabel.TextColor=BrickColor.new("Really red")
+	else
+		helperTextLabel.TextColor=BrickColor.new("Lime green")
+	end
+	helperTextLabel.Text=txt
+end
+
+local vehiclesFolder= workspace:WaitForChild("Vehicles")
+printlog("42",false)
+local maxSpeed = 120        -- السرعة القصوى
+local acceleration = 12     -- استجابة التسارع
+local turnResponse = 0.25   
+
+local currentVehicleModel=nil
+-- متغيرات الفيزياء
+local currentSeat = nil
+local attachment = nil
+local linearVelocity = nil
+local currentSpeed = 0
+
+-- متغيرات عصا التحكم
+local isTouching = false
+local touchStartPos = Vector2.zero
+local moveVector = Vector2.zero
+local activeTouchInput = nil
+local maxRadius = 60
+
+local Mainframe = Instance.new("Frame")
+Mainframe.Size=UDim2.new(0,225,0,175)
+Mainframe.Position=UDim2.new(0.125,0,0,0)
+Mainframe.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+Mainframe.Visible=false
+Mainframe.Active=true
+Mainframe.Draggable=true
+Mainframe.Parent=screenGui
+
+local frameTitle = Instance.new("TextLabel")
+frameTitle.Size=UDim2.new(1,0,0.1,0)
+frameTitle.Text="  Drift Tag"
+frameTitle.TextXAlignment=Enum.TextXAlignment.Left
+frameTitle.TextTransparency=1
+frameTitle.BackgroundColor3=blk_color
+frameTitle.TextSize=7
+frameTitle.Parent=Mainframe
+
+local txt = Instance.new("TextLabel")
+txt.Size=UDim2.new(0.6,0,1,0)
+txt.Position=UDim2.new(0,0,0,0)
+txt.TextColor=BrickColor.new("White")
+txt.BackgroundTransparency=1
+txt.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+txt.Text="  Drift Tag"
+txt.TextScaled=true
+txt.Parent=frameTitle
+
+local iconFrame = Instance.new("ImageButton")
+iconFrame.Size=UDim2.new(0,40,0,40)
+iconFrame.Position=UDim2.new(0.3,0,0.3,0)
+iconFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+iconFrame.Image = "rbxassetid://85847690672478"
+iconFrame.Active=true
+iconFrame.Draggable=true
+iconFrame.Parent=screenGui
+
+local destroyBtn = Instance.new("TextButton")
+destroyBtn.Size=UDim2.new(0,22.5,0,22.5)
+destroyBtn.Position=UDim2.new(0.915,0,0,0)
+destroyBtn.BackgroundColor3=Color3.fromRGB(255, 0, 0)
+destroyBtn.TextColor=BrickColor.new("White")
+destroyBtn.Text="x"
+destroyBtn.Parent=frameTitle
+
+local hideBtn = Instance.new("TextButton")
+hideBtn.Size=UDim2.new(0,22.5,0,22.5)
+hideBtn.Position=UDim2.new(0.82,0,0,0)
+hideBtn.BackgroundColor3=Color3.fromRGB(0, 170, 255)
+hideBtn.TextColor=BrickColor.new("White")
+hideBtn.Text="–"
+hideBtn.Parent=frameTitle
+
+iconFrame.MouseButton1Click:Connect(function()
+	iconFrame.Visible=not iconFrame.Visible
+	if iconFrame.Visible then 
+		Mainframe.Visible=false
+	else
+		Mainframe.Position=iconFrame.Position
+		Mainframe.Visible=true
+	end
+end)
+
+hideBtn.MouseButton1Click:Connect(function()
+	Mainframe.Visible=false
+	iconFrame.Position=Mainframe.Position
+	iconFrame.Visible=true
+end)
+
+destroyBtn.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+end)
+
+printlog("134",false)
+
+local function txtBox(parent) 
+	local box = Instance.new("TextBox")
+	box.Size=UDim2.new(0.8, 0,0.4,0)
+	box.Position=UDim2.new(0.1,0,0.4,0)
+	box.BackgroundColor3=blk_color
+	box.Text="Number"
+	box.TextSize=5
+	box.TextColor=BrickColor.new("White")
+	box.Parent=parent
+	return box
+
+end
+
+local function newBtn(name,pos,parent)
+	local btn = Instance.new("TextButton")
+	btn.Size=UDim2.new(0.9,0,0.14,0)
+	btn.Position=UDim2.new(0.05,0,pos,0)
+	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextSize=5
+	btn.Parent=parent
+	return btn
+end
+
+local function newLbl(name,pos,parent)
+	local btn = Instance.new("TextLabel")
+	btn.Size=UDim2.new(0.9,0,0.14,0)
+	btn.Position=UDim2.new(0.05,0,pos,0)
+	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextSize=5
+	btn.Parent=parent
+	return btn
+end
+
+local function newTrem(parent)
+	local trem = Instance.new("TextLabel")
+	trem.Size = UDim2.new(0,25,1,0)
+	trem.Position=UDim2.new(0.85,0,0,0)
+	trem.BackgroundTransparency=1
+	trem.Text="🔴"
+	trem.TextSize=20
+	trem.Parent=parent
+	return trem
+end
+
+local function newKnob(parent)
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0,8,0,8)
+	frame.Position=UDim2.new(0.1,0,0.8,-8)
+	frame.BackgroundColor3=Color3.fromRGB(255, 255, 255)
+	frame.Parent=parent
+	return frame
+end
+
+local function newPlate(parent)
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0,27.5,0,12.5)
+	frame.Position=UDim2.new(0.75,0,0.25,0)
+	frame.BackgroundColor3=blk_color
+	frame.Parent=parent
+	return frame
+end
+
+local function newsideBtn(name, pos)
+	local btn=Instance.new("TextButton")
+	btn.Size=UDim2.new(0.17,0,0.1,0)
+	btn.Position=UDim2.new(0.01,0,pos)
+	btn.BackgroundColor3=gry
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextScaled=true
+	btn.Parent=Mainframe
+	return btn
+end
+
+local function newBox(pos, parent)
+	local box = Instance.new("TextBox")
+	box.Size=UDim2.new(0.5,0,0.1,0)
+	box.Position=UDim2.new(0,0,pos,0)
+	box.BackgroundColor=BrickColor.new("Black")
+	box.TextColor=BrickColor.new("White")
+	box.TextScaled=true
+	box.Text="Number"
+	box.Parent=parent
+	return box
+end
+
+local function fixedTxt(parent,siz)
+	parent.TextTransparency=1
+
+	local lbl = Instance.new("TextLabel")
+	lbl.Size=UDim2.new(siz,0,0.4,0)
+	lbl.Position=UDim2.new(0.2,0,0.3,0)
+	lbl.TextColor=BrickColor.new("White")
+	lbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+	lbl.TextStrokeTransparency=0
+	lbl.TextStrokeColor3=blk_color
+	lbl.BackgroundTransparency=1
+	lbl.Text=parent.Text
+	lbl.TextScaled=true
+	lbl.Active=false
+	lbl.Parent=parent
+end
+
+local function fixedTxt2(parent,siz)
+	parent.TextTransparency=1
+
+	local lbl = Instance.new("TextLabel")
+	lbl.Size=UDim2.new(siz,0,0.4,0)
+	lbl.Position=UDim2.new(0,-20,0.3,0)
+	lbl.TextColor=BrickColor.new("White")
+	lbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+	lbl.TextStrokeTransparency=0
+	lbl.TextStrokeColor3=blk_color
+	lbl.BackgroundTransparency=1
+	lbl.Text=parent.Text
+	lbl.TextScaled=true
+	lbl.Active=false
+	lbl.Parent=parent
+end
+
+printlog("260",false)
+
+local touchZone = Instance.new("ImageButton") 
+touchZone.Name = "TouchZone"
+touchZone.Size = UDim2.new(0.5, 0, 1, 0)
+touchZone.Position = UDim2.new(0, 0, 0, 0)
+touchZone.BackgroundTransparency = 0.999
+touchZone.BackgroundColor3 = Color3.fromRGB(0,0,0)
+touchZone.ImageTransparency = 1
+touchZone.Active = true
+touchZone.Parent = ScreenGui
+
+local outerRing = Instance.new("Frame")
+outerRing.Name = "OuterRing"
+outerRing.Size = UDim2.new(0, maxRadius * 2, 0, maxRadius * 2)
+outerRing.AnchorPoint = Vector2.new(0.5, 0.5)
+outerRing.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+outerRing.BackgroundTransparency = 0.8
+outerRing.Visible = false
+outerRing.Parent = ScreenGui
+
+local outerCorner = Instance.new("UICorner")
+outerCorner.CornerRadius = UDim.new(1, 0)
+outerCorner.Parent = outerRing
+
+local outerStroke = Instance.new("UIStroke")
+outerStroke.Color = Color3.fromRGB(255, 255, 255)
+outerStroke.Thickness = 3
+outerStroke.Transparency = 0.4
+outerStroke.Parent = outerRing
+
+local innerKnob = Instance.new("Frame")
+innerKnob.Name = "InnerKnob"
+innerKnob.Size = UDim2.new(0, 50, 0, 50)
+innerKnob.AnchorPoint = Vector2.new(0.5, 0.5)
+innerKnob.Position = UDim2.new(0.5, 0, 0.5, 0)
+innerKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+innerKnob.BackgroundTransparency = 0.3
+innerKnob.Parent = outerRing
+
+local innerCorner = Instance.new("UICorner")
+innerCorner.CornerRadius = UDim.new(1, 0)
+innerCorner.Parent = innerKnob
+
+printlog("304",false)
+----------------------------------------------------
+-- 👆 2. ربط الأحداث
+----------------------------------------------------
+local function resetTouch()
+	isTouching = false
+	activeTouchInput = nil
+	moveVector = Vector2.zero
+	outerRing.Visible = false
+	innerKnob.Position = UDim2.new(0.5, 0, 0.5, 0)
+end
+
+local tagplrBtn = newBtn("Tag Player",0.15,Mainframe)
+
+local controleState=false
+local controleBtn = newBtn("Controle",0.325,Mainframe)
+local controlePlate = newPlate(controleBtn)
+local controleKnob = newKnob(controlePlate)
+
+local function newUi(parent) 
+	local ui = Instance.new("UICorner")
+	ui.CornerRadius = UDim.new(0,10)
+	ui.Parent=parent
+	return ui
+end
+
+local function newCustomUi(parent, rb,lb,ru,lu) 
+	local ui = Instance.new("UICorner")
+	ui.BottomLeftRadius =UDim.new(0,lb)
+	ui.BottomRightRadius=UDim.new(0,rb)
+	ui.TopLeftRadius=UDim.new(0,lu)
+	ui.TopRightRadius=UDim.new(0,ru)
+	ui.Parent=parent
+	return ui
+end
+
+printlog("340",false)
+
+-- 🛠️ تعديل: حماية الفيزياء ومنع التكرار غير المنتهي
+local function setupSeatPhysics(seat)
+	if currentSeat == seat and linearVelocity then return end -- منع إعادة الإنشاء إذا كانت موجودة مسبقاً
+
+	currentSeat = seat
+
+	if not attachment or attachment.Parent ~= seat then
+		if attachment then attachment:Destroy() end
+		attachment = Instance.new("Attachment")
+		attachment.Name = "CustomVehicleDrive"
+		attachment.Parent = seat
+	end
+
+	if not linearVelocity or linearVelocity.Parent ~= seat then
+		if linearVelocity then linearVelocity:Destroy() end
+		linearVelocity = Instance.new("LinearVelocity")
+		linearVelocity.Attachment0 = attachment
+		linearVelocity.ForceLimitMode = Enum.ForceLimitMode.PerAxis
+		linearVelocity.MaxAxesForce = Vector3.new(300000, 0, 300000)
+		linearVelocity.VectorVelocity = Vector3.new(0, 0, 0)
+		linearVelocity.RelativeTo = Enum.ActuatorRelativeTo.World
+		linearVelocity.Parent = seat
+	end
+
+	touchZone.Active = true
+	ScreenGui.Enabled = true
+end
+
+local function clearSeatPhysics()
+	currentSpeed = 0
+	resetTouch()
+
+	if attachment then attachment:Destroy() attachment = nil end
+	if linearVelocity then linearVelocity:Destroy() linearVelocity = nil end
+
+	currentSeat = nil
+
+	touchZone.Active = false 
+	ScreenGui.Enabled = false
+end
+
+printlog("383",false)
+
+fixedTxt(tagplrBtn,0.6)
+fixedTxt2(controleBtn,0.6)
+
+newUi(destroyBtn)
+newUi(hideBtn)
+
+newUi(Mainframe)
+newCustomUi(frameTitle,0,0,10,10)
+newUi(iconFrame)
+
+newUi(tagplrBtn)
+
+newUi(controleBtn)
+newUi(controlePlate)
+newUi(controleKnob)
+
+-- ⚙️ الوقت بالثواني قبل العودة (يمكنك تغييره هنا)
+local delayTime = 0.3 -- الإجمالي الزمني للتنقل
+local stepInterval = 0.05 -- زمن تحديث اللوب
+
+tagplrBtn.MouseButton1Click:Connect(function()
+	local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	local hrp = character:FindFirstChild("HumanoidRootPart")
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+	if not hrp or not humanoid then return end
+	printlog("Successful found character", false)
+
+	----------------------------------------------------
+	-- 1️⃣ تحديد الكائن المراد نقله (المركبة الحالية أو الشخصية)
+	----------------------------------------------------
+	currentVehicleModel = nil
+	local rootPartToTeleport = hrp
+
+	if humanoid.SeatPart then
+		currentVehicleModel = humanoid.SeatPart:FindFirstAncestorOfClass("Model")
+		if currentVehicleModel then
+			printlog("Vehicle is " .. currentVehicleModel.Name, false)
+			rootPartToTeleport = currentVehicleModel.PrimaryPart or humanoid.SeatPart
+
+			if controleState then 
+				local carScripts = currentVehicleModel:FindFirstChild("CarScripts")
+				if carScripts then 
+					local client = carScripts:FindFirstChild("Client")
+					if client then
+						-- 🛠️ استخدام FindFirstChild السلس لكل مستوى للتأكد من عدم حدوث الخطأ
+						local input = client:FindFirstChild("Input")
+						local touch = input and input:FindFirstChild("Touch")
+						local touchGui = touch and touch:FindFirstChild("TouchGui")
+						local controlframe = touchGui and touchGui:FindFirstChild("Controls")
+
+						if controlframe then 
+							printlog("Frame founded", false)
+						else
+							printlog("Frame not founded", true)
+						end
+					else
+						printlog("Client not founded", true)
+					end
+				else
+					printlog("CarScripts not founded", true)
+				end
+			end
+		end
+	end
+
+	if not currentVehicleModel:FindFirstChild("Bomb") then 
+		--printlog("Not Tagger yet.",true)
+		return
+	else
+		--printlog("Susseccful tagger!.",false)
+	end
+	----------------------------------------------------
+	-- 2️⃣ البحث عن أقرب موديل داخل vehiclesFolder
+	----------------------------------------------------
+	local nearestModel = nil
+	local shortestDistance = math.huge
+	local currentPos = rootPartToTeleport.Position
+
+	for _, child in ipairs(vehiclesFolder:GetChildren()) do
+		if child:IsA("Model") and child ~= currentVehicleModel then
+			local targetPos = child.PrimaryPart and child.PrimaryPart.Position or child:GetPivot().Position
+			local distance = (currentPos - targetPos).Magnitude
+			if distance < shortestDistance then
+				shortestDistance = distance
+				nearestModel = child
+			end
+		end
+	end
+
+	----------------------------------------------------
+	-- 3️⃣ عملية النقل الذكي المستمر (Smart Prediction Loop)
+	----------------------------------------------------
+	if nearestModel and not nearestModel:FindFirstChild("Bomb") then
+		-- حفظ المكان الأصلي قبل البدء
+		local originalCFrame = rootPartToTeleport.CFrame
+		local targetPart = nearestModel.PrimaryPart or nearestModel:FindFirstChildWhichIsA("BasePart", true)
+
+		if not targetPart then
+			return
+		end
+
+		local elapsedTime = 0
+
+		-- حلقة تتبع ونقل مستمرة كل 0.05 ثانية
+		while elapsedTime < delayTime do
+			-- جلب متجه السرعة ومقدارها (Studs per second)
+			local velocity = targetPart.AssemblyLinearVelocity
+			local speed = velocity.Magnitude
+
+			-- حساب الإزاحة أمام اتجاه الحركة:
+			-- إذا كانت السرعة عالية (> 30) نضع إزاحة 10 أمتار، وإذا كانت بطيئة نضع 5 أمتار
+			local leadDistance = (speed > 30) and 10 or 5
+
+			local targetCFrame = targetPart.CFrame
+			if speed > 1 then
+				-- إضافة الإزاحة باتجاه السرعة (Velocity Direction)
+				local moveDirection = velocity.Unit
+				targetCFrame = targetCFrame + (moveDirection * leadDistance)
+			end
+
+			-- تنفيذ الانتقال المستمر
+			if currentVehicleModel then
+				currentVehicleModel:PivotTo(targetCFrame)
+			else
+				hrp.CFrame = targetCFrame
+			end
+
+			task.wait(stepInterval)
+			elapsedTime = elapsedTime + stepInterval
+		end
+
+		-- العودة إلى الموقع الأصلي بعد انتهاء الـ 0.3 ثانية
+		if currentVehicleModel then
+			currentVehicleModel:PivotTo(originalCFrame)
+		else
+			hrp.CFrame = originalCFrame
+		end
+	end
+end)
+
+printlog("526",false)
+
+-- 🛠️ تعديل: التحقق الدقيق من الاصبع المسؤول عن الحركة فقط
+touchZone.InputBegan:Connect(function(input)
+	if controleState and currentSeat and not isTouching then
+		if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+			isTouching = true
+			activeTouchInput = input -- تسجيل الأصبع الحالي
+
+			local pos = input.Position
+			touchStartPos = Vector2.new(pos.X, pos.Y)
+
+			outerRing.Position = UDim2.new(0, pos.X, 0, pos.Y)
+			innerKnob.Position = UDim2.new(0.5, 0, 0.5, 0)
+			outerRing.Visible = true
+		end
+	end
+end)
+
+touchZone.InputChanged:Connect(function(input)
+	if controleState and isTouching then
+		-- التفاعل فقط مع نفس الأصبع المخزن
+		if input == activeTouchInput then
+			local pos = input.Position
+			local delta = Vector2.new(pos.X, pos.Y) - touchStartPos
+			local distance = delta.Magnitude
+
+			if distance > maxRadius then
+				delta = delta.Unit * maxRadius
+			end
+
+			innerKnob.Position = UDim2.new(0.5, delta.X, 0.5, delta.Y)
+			moveVector = delta / maxRadius
+		end
+	end
+end)
+
+touchZone.InputEnded:Connect(function(input)
+	-- إنهاء الحركة فقط إذا كان الاصبع المرفوع هو الاصبع المخصص للـ TouchZone
+	if isTouching and input == activeTouchInput then
+		resetTouch()
+	end
+end)
+
+-- 🛠️ تعديل: إلغاء حلقة UserInputService القديمة واستبدالها بهذه الصياغة الآمنة
+UserInputService.InputEnded:Connect(function(input)
+	if isTouching and input == activeTouchInput then
+		resetTouch()
+	end
+end)
+
+printlog("577",false)
+
+runService.RenderStepped:Connect(function(deltaTime)
+	local character = LocalPlayer.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+
+	if humanoid then
+		local seatPart = humanoid.SeatPart
+
+		if controleState and seatPart then
+			if currentSeat ~= seatPart then
+				setupSeatPhysics(seatPart)
+			end
+		else
+			if currentSeat then
+				clearSeatPhysics()
+			end
+		end
+
+		-- تنفيذ التحكم فقط عند التفعيل وتوفر الكرسي
+		if controleState and currentSeat and linearVelocity then
+			local distance = moveVector.Magnitude
+
+			if distance > 0.05 then
+				-- حساب اتجاه الحركة بالنسبة للكاميرا (سلس ومباشر)
+				local camCFrame = camera.CFrame
+				local camForward = Vector3.new(camCFrame.LookVector.X, 0, camCFrame.LookVector.Z).Unit
+				local camRight = Vector3.new(camCFrame.RightVector.X, 0, camCFrame.RightVector.Z).Unit
+
+				-- الاتجاه المستهدف بناءً على سحبة الأصبع على الدائرة
+				local targetDirection = (camRight * moveVector.X + camForward * (-moveVector.Y)).Unit
+
+				-- 1. الدوران الفوري المباشر نحو الاتجاه المراد (Look At)
+				local currentCFrame = currentSeat.CFrame
+				local targetCFrame = CFrame.lookAt(currentCFrame.Position, currentCFrame.Position + targetDirection)
+
+				-- تنعيم الانعطاف السريع جداً لتفادي التقطع Visual Glitch
+				currentSeat.CFrame = currentCFrame:Lerp(targetCFrame, math.clamp(1 - (turnResponse ^ (deltaTime * 60)), 0, 1))
+
+				-- 2. الحركة المباشرة نحو الاتجاه الجديد بنفس سرعة الأصبع
+				local targetSpeed = distance * maxSpeed
+				currentSpeed = currentSpeed + (targetSpeed - currentSpeed) * math.clamp(acceleration * deltaTime, 0, 1)
+
+				linearVelocity.VectorVelocity = targetDirection * currentSpeed
+			else
+				-- التوقف عند ترك الشاشة
+				currentSpeed = currentSpeed + (0 - currentSpeed) * math.clamp(acceleration * deltaTime, 0, 1)
+				linearVelocity.VectorVelocity = Vector3.zero
+			end
+		end
+	end
+end)
+
+controleBtn.MouseButton1Click:Connect(function()
+	controleState = not controleState
+	
+	-- 1️⃣ جلب شخصية اللاعب والمركبة بشكل مباشر وآمن
+	local character = LocalPlayer.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	local seatPart = humanoid and humanoid.SeatPart
+
+	if seatPart then
+		currentVehicleModel = seatPart:FindFirstAncestorOfClass("Model")
+	end
+	
+	if controleState then 
+		controleKnob.Position = UDim2.new(0.65, 0, 0.8, -8)
+		controlePlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+
+		if seatPart then
+			setupSeatPhysics(seatPart)
+		end
+	else 
+		controleKnob.Position = UDim2.new(0.1, 0, 0.8, -8)
+		controlePlate.BackgroundColor3 = blk_color
+		clearSeatPhysics()
+	end
+
+	-- 2️⃣ البحث الآمن عن الواجهة (بدون إيقاف السكريبت إذا كان الموديل غير موجود)
+	if currentVehicleModel then
+		task.wait(1)
+		local carScripts = currentVehicleModel:FindFirstChild("CarScripts")
+		if carScripts then 
+			local client = carScripts:FindFirstChild("Client")
+			local inputObj = client and client:FindFirstChild("Input")
+			local touchObj = inputObj and inputObj:FindFirstChild("Touch")
+			local touchGuiObj = touchObj and touchObj:FindFirstChild("TouchGui")
+			local controlframe = touchGuiObj and touchGuiObj:FindFirstChild("Controls")
+
+			if controlframe then 
+				printlog("Frame founded", false)
+				if controleState then 
+					for _, dex in ipairs(controlframe:GetChildren()) do 
+						if dex:IsA("TextButton") then dex.Visible=false end
+					end
+				else
+					for _, dex in ipairs(controlframe:GetChildren()) do 
+						if dex:IsA("TextButton") then dex.Visible=true end
+					end
+				end
+			else
+				printlog("Frame not founded", true)
+			end
+		else
+			printlog("CarScripts not founded", true)
+		end
+	else
+		printlog("Not sitting in vehicle", true)
+	end
+
+end)
