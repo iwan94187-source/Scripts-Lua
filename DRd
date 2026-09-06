@@ -47,7 +47,7 @@ for _, dex in ipairs(workspace:GetChildren()) do
 end
 
 if ballsFolder.classic and ballsFolder.practice then printlog("Folders was found",false)
-else printlog("Folders not found",true)
+else printlog("Fo434",true)
 end
 
 local Mainframe = Instance.new("Frame")
@@ -373,7 +373,7 @@ local activeTrajectories = {}
 local function setupSmartAutoDodge(ball)
 	if not ball or not ball:IsA("BasePart") then return end
 
-	-- 1. إنشاء الأنبوب (Zone Part)
+	-- 1. إنشاء نطاق المربع الثابت المحيط بالكرة (15 Studs)
 	local hitbox = Instance.new("Part")
 	hitbox.Name = "BallTrajectoryZone"
 	hitbox.Anchored = true
@@ -384,184 +384,181 @@ local function setupSmartAutoDodge(ball)
 	hitbox.Color = Color3.fromRGB(255, 0, 0)
 	hitbox.Parent = workspace
 
-	table.insert(activeTrajectories, hitbox)
-
-	local frontZoneLength = 15    -- طول الأنبوب أمام الكرة (15 Studs)
-	local extraWidthBuffer = 6    -- عرض الأنبوب
-	local maxTeleportOffset = 15  -- أقصى مدى للنقل (15 Studs)
-	local minSafeDistance = 5     -- الحد الأدنى المسموح به لخلف الكرة (5 Studs)
-	local wallBuffer = 2.5        -- مسافة أمان قبل الجدار مباشرة
+	local zoneSize = 15 -- حجم المربع حول الكرة (15 متر)
+	local safeEdgeDistance = 16 -- مسافة الانتقال عند الحافة
+	local corridorWidth = 8 -- عرض خط الاندفاع المحظور
+	local corridorLength = 30 -- طول خط الاندفاع أمام الكرة
 	local cooldown = false
 	local updateConnection = nil
 
-	-- 🧠 0. فحص أمان النقطة: هل تقع داخل أنبوب كرة أخرى؟
-	local function isPositionInsideOtherZone(targetPos)
-		for _, zone in ipairs(activeTrajectories) do
-			if zone ~= hitbox and zone.Parent then
-				local relPos = zone.CFrame:PointToObjectSpace(targetPos)
-				local halfSize = zone.Size / 2
+	-- تخزين معلومات النطاق المباشر في الجدول
+	local zoneData = {
+		part = hitbox,
+		ball = ball,
+		getCorridorCFAndSize = function()
+			local vel = ball.AssemblyLinearVelocity
+			if vel.Magnitude > 2 then
+				local dir = vel.Unit
+				local center = ball.Position + (dir * (corridorLength / 2))
+				return CFrame.lookAt(center, center + dir), Vector3.new(corridorWidth, corridorWidth, corridorLength)
+			end
+			return nil, nil
+		end
+	}
 
-				-- إذا كانت النقطة داخل أبعاد أنبوب كرة أخرى
-				if math.abs(relPos.X) <= halfSize.X and 
-					math.abs(relPos.Y) <= halfSize.Y and 
-					math.abs(relPos.Z) <= halfSize.Z then
-					return true -- النقطة خطرة (داخل مسار كرة أخرى)
+	table.insert(activeTrajectories, zoneData)
+
+	-- 🧠 0. فحص أمان النقطة المستهدفة ضد الكرات الأخرى، الجدران، وخطوط الاندفاع
+	local function isPositionSafe(targetPos, ignoreChar)
+		-- أ) فحص التصادم مع الجدران (Raycast من موقع اللاعب للنقطة المستهدفة)
+		local char = LocalPlayer.Character
+		local root = char and char:FindFirstChild("HumanoidRootPart")
+		if root then
+			local rayParams = RaycastParams.new()
+			rayParams.FilterDescendantsInstances = {char, ball, hitbox}
+			rayParams.FilterType = Enum.RaycastFilterType.Exclude
+			rayParams.IgnoreWater = true
+			rayParams.RespectCanCollide = true
+
+			local pathVector = targetPos - root.Position
+			local wallRay = workspace:Raycast(root.Position, pathVector, rayParams)
+			if wallRay and wallRay.Instance and wallRay.Instance.CanCollide then
+				return false -- يوجد جدار عائق في المسار
+			end
+		end
+
+		-- ب) فحص السقوط داخل نطاق كرة أخرى أو داخل خط الاندفاع
+		for _, data in ipairs(activeTrajectories) do
+			if data.part and data.part.Parent then
+				-- فحص المربع الثابت لكل كرة
+				local relPosData = data.part.CFrame:PointToObjectSpace(targetPos)
+				local halfSize = data.part.Size / 2
+				if math.abs(relPosData.X) <= halfSize.X and 
+					math.abs(relPosData.Y) <= halfSize.Y and 
+					math.abs(relPosData.Z) <= halfSize.Z then
+					return false
+				end
+
+				-- فحص خط اندفاع الكرة المحظور
+				local cframe, size = data.getCorridorCFAndSize()
+				if cframe and size then
+					local relCorridor = cframe:PointToObjectSpace(targetPos)
+					local halfCorridor = size / 2
+					if math.abs(relCorridor.X) <= halfCorridor.X and 
+						math.abs(relCorridor.Y) <= halfCorridor.Y and 
+						math.abs(relCorridor.Z) <= halfCorridor.Z then
+						return false -- النقطة تقع في خط اندفاع محظور
+					end
 				end
 			end
 		end
-		return false -- النقطة آمنة
+
+		return true -- النقطة آمنة تماماً
 	end
 
-	-- 2. المراقبة المستمرة وحساب الأبعاد داخل Heartbeat
+	-- 🧠 1. دالة البحث عن حافة آمنة حول نطاق معين
+	local function findSafeEdgePosition(centerBall)
+		local attempts = 12 -- تجربة 12 زاوية عشوائية
+		for _ = 1, attempts do
+			local randomAngle = math.rad(math.random(0, 360))
+			-- الحساب على محوري X و Z فقط للحفاظ على الاستقرار الأفقي
+			local offsetX = math.cos(randomAngle) * safeEdgeDistance
+			local offsetZ = math.sin(randomAngle) * safeEdgeDistance
+
+			local candidatePos = Vector3.new(
+				centerBall.Position.X + offsetX,
+				centerBall.Position.Y, -- الحفاظ على ارتفاع Y الاصلي
+				centerBall.Position.Z + offsetZ
+			)
+
+			if isPositionSafe(candidatePos) then
+				return candidatePos
+			end
+		end
+		return nil
+	end
+
+	-- 2. المراقبة والتحديث
 	updateConnection = runService.Heartbeat:Connect(function()
 		if not ball or not ball.Parent or not ball:IsDescendantOf(workspace) then
 			if updateConnection then updateConnection:Disconnect() end
 			if hitbox then hitbox:Destroy() end
-			local index = table.find(activeTrajectories, hitbox)
-			if index then table.remove(activeTrajectories, index) end
+			for i, data in ipairs(activeTrajectories) do
+				if data.part == hitbox then
+					table.remove(activeTrajectories, i)
+					break
+				end
+			end
 			return
 		end
 
-		local velocity = ball.AssemblyLinearVelocity
+		-- المربع دائماً ثابت الأبعاد ولا يلتف مع اتجاه الحركة
+		hitbox.Size = Vector3.new(zoneSize, zoneSize, zoneSize)
+		hitbox.CFrame = CFrame.new(ball.Position)
 
-		if velocity.Magnitude > 2 then
-			local direction = velocity.Unit
-			local ballDiameter = math.max(ball.Size.X, ball.Size.Y, ball.Size.Z)
-			local zoneWidth = ballDiameter + extraWidthBuffer
+		-- فحص وجود اللاعب داخل النطاق
+		if AutoDodgeState and not cooldown then
+			local char = LocalPlayer.Character
+			local rootPart = char and char:FindFirstChild("HumanoidRootPart")
+			local humanoid = char and char:FindFirstChildOfClass("Humanoid")
 
-			-- تعيين حجم وموقع الأنبوب أمام الكرة
-			hitbox.Size = Vector3.new(zoneWidth, zoneWidth, frontZoneLength)
-			local centerPos = ball.Position + (direction * (frontZoneLength / 2))
-			hitbox.CFrame = CFrame.lookAt(centerPos, centerPos + direction)
+			if rootPart and humanoid and humanoid.Health > 0 then
+				local relPos = hitbox.CFrame:PointToObjectSpace(rootPart.Position)
+				local halfSize = hitbox.Size / 2
 
-			-- المراقبة عند دخول اللاعب في النطاق
-			if AutoDodgeState and not cooldown then
-				local char = LocalPlayer.Character
-				local rootPart = char and char:FindFirstChild("HumanoidRootPart")
-				local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+				local isInsideZone = math.abs(relPos.X) <= halfSize.X and 
+					math.abs(relPos.Y) <= halfSize.Y and 
+					math.abs(relPos.Z) <= halfSize.Z
 
-				if rootPart and humanoid and humanoid.Health > 0 then
-					local relPos = hitbox.CFrame:PointToObjectSpace(rootPart.Position)
-					local halfSize = hitbox.Size / 2
+				if isInsideZone then
+					local targetPosition = findSafeEdgePosition(ball)
 
-					local isInsideZone = math.abs(relPos.X) <= halfSize.X and 
-						math.abs(relPos.Y) <= halfSize.Y and 
-						math.abs(relPos.Z) <= halfSize.Z
-
-					if isInsideZone then
-						local ballPos = ball.Position
-						local myPos = rootPart.Position
-
-						-- إعدادات الـ Raycast
-						local raycastParams = RaycastParams.new()
-						raycastParams.FilterDescendantsInstances = {char, ball, hitbox}
-						raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-						raycastParams.IgnoreWater = true
-						raycastParams.RespectCanCollide = true
-
-						local targetPosition = nil
-						local isBlocked = false
-
-						-- -------------------------------------------------------------
-						-- 🧠 1. فحص الجدار الأمامي (أمام الكرة)
-						-- -------------------------------------------------------------
-						local frontRayResult = workspace:Raycast(ballPos, direction * 5, raycastParams)
-						if frontRayResult and frontRayResult.Instance and frontRayResult.Instance.CanCollide then
-							isBlocked = true
-						end
-
-						-- -------------------------------------------------------------
-						-- 🧠 2. فحص المسار الخلفي لحساب نقطة النقل الأساسية (خلف الكرة)
-						-- -------------------------------------------------------------
-						if not isBlocked then
-							local backRayResult = workspace:Raycast(ballPos, -direction * maxTeleportOffset, raycastParams)
-
-							if backRayResult and backRayResult.Instance and backRayResult.Instance.CanCollide then
-								local hitDistance = backRayResult.Distance
-								if hitDistance < minSafeDistance then
-									isBlocked = true -- الجدار قريب جداً
-								else
-									local safeDist = math.max(minSafeDistance, hitDistance - wallBuffer)
-									targetPosition = ballPos - (direction * safeDist)
-								end
-							else
-								targetPosition = ballPos - (direction * maxTeleportOffset)
+					-- إذا لم يجد فراغاً آمناً في هذه الكرة، يبدأ بفحص نطاقات الكرات الأخرى
+					if not targetPosition then
+						for _, data in ipairs(activeTrajectories) do
+							if data.ball and data.ball ~= ball and data.ball.Parent then
+								targetPosition = findSafeEdgePosition(data.ball)
+								if targetPosition then break end
 							end
 						end
+					end
 
-						-- -------------------------------------------------------------
-						-- 🧠 3. فحص الجدار بين موقعك ونقطة النقل الخلفية
-						-- -------------------------------------------------------------
-						if targetPosition and not isBlocked then
-							local pathToTarget = targetPosition - myPos
-							local pathRay = workspace:Raycast(myPos, pathToTarget, raycastParams)
+					-- 🚀 تنفيذ النقل النهائي الآمن على المحاور المطلوبة
+					if targetPosition then
+						cooldown = true
 
-							if pathRay and pathRay.Instance and pathRay.Instance.CanCollide then
-								isBlocked = true
-							end
-						end
+						-- دمج موقع X, Z الجديد مع الحفاظ على ارتفاع اللاعب الحالي
+						local finalCFrame = CFrame.new(
+							targetPosition.X,
+							rootPart.Position.Y,
+							targetPosition.Z
+						) * (rootPart.CFrame - rootPart.CFrame.Position)
 
-						-- -------------------------------------------------------------
-						-- 🛑 4. فحص الخطر الرئيسي: هل النقطة خلف الكرة تقع داخل كرة أخرى؟
-						-- -------------------------------------------------------------
-						if targetPosition and not isBlocked then
-							if isPositionInsideOtherZone(targetPosition) then
-								isBlocked = true -- إلغاء النقل للخلف لأن الكرة الثانية متواجدة هناك!
-							end
-						end
+						rootPart.CFrame = finalCFrame
+						rootPart.AssemblyLinearVelocity = Vector3.zero
 
-						-- -------------------------------------------------------------
-						-- 🛡️ 5. خطة الطوارئ: النقل العكسي لوراء اللاعب بشرط ألا يكون داخل كرة أخرى
-						-- -------------------------------------------------------------
-						if isBlocked or not targetPosition then
-							local playerBackDir = -rootPart.CFrame.LookVector
-							local fallbackRay = workspace:Raycast(myPos, playerBackDir * maxTeleportOffset, raycastParams)
-
-							local fallbackPos = nil
-							if fallbackRay and fallbackRay.Instance and fallbackRay.Instance.CanCollide then
-								local hitDist = fallbackRay.Distance
-								if hitDist > wallBuffer then
-									fallbackPos = myPos + (playerBackDir * (hitDist - wallBuffer))
-								end
-							else
-								fallbackPos = myPos + (playerBackDir * maxTeleportOffset)
-							end
-
-							-- التأكد من أن موقع الطوارئ خالٍ أيضاً من مسارات الكرات
-							if fallbackPos and not isPositionInsideOtherZone(fallbackPos) then
-								targetPosition = fallbackPos
-							else
-								targetPosition = nil -- إلغاء النقل تماماً إذا كانت كل الخيارات خطرة
-							end
-						end
-
-						-- 🚀 6. تنفيذ النقل النهائي الآمن
-						if targetPosition then
-							cooldown = true
-							rootPart.CFrame = CFrame.new(targetPosition, targetPosition + rootPart.CFrame.LookVector)
-							rootPart.AssemblyLinearVelocity = Vector3.zero
-
-							task.delay(0.35, function()
-								cooldown = false
-							end)
-						end
+						task.delay(0.35, function()
+							cooldown = false
+						end)
 					end
 				end
 			end
-		else
-			hitbox.Size = Vector3.new(0.1, 0.1, 0.1)
 		end
 	end)
 
 	ball.Destroying:Connect(function()
 		if updateConnection then updateConnection:Disconnect() end
 		if hitbox then hitbox:Destroy() end
-		local index = table.find(activeTrajectories, hitbox)
-		if index then table.remove(activeTrajectories, index) end
+		for i, data in ipairs(activeTrajectories) do
+			if data.part == hitbox then
+				table.remove(activeTrajectories, i)
+				break
+			end
+		end
 	end)
 end
 
--- 3. تشغيل المراقبة
+-- 3. تشغيل المراقبة للكرات
 task.spawn(function()
 	while not ballsFolder do task.wait(0.5) end
 
@@ -691,4 +688,3 @@ antiTrapBtn.MouseButton1Click:Connect(function()
 		antiTrapPlate.BackgroundColor3 = blk_color
 	end
 end)
-
