@@ -32,10 +32,10 @@ local function printlog(txt,set)
 	helperTextLabel.Text=txt
 end
 
---local upFolder = LocalPlayer:WaitForChild("Upgrades")
---local dashValue = upFolder:WaitForChild ("Dashes")
---local jumpValue = upFolder:WaitForChild("Jump")
---local speedValue=upFolder:WaitForChild("Speed")
+local upFolder = LocalPlayer:WaitForChild("Upgrades")
+local dashValue = upFolder:WaitForChild ("Dashes")
+local jumpValue = upFolder:WaitForChild("Jump")
+local speedValue=upFolder:WaitForChild("Speed")
 
 for _, dex in ipairs(workspace:GetChildren()) do 
 	if dex:IsA("Folder") and dex.Name=="Lobby" then
