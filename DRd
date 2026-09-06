@@ -46,7 +46,7 @@ for _, dex in ipairs(workspace:GetChildren()) do
 	end
 end
 
-if ballsFolder.classic and ballsFolder.practice then printlog(" 22344",false)
+if ballsFolder.classic and ballsFolder.practice then printlog(" 4345",false)
 else printlog("Fo333",true)
 end
 
@@ -387,8 +387,8 @@ local function setupSmartAutoDodge(ball)
 
 	local zoneSize = 15           -- نطاق المربع ثابت 15 متر حول الكرة
 	local maxTeleportOffset = 15  -- أقصى مدى للنقل
-	local minSafeDistance = 6     -- زيادة الحد الأدنى لمنع الالتصاق
-	local wallBuffer = 3.5        -- هامش أمان مضاعف لمنع النقل خلف أو داخل الجدار
+	local minSafeDistance = 6     -- الحد الأدنى لمنع الالتصاق
+	local wallBuffer = 3.5        -- هامش أمان لمنع النقل داخل/خلف الجدار
 	local cooldown = false
 	local updateConnection = nil
 
@@ -409,20 +409,20 @@ local function setupSmartAutoDodge(ball)
 		return false
 	end
 
-	-- 🔒 فحص الأمان الشامل: هل النقطة آمنة تماماً وخالية من الجدران وراءها وفي الطريق إليها؟
+	-- 🔒 فحص الأمان الشامل: تأكيد الخلو من الجدران والكرات الأخرى
 	local function isDestinationSafe(startPos, targetPos, rayParams)
-		-- أ. فحص المسار المباشر من موقع اللاعب إلى النقطة المستهدفة
+		-- أ. فحص المسار المباشر من موقع اللاعب إلى الهدف
 		local pathRay = workspace:Raycast(startPos, targetPos - startPos, rayParams)
 		if pathRay and pathRay.Instance and pathRay.Instance.CanCollide then
 			return false
 		end
 
-		-- ب. فحص الخطر من النطاقات الخضراء/الكرات الأخرى
+		-- ب. فحص الخطر من زونات الكرات الأخرى
 		if isPositionInsideOtherZone(targetPos) then
 			return false
 		end
 
-		-- ج. فحص إضافي محيطي حول النقطة المستهدفة لمنع الالتصاق بحافة الجدار
+		-- ج. فحص محيطي حول النقطة لمنع الالتصاق بحافة الجدران
 		local sphereCheck = workspace:Spherecast(targetPos, 1.5, Vector3.new(0, -0.1, 0), rayParams)
 		if sphereCheck and sphereCheck.Instance and sphereCheck.Instance.CanCollide then
 			return false
@@ -431,7 +431,7 @@ local function setupSmartAutoDodge(ball)
 		return true
 	end
 
-	-- 2. المراقبة المستمرة والسريعة داخل Heartbeat
+	-- 2. المراقبة المستمرة داخل Heartbeat
 	updateConnection = runService.Heartbeat:Connect(function()
 		if not ball or not ball.Parent or not ball:IsDescendantOf(workspace) then
 			if updateConnection then updateConnection:Disconnect() end
@@ -471,20 +471,21 @@ local function setupSmartAutoDodge(ball)
 
 					local targetPosition = nil
 
-					-- حساب اتجاهات الفحص المتاحة (الخلف أولاً، ثم اليمين واليسار)
+					-- حساب المتجهات الجانبية والخلفية
 					local backDir = -direction
 					local rightDir = Vector3.new(-direction.Z, 0, direction.X).Unit
 					local leftDir = -rightDir
 
+					-- 🎯 ترتيب الأولوية الجديد: اليمين -> اليسار -> القطريات -> الخلف كحل أخير
 					local candidatesDirections = {
-						backDir,
-						rightDir,
-						leftDir,
-						(backDir + rightDir).Unit, -- خيار قطري يمين
-						(backDir + leftDir).Unit   -- خيار قطري يسار
+						rightDir,                  -- 1. اليمين
+						leftDir,                   -- 2. اليسار
+						(backDir + rightDir).Unit, -- 3. قطري يمين
+						(backDir + leftDir).Unit,  -- 4. قطري يسار
+						backDir                    -- 5. خلف الكرة (عند انسداد الخيارات السابقة)
 					}
 
-					-- تجربة الاتجاهات بالترتيب واختيار أول نقطة آمنة تماماً
+					-- التجربة بالترتيب واختيار أول نقطة آمنة
 					for _, dir in ipairs(candidatesDirections) do
 						local rayResult = workspace:Raycast(ballPos, dir * maxTeleportOffset, raycastParams)
 						local testPos = nil
@@ -498,7 +499,7 @@ local function setupSmartAutoDodge(ball)
 							testPos = ballPos + (dir * maxTeleportOffset)
 						end
 
-						-- فحص صارم للنقطة الناتجة
+						-- فحص سلامة النقطة المستهدفة
 						if testPos then
 							local checkPos = Vector3.new(testPos.X, myPos.Y, testPos.Z)
 							if isDestinationSafe(myPos, checkPos, raycastParams) then
@@ -508,7 +509,7 @@ local function setupSmartAutoDodge(ball)
 						end
 					end
 
-					-- 🚀 تنفيذ النقل اللحظي عند إيجاد موقع آمن محقق 100%
+					-- 🚀 تنفيذ النقل اللحظي عند العثور على المسار الآمن
 					if targetPosition then
 						cooldown = true
 
