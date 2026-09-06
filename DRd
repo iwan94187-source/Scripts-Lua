@@ -32,10 +32,10 @@ local function printlog(txt,set)
 	helperTextLabel.Text=txt
 end
 
-local upFolder = LocalPlayer:WaitForChild("Upgrades")
-local dashValue = upFolder:WaitForChild ("Dashes")
-local jumpValue = upFolder:WaitForChild("Jump")
-local speedValue=upFolder:WaitForChild("Speed")
+--local upFolder = LocalPlayer:WaitForChild("Upgrades")
+--local dashValue = upFolder:WaitForChild ("Dashes")
+--local jumpValue = upFolder:WaitForChild("Jump")
+--local speedValue=upFolder:WaitForChild("Speed")
 
 for _, dex in ipairs(workspace:GetChildren()) do 
 	if dex:IsA("Folder") and dex.Name=="Lobby" then
@@ -51,7 +51,7 @@ else printlog("Folders not found",true)
 end
 
 local Mainframe = Instance.new("Frame")
-Mainframe.Size=UDim2.new(0,225,0,175)
+Mainframe.Size=UDim2.new(0,225,0,200)
 Mainframe.Position=UDim2.new(0.125,0,0,0)
 Mainframe.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 Mainframe.Visible=false
@@ -138,7 +138,7 @@ end
 
 local function newBtn(name,pos,parent)
 	local btn = Instance.new("TextButton")
-	btn.Size=UDim2.new(0.9,0,0.14,0)
+	btn.Size=UDim2.new(0.9,0,0.13,0)
 	btn.Position=UDim2.new(0.05,0,pos,0)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
@@ -150,7 +150,7 @@ end
 
 local function newLbl(name,pos,parent)
 	local btn = Instance.new("TextLabel")
-	btn.Size=UDim2.new(0.9,0,0.14,0)
+	btn.Size=UDim2.new(0.9,0,0.13,0)
 	btn.Position=UDim2.new(0.05,0,pos,0)
 	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 	btn.TextColor=BrickColor.new("White")
@@ -238,38 +238,66 @@ local upTerm = newKnob(upPlate)
 
 local speedSlideBtn = newLbl("Speed",0.2,Mainframe)
 speedSlideBtn.Size=UDim2.new(0.250,0,0.14,0)
-speedSlideBtn.Position=UDim2.new(0.05,0,0.35,0)
+speedSlideBtn.Position=UDim2.new(0.05,0,0.3,0)
 speedSlideBtn.TextYAlignment=Enum.TextYAlignment.Top
 local speedBox = txtBox(speedSlideBtn)
 
 local jumpBtn = newLbl("Jump",0.2,Mainframe)
 jumpBtn.Size=UDim2.new(0.250,0,0.14,0)
-jumpBtn.Position=UDim2.new(0.375,0,0.35,0)
+jumpBtn.Position=UDim2.new(0.375,0,0.3,0)
 jumpBtn.TextYAlignment=Enum.TextYAlignment.Top
 local jumpBox = txtBox(jumpBtn)
 
 
 local dashBtn = newLbl("Dash",0.2,Mainframe)
 dashBtn.Size=UDim2.new(0.250,0,0.14,0)
-dashBtn.Position=UDim2.new(0.7,0,0.35,0)
+dashBtn.Position=UDim2.new(0.7,0,0.3,0)
 dashBtn.TextYAlignment=Enum.TextYAlignment.Top
 local dashBox = txtBox(dashBtn)
 
 local AutoDodgeState = false
-local AutoDodgeBtn = newBtn(" Auto Dodge",0.55,Mainframe)
+local AutoDodgeBtn = newBtn(" Auto Dodge",0.45,Mainframe)
 AutoDodgeBtn.TextXAlignment="Left"
 local AutoDodgePlate = newPlate(AutoDodgeBtn)
 local AutoDodgeKnob = newKnob(AutoDodgePlate)
 
 local DodgeAuraState = false
-local DodgeAuraBtn = newBtn(" Dodge Aura",0.75,Mainframe)
+local DodgeAuraBtn = newBtn(" Dodge Aura",0.6,Mainframe)
 DodgeAuraBtn.TextXAlignment="Left"
 local DodgeAuraPlate = newPlate(DodgeAuraBtn)
 local DodgeAuraKnob = newKnob(DodgeAuraPlate)
 
+local antiTrapState = false
+local antiTrapBtn = newBtn(" Anti-Trap",0.75,Mainframe)
+antiTrapBtn.TextXAlignment = Enum.TextXAlignment.Left
+local antiTrapPlate = newPlate(antiTrapBtn)
+local antiTrapKnob = newKnob(antiTrapPlate)
+
+local titlelbl = Instance.new("TextLabel")
+titlelbl.Size=UDim2.new(0.5,0,0.05,0)
+titlelbl.Position=UDim2.new(0.5,0,0.925,0)
+titlelbl.BackgroundTransparency=1
+titlelbl.TextColor=BrickColor.new("White")
+titlelbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+titlelbl.TextStrokeTransparency=0
+titlelbl.TextStrokeColor3=blk_color
+titlelbl.TextScaled=true
+titlelbl.Text="By iwangamer931"
+titlelbl.TextXAlignment=Enum.TextXAlignment.Left
+titlelbl.Parent=Mainframe
+
+local imageicon = Instance.new("ImageLabel")
+imageicon.Size=UDim2.new(0.2,0,1,5)
+imageicon.Position=UDim2.new(0.7,0,0,-2.5)
+imageicon.Image="rbxassetid://106299005851806"
+imageicon.BackgroundTransparency=1
+imageicon.Parent=titlelbl
+
 fixedTxt(upBtn,0.6)
-fixedTxt(AutoDodgeBtn,0.6)
-fixedTxt(DodgeAuraBtn,0.6)
+fixedTxt(AutoDodgeBtn,0.5)
+fixedTxt(DodgeAuraBtn,0.5)
+
+fixedTxt(antiTrapBtn,0.5)
 
 local function newUi(parent) 
 	local ui = Instance.new("UICorner")
@@ -306,6 +334,10 @@ newUi(AutoDodgePlate)
 newUi(DodgeAuraBtn)
 newUi(DodgeAuraKnob)
 newUi(DodgeAuraPlate)
+
+newUi(antiTrapBtn)
+newUi(antiTrapPlate)
+newUi(antiTrapKnob)
 
 newUi(speedSlideBtn)
 newUi(speedBox)
@@ -646,6 +678,17 @@ DodgeAuraBtn.MouseButton1Click:Connect(function()
 	else 
 		DodgeAuraKnob.Position = UDim2.new(0.1, 0, 0.8, -8)
 		DodgeAuraPlate.BackgroundColor3 = blk_color
+	end
+end)
+
+antiTrapBtn.MouseButton1Click:Connect(function()
+	antiTrapState = not antiTrapState
+	if antiTrapState then 
+		antiTrapKnob.Position = UDim2.new(0.65, 0, 0.8, -8)
+		antiTrapPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		antiTrapKnob.Position = UDim2.new(0.1, 0, 0.8, -8)
+		antiTrapPlate.BackgroundColor3 = blk_color
 	end
 end)
 
