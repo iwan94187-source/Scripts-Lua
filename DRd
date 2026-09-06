@@ -7,6 +7,8 @@ local runService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ballsFolder={classic=nil,practice=nil}
+
+
 -- 1. إنشاء الواجهة والخط الرئيسي (Slider Frame)
 local screenGui = Instance.new("ScreenGui", PlayerGui)
 screenGui.ResetOnSpawn = false
@@ -44,7 +46,7 @@ for _, dex in ipairs(workspace:GetChildren()) do
 	end
 end
 
-if ballsFolder.classic and ballsFolder.practice then printlog("Folders was found",false)
+if ballsFolder.classic and ballsFolder.practice then printlog(" 3434",false)
 else printlog("Fo333",true)
 end
 
@@ -168,6 +170,7 @@ local function newTrem(parent)
 	trem.Parent=parent
 	return trem
 end
+
 local function newKnob(parent)
 	local frame = Instance.new("Frame")
 	frame.Size=UDim2.new(0,8,0,8)
@@ -293,7 +296,6 @@ imageicon.Parent=titlelbl
 fixedTxt(upBtn,0.6)
 fixedTxt(AutoDodgeBtn,0.5)
 fixedTxt(DodgeAuraBtn,0.5)
-
 fixedTxt(antiTrapBtn,0.5)
 
 local function newUi(parent) 
@@ -466,7 +468,7 @@ local function setupSmartAutoDodge(ball)
 						targetPosition = ballPos - (direction * maxTeleportOffset)
 					end
 
-					-- 🧠 2. فحص الجدار بين موقعك ونقطة النقل
+					-- 🧠 2. فحص الجدار بين موقعك ونقطة النقل الخلفية
 					if targetPosition and not isBlocked then
 						local pathToTarget = targetPosition - myPos
 						local pathRay = workspace:Raycast(myPos, pathToTarget, raycastParams)
@@ -483,25 +485,37 @@ local function setupSmartAutoDodge(ball)
 						end
 					end
 
-					-- 🛡️ 4. خطة الطوارئ: النقل العكسي خلف اللاعب
+					-- 🛡️ 4. خطة البديل عند الاعتراض للجدار: النقل لليمين أو اليسار للكرة فقط
 					if isBlocked or not targetPosition then
-						local playerBackDir = -rootPart.CFrame.LookVector
-						local fallbackRay = workspace:Raycast(myPos, playerBackDir * maxTeleportOffset, raycastParams)
+						-- حساب الاتجاه الأيمن والأيسر للكرة مقارنة باتجاه حركتها
+						local rightDir = Vector3.new(-direction.Z, 0, direction.X).Unit
+						local leftDir = -rightDir
 
-						local fallbackPos = nil
-						if fallbackRay and fallbackRay.Instance and fallbackRay.Instance.CanCollide then
-							local hitDist = fallbackRay.Distance
-							if hitDist > wallBuffer then
-								fallbackPos = myPos + (playerBackDir * (hitDist - wallBuffer))
+						local sideDirections = {rightDir, leftDir}
+
+						for _, sideDir in ipairs(sideDirections) do
+							local sideRay = workspace:Raycast(ballPos, sideDir * maxTeleportOffset, raycastParams)
+							local candidatePos = nil
+
+							if sideRay and sideRay.Instance and sideRay.Instance.CanCollide then
+								local hitDist = sideRay.Distance
+								if hitDist > minSafeDistance then
+									candidatePos = ballPos + (sideDir * (hitDist - wallBuffer))
+								end
+							else
+								candidatePos = ballPos + (sideDir * maxTeleportOffset)
 							end
-						else
-							fallbackPos = myPos + (playerBackDir * maxTeleportOffset)
-						end
 
-						if fallbackPos and not isPositionInsideOtherZone(fallbackPos) then
-							targetPosition = fallbackPos
-						else
-							targetPosition = nil
+							-- التأكد من أن المسار من موقع اللاعب للنقطة الجانبية خالٍ من الجدران ومن الكرات
+							if candidatePos then
+								local pathRay = workspace:Raycast(myPos, candidatePos - myPos, raycastParams)
+								if not (pathRay and pathRay.Instance and pathRay.Instance.CanCollide) then
+									if not isPositionInsideOtherZone(candidatePos) then
+										targetPosition = candidatePos
+										break -- تم العثور على جانب آمن
+									end
+								end
+							end
 						end
 					end
 
