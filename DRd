@@ -21,7 +21,7 @@ helperTextLabel.Transparency=0.5
 helperTextLabel.BackgroundColor3=blk_color
 helperTextLabel.TextColor=BrickColor.new("White")
 helperTextLabel.TextScaled=true
-helperTextLabel.Parent=nil
+helperTextLabel.Parent=screenGui
 
 local function printlog(txt,set)
 	if set then 
@@ -373,7 +373,6 @@ local activeTrajectories = {}
 local function setupSmartAutoDodge(ball)
 	if not ball or not ball:IsA("BasePart") then return end
 
-	-- 1. إنشاء نطاق المربع الثابت المحيط بالكرة (15 Studs)
 	local hitbox = Instance.new("Part")
 	hitbox.Name = "BallTrajectoryZone"
 	hitbox.Anchored = true
@@ -384,14 +383,13 @@ local function setupSmartAutoDodge(ball)
 	hitbox.Color = Color3.fromRGB(255, 0, 0)
 	hitbox.Parent = workspace
 
-	local zoneSize = 15 -- حجم المربع حول الكرة (15 متر)
-	local safeEdgeDistance = 16 -- مسافة الانتقال عند الحافة
-	local corridorWidth = 8 -- عرض خط الاندفاع المحظور
-	local corridorLength = 30 -- طول خط الاندفاع أمام الكرة
+	local zoneSize = 15 
+	local safeEdgeDistance = 16 
+	local corridorWidth = 8 
+	local corridorLength = 30 
 	local cooldown = false
 	local updateConnection = nil
 
-	-- تخزين معلومات النطاق المباشر في الجدول
 	local zoneData = {
 		part = hitbox,
 		ball = ball,
@@ -408,29 +406,24 @@ local function setupSmartAutoDodge(ball)
 
 	table.insert(activeTrajectories, zoneData)
 
-	-- 🧠 0. فحص أمان النقطة المستهدفة ضد الكرات الأخرى، الجدران، وخطوط الاندفاع
-	local function isPositionSafe(targetPos, ignoreChar)
-		-- أ) فحص التصادم مع الجدران (Raycast من موقع اللاعب للنقطة المستهدفة)
-		local char = LocalPlayer.Character
+	-- 🧠 فحص آمن سريع جداً
+	local function isPositionSafe(targetPos, char)
 		local root = char and char:FindFirstChild("HumanoidRootPart")
 		if root then
 			local rayParams = RaycastParams.new()
 			rayParams.FilterDescendantsInstances = {char, ball, hitbox}
 			rayParams.FilterType = Enum.RaycastFilterType.Exclude
-			rayParams.IgnoreWater = true
 			rayParams.RespectCanCollide = true
 
 			local pathVector = targetPos - root.Position
 			local wallRay = workspace:Raycast(root.Position, pathVector, rayParams)
 			if wallRay and wallRay.Instance and wallRay.Instance.CanCollide then
-				return false -- يوجد جدار عائق في المسار
+				return false
 			end
 		end
 
-		-- ب) فحص السقوط داخل نطاق كرة أخرى أو داخل خط الاندفاع
 		for _, data in ipairs(activeTrajectories) do
 			if data.part and data.part.Parent then
-				-- فحص المربع الثابت لكل كرة
 				local relPosData = data.part.CFrame:PointToObjectSpace(targetPos)
 				local halfSize = data.part.Size / 2
 				if math.abs(relPosData.X) <= halfSize.X and 
@@ -439,7 +432,6 @@ local function setupSmartAutoDodge(ball)
 					return false
 				end
 
-				-- فحص خط اندفاع الكرة المحظور
 				local cframe, size = data.getCorridorCFAndSize()
 				if cframe and size then
 					local relCorridor = cframe:PointToObjectSpace(targetPos)
@@ -447,38 +439,35 @@ local function setupSmartAutoDodge(ball)
 					if math.abs(relCorridor.X) <= halfCorridor.X and 
 						math.abs(relCorridor.Y) <= halfCorridor.Y and 
 						math.abs(relCorridor.Z) <= halfCorridor.Z then
-						return false -- النقطة تقع في خط اندفاع محظور
+						return false
 					end
 				end
 			end
 		end
 
-		return true -- النقطة آمنة تماماً
+		return true
 	end
 
-	-- 🧠 1. دالة البحث عن حافة آمنة حول نطاق معين
-	local function findSafeEdgePosition(centerBall)
-		local attempts = 12 -- تجربة 12 زاوية عشوائية
-		for _ = 1, attempts do
-			local randomAngle = math.rad(math.random(0, 360))
-			-- الحساب على محوري X و Z فقط للحفاظ على الاستقرار الأفقي
-			local offsetX = math.cos(randomAngle) * safeEdgeDistance
-			local offsetZ = math.sin(randomAngle) * safeEdgeDistance
-
+	-- ⚡ جلب سريع جداً لأول نقطة حافة مجهزة (8 اتجاهات رئيسية فقط)
+	local angles = {0, 0.785, 1.57, 2.35, 3.14, 3.92, 4.71, 5.49} -- زوايا جاهزة بالـ Radian لتوفير المعالجة
+	local function getFastSafePosition(centerBall, char)
+		local ballPos = centerBall.Position
+		for i = 1, #angles do
+			local angle = angles[i]
 			local candidatePos = Vector3.new(
-				centerBall.Position.X + offsetX,
-				centerBall.Position.Y, -- الحفاظ على ارتفاع Y الاصلي
-				centerBall.Position.Z + offsetZ
+				ballPos.X + (math.cos(angle) * safeEdgeDistance),
+				ballPos.Y,
+				ballPos.Z + (math.sin(angle) * safeEdgeDistance)
 			)
 
-			if isPositionSafe(candidatePos) then
+			if isPositionSafe(candidatePos, char) then
 				return candidatePos
 			end
 		end
 		return nil
 	end
 
-	-- 2. المراقبة والتحديث
+	-- 2. المراقبة والتحديث السريع
 	updateConnection = runService.Heartbeat:Connect(function()
 		if not ball or not ball.Parent or not ball:IsDescendantOf(workspace) then
 			if updateConnection then updateConnection:Disconnect() end
@@ -492,11 +481,9 @@ local function setupSmartAutoDodge(ball)
 			return
 		end
 
-		-- المربع دائماً ثابت الأبعاد ولا يلتف مع اتجاه الحركة
 		hitbox.Size = Vector3.new(zoneSize, zoneSize, zoneSize)
 		hitbox.CFrame = CFrame.new(ball.Position)
 
-		-- فحص وجود اللاعب داخل النطاق
 		if AutoDodgeState and not cooldown then
 			local char = LocalPlayer.Character
 			local rootPart = char and char:FindFirstChild("HumanoidRootPart")
@@ -506,41 +493,40 @@ local function setupSmartAutoDodge(ball)
 				local relPos = hitbox.CFrame:PointToObjectSpace(rootPart.Position)
 				local halfSize = hitbox.Size / 2
 
-				local isInsideZone = math.abs(relPos.X) <= halfSize.X and 
+				-- تحقق سريع من الدخول للنطاق
+				if math.abs(relPos.X) <= halfSize.X and 
 					math.abs(relPos.Y) <= halfSize.Y and 
-					math.abs(relPos.Z) <= halfSize.Z
+					math.abs(relPos.Z) <= halfSize.Z then
 
-				if isInsideZone then
-					local targetPosition = findSafeEdgePosition(ball)
+					cooldown = true -- إيقاف فوري لتفادي التكرار اللحظي
 
-					-- إذا لم يجد فراغاً آمناً في هذه الكرة، يبدأ بفحص نطاقات الكرات الأخرى
-					if not targetPosition then
-						for _, data in ipairs(activeTrajectories) do
-							if data.ball and data.ball ~= ball and data.ball.Parent then
-								targetPosition = findSafeEdgePosition(data.ball)
-								if targetPosition then break end
+					task.spawn(function()
+						local targetPosition = getFastSafePosition(ball, char)
+
+						-- البحث في باقي الكرات بسرعة إن لم يجد في هذه الكرة
+						if not targetPosition then
+							for _, data in ipairs(activeTrajectories) do
+								if data.ball and data.ball ~= ball and data.ball.Parent then
+									targetPosition = getFastSafePosition(data.ball, char)
+									if targetPosition then break end
+								end
 							end
 						end
-					end
 
-					-- 🚀 تنفيذ النقل النهائي الآمن على المحاور المطلوبة
-					if targetPosition then
-						cooldown = true
+						-- 🚀 تنفيذ النقل اللحظي
+						if targetPosition then
+							rootPart.CFrame = CFrame.new(
+								targetPosition.X,
+								rootPart.Position.Y,
+								targetPosition.Z
+							) * (rootPart.CFrame - rootPart.CFrame.Position)
 
-						-- دمج موقع X, Z الجديد مع الحفاظ على ارتفاع اللاعب الحالي
-						local finalCFrame = CFrame.new(
-							targetPosition.X,
-							rootPart.Position.Y,
-							targetPosition.Z
-						) * (rootPart.CFrame - rootPart.CFrame.Position)
+							rootPart.AssemblyLinearVelocity = Vector3.zero
+						end
 
-						rootPart.CFrame = finalCFrame
-						rootPart.AssemblyLinearVelocity = Vector3.zero
-
-						task.delay(0.35, function()
-							cooldown = false
-						end)
-					end
+						task.wait(0.2) -- تقليل الـ Cooldown للاستجابة للأخطار المتتالية
+						cooldown = false
+					end)
 				end
 			end
 		end
@@ -558,7 +544,7 @@ local function setupSmartAutoDodge(ball)
 	end)
 end
 
--- 3. تشغيل المراقبة للكرات
+-- 3. تشغيل المراقبة
 task.spawn(function()
 	while not ballsFolder do task.wait(0.5) end
 
