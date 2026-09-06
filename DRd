@@ -46,7 +46,7 @@ for _, dex in ipairs(workspace:GetChildren()) do
 	end
 end
 
-if ballsFolder.classic and ballsFolder.practice then printlog(" 4345",false)
+if ballsFolder.classic and ballsFolder.practice then printlog(" 9343",false)
 else printlog("Fo333",true)
 end
 
@@ -385,7 +385,7 @@ local function setupSmartAutoDodge(ball)
 
 	table.insert(activeTrajectories, hitbox)
 
-	local zoneSize = 15           -- نطاق المربع ثابت 15 متر حول الكرة
+	local zoneSize = 20           -- نطاق المربع ثابت 15 متر حول الكرة
 	local maxTeleportOffset = 15  -- أقصى مدى للنقل
 	local minSafeDistance = 6     -- الحد الأدنى لمنع الالتصاق
 	local wallBuffer = 3.5        -- هامش أمان لمنع النقل داخل/خلف الجدار
