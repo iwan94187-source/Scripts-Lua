@@ -169,7 +169,6 @@ local function newTrem(parent)
 	trem.Parent=parent
 	return trem
 end
-
 local function newKnob(parent)
 	local frame = Instance.new("Frame")
 	frame.Size=UDim2.new(0,8,0,8)
