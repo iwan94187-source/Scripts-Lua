@@ -31,30 +31,38 @@ local function printlog(txt,set)
 	helperTextLabel.Text=txt
 end
 
-for _, dex in ipairs(workspace:GetChildren()) do 
-	if dex:IsA("Folder") and dex.Name == "Lobby" then
+while true do 
+	for _, dex in ipairs(workspace:GetChildren()) do 
+		if dex:IsA("Folder") and dex.Name == "Lobby" then
 
-		-- 1. فحص ما إذا كان هذا هو مجلد التدريب
-		local practiceArea = dex:FindFirstChild("PracticeArea")
-		if practiceArea then
-			local practiceBalls = practiceArea:FindFirstChild("PracticeBalls")
-			if practiceBalls then
-				ballsFolder.practice = practiceBalls
+			-- 1. فحص ما إذا كان هذا هو مجلد التدريب
+			local practiceArea = dex:FindFirstChild("PracticeArea")
+			if practiceArea then
+				local practiceBalls = practiceArea:FindFirstChild("PracticeBalls")
+				if practiceBalls then
+					ballsFolder.practice = practiceBalls
+				end
+			else
+				-- 2. تحديد اللوبي الكلاسيكي عند العثور عليه
+				if not ballsFolder.classic then 
+					ballsFolder.classic = dex 
+				end
 			end
-		else
-			-- 2. إذا لم يكن يحتوي على PracticeArea فهو اللوبي الكلاسيكي
-			ballsFolder.classic = dex
+
 		end
-
 	end
+
+	-- 3. الفحص النهائي وكسر الحلقة عند الجاهزية
+	if ballsFolder.classic and ballsFolder.practice then 
+		printlog("9292992", false)
+		break
+	else 
+		printlog("vzvz", true)
+	end
+
+	task.wait(0.1)
 end
 
--- الفحص النهائي
-if ballsFolder.classic and ballsFolder.practice then 
-	printlog("878huyh", false)
-else 
-	printlog("0p0p0p", true)
-end
 
 local upFolder = LocalPlayer:WaitForChild("Upgrades")
 local dashValue = upFolder:WaitForChild ("Dashes")
@@ -85,6 +93,787 @@ frameTitle.TextXAlignment=Enum.TextXAlignment.Left
 frameTitle.TextTransparency=1
 frameTitle.BackgroundColor3=blk_color
 frameTitle.TextSize=7
+frameTitle.Parent=Mainframe
+
+local txt = Instance.new("TextLabel")
+txt.Size=UDim2.new(0.6,0,0.8,0)
+txt.Position=UDim2.new(0,0,0,0)
+txt.TextColor=BrickColor.new("White")
+txt.BackgroundTransparency=1
+txt.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+txt.Text="Dodge or Die"
+txt.TextScaled=true
+txt.Parent=frameTitle
+
+local iconFrame = Instance.new("ImageButton")
+iconFrame.Size=UDim2.new(0,40,0,40)
+iconFrame.Position=UDim2.new(0.3,0,0.3,0)
+iconFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+iconFrame.Image = "rbxassetid://85847690672478"
+iconFrame.Active=true
+iconFrame.Draggable=true
+iconFrame.Parent=screenGui
+
+local destroyBtn = Instance.new("TextButton")
+destroyBtn.Size=UDim2.new(0,20,0,20)
+destroyBtn.Position=UDim2.new(0.91,0,0,0)
+destroyBtn.BackgroundColor3=Color3.fromRGB(255, 0, 0)
+destroyBtn.TextColor=BrickColor.new("White")
+destroyBtn.Text="x"
+destroyBtn.Parent=frameTitle
+
+local hideBtn = Instance.new("TextButton")
+hideBtn.Size=UDim2.new(0,20,0,20)
+hideBtn.Position=UDim2.new(0.8,0,0,0)
+hideBtn.BackgroundColor3=gry
+hideBtn.TextColor=BrickColor.new("White")
+hideBtn.Text="–"
+hideBtn.Parent=frameTitle
+
+iconFrame.MouseButton1Click:Connect(function()
+	iconFrame.Visible=not iconFrame.Visible
+	if iconFrame.Visible then 
+		Mainframe.Visible=false
+	else
+		Mainframe.Position=iconFrame.Position
+		Mainframe.Visible=true
+	end
+end)
+
+hideBtn.MouseButton1Click:Connect(function()
+	Mainframe.Visible=false
+	iconFrame.Position=Mainframe.Position
+	iconFrame.Visible=true
+end)
+
+destroyBtn.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+end)
+
+local function txtBox(parent) 
+	local box = Instance.new("TextBox")
+	box.Size=UDim2.new(0.8, 0,0.4,0)
+	box.Position=UDim2.new(0.1,0,0.4,0)
+	box.BackgroundColor3=blk_color
+	box.Text="Number"
+	box.TextScaled=true
+	box.TextColor=BrickColor.new("White")
+	box.Parent=parent
+	return box
+
+end
+
+local function newBtn(name, pos, parent)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0.9, 0, 0.06, 0)
+	btn.Position = UDim2.new(0.05, 0, pos, 0)
+	btn.BackgroundColor3 = Color3.fromRGB(36, 36, 36)
+	btn.TextColor = BrickColor.new("White")
+	btn.Text = name
+	btn.TextSize = 5
+	btn.Parent = parent
+	return btn
+end
+
+local function newLbl(name, pos, parent)
+	local btn = Instance.new("TextLabel")
+	btn.Size = UDim2.new(0.9, 0, 0.06, 0)
+	btn.Position = UDim2.new(0.05, 0, pos, 0)
+	btn.BackgroundColor3 = Color3.fromRGB(36, 36, 36)
+	btn.TextColor = BrickColor.new("White")
+	btn.Text = name
+	btn.TextSize = 5
+	btn.Parent = parent
+	return btn
+end
+
+local function newTrem(parent)
+	local trem = Instance.new("TextLabel")
+	trem.Size = UDim2.new(0,25,1,0)
+	trem.Position=UDim2.new(0.85,0,0,0)
+	trem.BackgroundTransparency=1
+	trem.Text="🔴"
+	trem.TextSize=20
+	trem.Parent=parent
+	return trem
+end
+
+local function newKnob(parent)
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0,8,0,8)
+	frame.Position=UDim2.new(0.1,0,0.8,-8)
+	frame.BackgroundColor3=Color3.fromRGB(255, 255, 255)
+	frame.Parent=parent
+	return frame
+end
+
+local function newPlate(parent)
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0,27.5,0,12.5)
+	frame.Position=UDim2.new(0.75,0,0.25,0)
+	frame.BackgroundColor3=blk_color
+	frame.Parent=parent
+	return frame
+end
+
+local function newsideBtn(name, pos)
+	local btn=Instance.new("TextButton")
+	btn.Size=UDim2.new(0.17,0,0.1,0)
+	btn.Position=UDim2.new(0.01,0,pos)
+	btn.BackgroundColor3=gry
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextScaled=true
+	btn.Parent=Mainframe
+	return btn
+end
+
+local function newBox(pos, parent)
+	local box = Instance.new("TextBox")
+	box.Size=UDim2.new(0.5,0,0.1,0)
+	box.Position=UDim2.new(0,0,pos,0)
+	box.BackgroundColor=BrickColor.new("Black")
+	box.TextColor=BrickColor.new("White")
+	box.TextScaled=true
+	box.Text="Number"
+	box.Parent=parent
+	return box
+end
+
+local function fixedTxt(parent,siz)
+	parent.TextTransparency=1
+
+	local lbl = Instance.new("TextLabel")
+	lbl.Size=UDim2.new(siz,0,0.4,0)
+	lbl.Position=UDim2.new(0,-10,0.3,0)
+	lbl.TextColor=BrickColor.new("White")
+	lbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+	lbl.TextStrokeTransparency=0
+	lbl.TextStrokeColor3=blk_color
+	lbl.BackgroundTransparency=1
+	lbl.Text=parent.Text
+	lbl.TextScaled=true
+	lbl.Parent=parent
+end
+
+local function fixedTxt2(parent)
+	parent.TextTransparency=1
+
+	local lbl = Instance.new("TextLabel")
+	lbl.Size=UDim2.new(0.4,0,0.5,0)
+	lbl.Position=UDim2.new(0.3,0,0,-5)
+	lbl.TextColor=BrickColor.new("White")
+	lbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+	lbl.TextStrokeTransparency=0
+	lbl.TextStrokeColor3=blk_color
+	lbl.BackgroundTransparency=1
+	lbl.Text=parent.Text
+	lbl.TextScaled=true
+	lbl.Parent=parent
+end
+
+local scroll_1 = Instance.new("ScrollingFrame")
+scroll_1.Size=UDim2.new(1,0,0.8,0)
+scroll_1.Position=UDim2.new(0,0,0.1,0)
+scroll_1.BackgroundColor3=blk_color
+scroll_1.Parent=Mainframe
+
+
+local upState = false
+local upBtn = newBtn(" Upgrades Enabled", 0, scroll_1)
+upBtn.TextXAlignment = Enum.TextXAlignment.Left
+local upPlate = newPlate(upBtn)
+local upTerm = newKnob(upPlate)
+
+-- 2. قسم الإدخال الثلاثي الأفقي (Speed, Jump, Dash)
+local speedSlideBtn = newLbl("Speed", 0.05, scroll_1)
+speedSlideBtn.Size = UDim2.new(0.28, 0, 0.08, 0)
+speedSlideBtn.Position = UDim2.new(0.05, 0, 0.075, 0)
+speedSlideBtn.TextYAlignment = Enum.TextYAlignment.Top
+local speedBox = txtBox(speedSlideBtn)
+
+local jumpBtn = newLbl("Jump", 0.18, scroll_1)
+jumpBtn.Size = UDim2.new(0.28, 0, 0.08, 0)
+jumpBtn.Position = UDim2.new(0.36, 0, 0.075, 0)
+jumpBtn.TextYAlignment = Enum.TextYAlignment.Top
+local jumpBox = txtBox(jumpBtn)
+
+local dashBtn = newLbl("Dash", 0.4, scroll_1)
+dashBtn.Size = UDim2.new(0.28, 0, 0.08, 0)
+dashBtn.Position = UDim2.new(0.67, 0, 0.075, 0)
+dashBtn.TextYAlignment = Enum.TextYAlignment.Top
+local dashBox = txtBox(dashBtn)
+
+-- 3. قائمة التبديل (Toggles List)
+local AutoDodgeState = false
+local AutoDodgeBtn = newBtn(" Auto Dodge", 0.175, scroll_1)
+AutoDodgeBtn.TextXAlignment = Enum.TextXAlignment.Left
+local AutoDodgePlate = newPlate(AutoDodgeBtn)
+local AutoDodgeKnob = newKnob(AutoDodgePlate)
+
+local DodgeAuraState = false
+local DodgeAuraBtn = newBtn(" Dodge Aura", 0.25, scroll_1)
+DodgeAuraBtn.TextXAlignment = Enum.TextXAlignment.Left
+local DodgeAuraPlate = newPlate(DodgeAuraBtn)
+local DodgeAuraKnob = newKnob(DodgeAuraPlate)
+
+local antiTrapState = false
+local antiTrapBtn = newBtn(" Anti-Trap", 0.325, scroll_1)
+antiTrapBtn.TextXAlignment = Enum.TextXAlignment.Left
+local antiTrapPlate = newPlate(antiTrapBtn)
+local antiTrapKnob = newKnob(antiTrapPlate)
+
+local flyState = false
+local flyBtn = newBtn(" Fly", 0.4, scroll_1)
+flyBtn.TextXAlignment = Enum.TextXAlignment.Left
+local flyPlate = newPlate(flyBtn)
+local flyKnob = newKnob(flyPlate)
+local flybox = txtBox(flyBtn)
+flybox.Size=UDim2.new(0.3,0,0.6,0)
+flybox.Text=flySpeed
+flybox.Position=UDim2.new(0.35,0,0.2,0)
+
+local surviveState = false
+local surviveBtn = newBtn(" Survive", 0.475, scroll_1)
+surviveBtn.TextXAlignment = Enum.TextXAlignment.Left
+local survivePlate = newPlate(surviveBtn)
+local surviveKnob = newKnob(survivePlate)
+
+-- 4. التوقيع والأيقونة بالأسفل
+local titlelbl = Instance.new("TextLabel")
+titlelbl.Size = UDim2.new(0.5, 0, 0.05, 0)
+titlelbl.Position = UDim2.new(0.05, 0, 0.92, 0)
+titlelbl.BackgroundTransparency = 1
+titlelbl.TextColor = BrickColor.new("White")
+titlelbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+titlelbl.TextStrokeTransparency = 0
+titlelbl.TextStrokeColor3 = blk_color
+titlelbl.TextScaled = true
+titlelbl.Text = "Created By iwangamer931"
+titlelbl.TextXAlignment = Enum.TextXAlignment.Left
+titlelbl.Parent = Mainframe
+
+local imageicon = Instance.new("ImageLabel")
+imageicon.Size = UDim2.new(0.2, 0, 1, 0)
+imageicon.Position = UDim2.new(1.05, 0, 0, 0)
+imageicon.Image = "rbxassetid://106299005851806"
+imageicon.BackgroundTransparency = 1
+imageicon.Parent = titlelbl
+
+fixedTxt(upBtn,0.6)
+fixedTxt(AutoDodgeBtn,0.5)
+fixedTxt(DodgeAuraBtn,0.5)
+fixedTxt(antiTrapBtn,0.5)
+
+fixedTxt(flyBtn,0.35)
+fixedTxt(surviveBtn,0.5)
+
+fixedTxt2(speedSlideBtn)
+fixedTxt2(jumpBtn)
+fixedTxt2(dashBtn)
+
+local function updateFlyState(enabled)
+
+	local currentspeed = 50
+	if tonumber(flybox.Text) then currentspeed=flybox.Text end
+
+	local char = LocalPlayer.Character
+	local rootPart = char and char:FindFirstChild("HumanoidRootPart")
+	local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+
+	if not rootPart or not humanoid then return end
+
+	if enabled then
+		-- 1. إنشاء Attachment في الشخصية إذا لم يكن موجوداً
+		attachment = rootPart:FindFirstChild("FlyAttachment") or Instance.new("Attachment")
+		attachment.Name = "FlyAttachment"
+		attachment.Parent = rootPart
+
+		-- 2. إنشاء AlignOrientation لجعل الشخصية تتجه مع الكاميرا بمرونة
+		alignOrientation = Instance.new("AlignOrientation")
+		alignOrientation.Name = "FlyOrientation"
+		alignOrientation.Mode = Enum.OrientationAlignmentMode.OneAttachment
+		alignOrientation.Attachment0 = attachment
+		alignOrientation.MaxTorque = 1000000
+		alignOrientation.Responsiveness = 25
+		alignOrientation.Parent = rootPart
+
+		-- 3. إنشاء LinearVelocity للتحكم بالحركة
+		linearVelocity = Instance.new("LinearVelocity")
+		linearVelocity.Name = "FlyVelocity"
+		linearVelocity.Attachment0 = attachment
+		linearVelocity.MaxForce = 10000 * flyResponsiveness
+		linearVelocity.VelocityConstraintMode = Enum.VelocityConstraintMode.Vector
+		linearVelocity.VectorVelocity = Vector3.zero
+		linearVelocity.Parent = rootPart
+
+		humanoid:ChangeState(Enum.HumanoidStateType.Flying)
+
+		-- 4. حلقة التحديث المستمرة
+		flyConnection = runService.RenderStepped:Connect(function()
+			if not rootPart or not humanoid or humanoid.Health <= 0 then
+				updateFlyState(false)
+				return
+			end
+
+			-- توجيه الشخصية لنفس اتجاه النظر للكاميرا
+			alignOrientation.CFrame = cam.CFrame
+
+			local moveDir = humanoid.MoveDirection
+
+			if moveDir.Magnitude > 0 then
+				-- تحويل MoveDirection العالم الخارجي إلى اتجاه محلي بالنسبة للشخصية
+				local relativeMove = rootPart.CFrame:VectorToObjectSpace(moveDir)
+
+				-- تطبيق الاتجاه المحلي مباشرة على زوايا اتجاه الكاميرا الحالية
+				-- relativeMove.X = Yemin / Yasar
+				-- relativeMove.Z = Amam / Khalf
+				local flyDirection = (cam.CFrame.RightVector * relativeMove.X) - (cam.CFrame.LookVector * relativeMove.Z)
+
+				linearVelocity.VectorVelocity = flyDirection.Unit * currentspeed
+			else
+				linearVelocity.VectorVelocity = Vector3.zero
+			end
+		end)
+	else
+		-- إيقاف الطيران والتنظيف
+		if flyConnection then
+			flyConnection:Disconnect()
+			flyConnection = nil
+		end
+
+		if alignOrientation then alignOrientation:Destroy() alignOrientation = nil end
+		if linearVelocity then linearVelocity:Destroy() linearVelocity = nil end
+		if attachment then attachment:Destroy() attachment = nil end
+
+		if humanoid then
+			humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
+		end
+	end
+end
+
+local function newUi(parent) 
+	local ui = Instance.new("UICorner")
+	ui.CornerRadius = UDim.new(0,10)
+	ui.Parent=parent
+	return ui
+end
+
+local function newCustomUi(parent, rb,lb,ru,lu) 
+	local ui = Instance.new("UICorner")
+	ui.BottomLeftRadius =UDim.new(0,lb)
+	ui.BottomRightRadius=UDim.new(0,rb)
+	ui.TopLeftRadius=UDim.new(0,lu)
+	ui.TopRightRadius=UDim.new(0,ru)
+	ui.Parent=parent
+	return ui
+end
+
+newUi(destroyBtn)
+newUi(hideBtn)
+
+newUi(Mainframe)
+newCustomUi(frameTitle,0,0,10,10)
+newUi(iconFrame)
+
+newUi(upBtn)
+newUi(upPlate)
+newUi(upTerm)
+
+newUi(AutoDodgeBtn)
+newUi(AutoDodgeKnob)
+newUi(AutoDodgePlate)
+
+newUi(DodgeAuraBtn)
+newUi(DodgeAuraKnob)
+newUi(DodgeAuraPlate)
+
+newUi(antiTrapBtn)
+newUi(antiTrapPlate)
+newUi(antiTrapKnob)
+
+newUi(speedSlideBtn)
+newUi(speedBox)
+
+newUi(jumpBtn)
+newUi(jumpBox)
+
+newUi(dashBtn)
+newUi(dashBox)
+
+newUi(flyBtn)
+newUi(flyPlate)
+newUi(flyKnob)
+
+newUi(surviveBtn)
+newUi(survivePlate)
+newUi(surviveKnob)
+
+local activeTrajectories = {}
+
+local function setupSmartAutoDodge(ball)
+	if not ball or not ball:IsA("BasePart") then return end
+
+	-- 1. إنشاء المربع (Zone Part)
+	local hitbox = Instance.new("Part")
+	hitbox.Name = "BallTrajectoryZone"
+	hitbox.Anchored = true
+	hitbox.CanCollide = false
+	hitbox.CanTouch = false
+	hitbox.Transparency = 1
+	hitbox.Material = Enum.Material.ForceField
+	hitbox.Color = Color3.fromRGB(255, 0, 0)
+	hitbox.Parent = workspace
+
+	table.insert(activeTrajectories, hitbox)
+
+	local zoneSize = 25         -- نطاق المربع ثابت 15 متر حول الكرة
+	local maxTeleportOffset = 25  -- أقصى مدى للنقل
+	local minSafeDistance = 6     -- الحد الأدنى لمنع الالتصاق
+	local wallBuffer = 3.5        -- هامش أمان لمنع النقل داخل/خلف الجدار
+	local cooldown = false
+	local updateConnection = nil
+
+	-- 🧠 0. فحص أمان النقطة من كرات أخرى
+	local function isPositionInsideOtherZone(targetPos)
+		for _, zone in ipairs(activeTrajectories) do
+			if zone ~= hitbox and zone.Parent then
+				local relPos = zone.CFrame:PointToObjectSpace(targetPos)
+				local halfSize = zone.Size / 2
+
+				if math.abs(relPos.X) <= halfSize.X and 
+					math.abs(relPos.Y) <= halfSize.Y and 
+					math.abs(relPos.Z) <= halfSize.Z then
+					return true
+				end
+			end
+		end
+		return false
+	end
+
+	-- 🔒 فحص الأمان الشامل: تأكيد الخلو من الجدران والكرات الأخرى
+	local function isDestinationSafe(startPos, targetPos, rayParams)
+		-- أ. فحص المسار المباشر من موقع اللاعب إلى الهدف
+		local pathRay = workspace:Raycast(startPos, targetPos - startPos, rayParams)
+		if pathRay and pathRay.Instance and pathRay.Instance.CanCollide then
+			return false
+		end
+
+		-- ب. فحص الخطر من زونات الكرات الأخرى
+		if isPositionInsideOtherZone(targetPos) then
+			return false
+		end
+
+		-- ج. فحص محيطي حول النقطة لمنع الالتصاق بحافة الجدران
+		local sphereCheck = workspace:Spherecast(targetPos, 1.5, Vector3.new(0, -0.1, 0), rayParams)
+		if sphereCheck and sphereCheck.Instance and sphereCheck.Instance.CanCollide then
+			return false
+		end
+
+		return true
+	end
+
+	-- 2. المراقبة المستمرة داخل Heartbeat
+	updateConnection = runService.Heartbeat:Connect(function()
+		if not ball or not ball.Parent or not ball:IsDescendantOf(workspace) then
+			if updateConnection then updateConnection:Disconnect() end
+			if hitbox then hitbox:Destroy() end
+			local index = table.find(activeTrajectories, hitbox)
+			if index then table.remove(activeTrajectories, index) end
+			return
+		end
+
+		hitbox.Size = Vector3.new(zoneSize, zoneSize, zoneSize)
+		hitbox.CFrame = CFrame.new(ball.Position)
+
+		if AutoDodgeState and not cooldown then
+			local char = LocalPlayer.Character
+			local rootPart = char and char:FindFirstChild("HumanoidRootPart")
+			local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+
+			if rootPart and humanoid and humanoid.Health > 0 then
+				local relPos = hitbox.CFrame:PointToObjectSpace(rootPart.Position)
+				local halfSize = hitbox.Size / 2
+
+				local isInsideZone = math.abs(relPos.X) <= halfSize.X and 
+					math.abs(relPos.Y) <= halfSize.Y and 
+					math.abs(relPos.Z) <= halfSize.Z
+
+				if isInsideZone then
+					local ballPos = ball.Position
+					local myPos = rootPart.Position
+					local velocity = ball.AssemblyLinearVelocity
+					local direction = velocity.Magnitude > 2 and velocity.Unit or -rootPart.CFrame.LookVector
+
+					local raycastParams = RaycastParams.new()
+					raycastParams.FilterDescendantsInstances = {char, ball, hitbox}
+					raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+					raycastParams.IgnoreWater = true
+					raycastParams.RespectCanCollide = true
+
+					local targetPosition = nil
+
+					-- حساب المتجهات الجانبية والخلفية
+					local backDir = -direction
+					local rightDir = Vector3.new(-direction.Z, 0, direction.X).Unit
+					local leftDir = -rightDir
+
+					-- 🎯 ترتيب الأولوية الجديد: اليمين -> اليسار -> القطريات -> الخلف كحل أخير
+					local candidatesDirections = {
+						rightDir,                  -- 1. اليمين
+						leftDir,                   -- 2. اليسار
+						(backDir + rightDir).Unit, -- 3. قطري يمين
+						(backDir + leftDir).Unit,  -- 4. قطري يسار
+						backDir                    -- 5. خلف الكرة (عند انسداد الخيارات السابقة)
+					}
+
+					-- التجربة بالترتيب واختيار أول نقطة آمنة
+					for _, dir in ipairs(candidatesDirections) do
+						local rayResult = workspace:Raycast(ballPos, dir * maxTeleportOffset, raycastParams)
+						local testPos = nil
+
+						if rayResult and rayResult.Instance and rayResult.Instance.CanCollide then
+							local hitDist = rayResult.Distance
+							if hitDist > minSafeDistance then
+								testPos = ballPos + (dir * (hitDist - wallBuffer))
+							end
+						else
+							testPos = ballPos + (dir * maxTeleportOffset)
+						end
+
+						-- فحص سلامة النقطة المستهدفة
+						if testPos then
+							local checkPos = Vector3.new(testPos.X, myPos.Y, testPos.Z)
+							if isDestinationSafe(myPos, checkPos, raycastParams) then
+								targetPosition = checkPos
+								break
+							end
+						end
+					end
+
+					-- 🚀 تنفيذ النقل اللحظي عند العثور على المسار الآمن
+					if targetPosition then
+						cooldown = true
+
+						rootPart.CFrame = CFrame.new(targetPosition, targetPosition + rootPart.CFrame.LookVector)
+						rootPart.AssemblyLinearVelocity = Vector3.zero
+
+						task.delay(0.15, function()
+							cooldown = false
+						end)
+					end
+				end
+			end
+		end
+	end)
+
+	ball.Destroying:Connect(function()
+		if updateConnection then updateConnection:Disconnect() end
+		if hitbox then hitbox:Destroy() end
+		local index = table.find(activeTrajectories, hitbox)
+		if index then table.remove(activeTrajectories, index) end
+	end)
+end
+
+-- 3. تشغيل المراقبة
+task.spawn(function()
+	while not ballsFolder do task.wait(0.5) end
+
+	for _, item in ipairs(ballsFolder.classic:GetChildren()) do
+		task.spawn(setupSmartAutoDodge, item)
+	end
+
+	ballsFolder.classic.ChildAdded:Connect(function(child)
+		task.spawn(setupSmartAutoDodge, child)
+	end)
+
+	for _, item in ipairs(ballsFolder.practice:GetChildren()) do
+		task.spawn(setupSmartAutoDodge, item)
+	end
+
+	ballsFolder.practice.ChildAdded:Connect(function(child)
+		task.spawn(setupSmartAutoDodge, child)
+	end)
+end)
+
+local extraSafetyBuffer = 12 -- مسافة الأمان بالـ Studs
+local pushSpeed = 80         -- قوة الدفع الجانبي
+local upSpeed = 20           -- قوة الدفع للأعلى
+
+-- دالة معالجة القطعة ومراقبتها طالما هي موجودة
+local function trackAndPush(part)
+	if not part:IsA("BasePart") then return end
+
+	local targetNames = { ["TrajectoryLine"] = true, ["BallTrajectoryZone"] = true }
+	if not targetNames[part.Name] then return end
+
+	local connection
+	connection = runService.Heartbeat:Connect(function()
+		-- إيقاف المتابعة إذا تم حذف القطعة أو إغلاق الميزة
+		if not part or not part.Parent then
+			if connection then connection:Disconnect() end
+			return
+		end
+
+		if not DodgeAuraState then return end
+
+		local char = LocalPlayer.Character
+		local rootPart = char and char:FindFirstChild("HumanoidRootPart")
+		local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+
+		if not rootPart or not humanoid or humanoid.Health <= 0 then return end
+
+		local partSize = part.Size
+		local partCFrame = part.CFrame
+		local lineForward = partCFrame.LookVector
+		local lineCenter = part.Position
+		local lineLength = partSize.Z
+
+		local dynamicSafetyRadius = (math.max(partSize.X, partSize.Y) / 2) + extraSafetyBuffer
+
+		local playerPos = rootPart.Position
+		local vecToPlayer = playerPos - lineCenter
+
+		local forwardDist = math.abs(vecToPlayer:Dot(lineForward))
+		local projection = vecToPlayer:Dot(lineForward) * lineForward
+		local perpendicularVec = vecToPlayer - projection
+		local perpendicularDist = perpendicularVec.Magnitude
+
+		-- إذا دخلت في نطاق القطعة يتم دفعك فوراً
+		if forwardDist <= (lineLength / 2) and perpendicularDist <= dynamicSafetyRadius then
+			local pushDir = perpendicularDist > 0.1 and perpendicularVec.Unit or partCFrame.RightVector
+			rootPart.AssemblyLinearVelocity = (pushDir * pushSpeed) + Vector3.new(0, upSpeed, 0)
+		end
+	end)
+
+	-- تنظيف الاتصال عند حذف القطعة
+	part.Destroying:Connect(function()
+		if connection then connection:Disconnect() end
+	end)
+end
+
+-- 1. فحص العناصر الموجودة بالداخل مسبقاً
+for _, item in ipairs(workspace:GetDescendants()) do
+	task.spawn(trackAndPush, item)
+end
+
+-- 2. الاستماع الفوري لأي قطعة جديدة تنشأ داخل Workspace
+workspace.DescendantAdded:Connect(function(item)
+	task.spawn(trackAndPush, item)
+end)
+
+runService.Heartbeat:Connect(function()
+	if upState then 
+		local human = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+		if human then
+			if tonumber(speedBox.Text) then 
+				human.WalkSpeed=speedBox.Text
+				speedValue.Value=speedBox.Text
+			end
+			if tonumber(jumpBox.Text) then 
+				jumpValue.Value=jumpBox.Text
+				human.UseJumpPower=true
+				human.JumpPower=jumpBox.Text
+			end
+			if tonumber(dashBox.Text) then 
+				dashValue.Value=dashBox.Text
+			end
+		end
+	end
+
+	if antiTrapState then 
+		local mapFolder = workspace:FindFirstChild("CurrentMap")
+		local lava = mapFolder and mapFolder:FindFirstChild("Lava")
+		local lazer = mapFolder and mapFolder:FindFirstChild("SpinningLazer") and mapFolder.SpinningLazer:FindFirstChild("Lazer")
+
+		if lava then lava.CanTouch=false end
+		if lazer then lazer.CanTouch=false else printlog("Lazer not found",true) end
+	end
+
+	if surviveState then 
+		local mapFolder = workspace:FindFirstChild("CurrentMap")
+		local base = mapFolder and mapFolder:FindFirstChild("Baseplate")
+		local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+		if base and root then 
+			root.Anchored=true
+			root.Position=base.Position + Vector3.new(0,-5,0)
+		end
+	end
+end)
+
+upBtn.MouseButton1Click:Connect(function()
+	upState = not upState
+	if upState then 
+		upTerm.Position = UDim2.new(0.65, 0, 0.8, -8)
+		upPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		upTerm.Position = UDim2.new(0.1, 0, 0.8, -8)
+		upPlate.BackgroundColor3 = blk_color
+	end
+end)
+
+AutoDodgeBtn.MouseButton1Click:Connect(function()
+	AutoDodgeState = not AutoDodgeState
+	if AutoDodgeState then 
+		AutoDodgeKnob.Position = UDim2.new(0.65, 0, 0.8, -8)
+		AutoDodgePlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		AutoDodgeKnob.Position = UDim2.new(0.1, 0, 0.8, -8)
+		AutoDodgePlate.BackgroundColor3 = blk_color
+	end
+end)
+
+DodgeAuraBtn.MouseButton1Click:Connect(function()
+	DodgeAuraState = not DodgeAuraState
+	if DodgeAuraState then 
+		DodgeAuraKnob.Position = UDim2.new(0.65, 0, 0.8, -8)
+		DodgeAuraPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		DodgeAuraKnob.Position = UDim2.new(0.1, 0, 0.8, -8)
+		DodgeAuraPlate.BackgroundColor3 = blk_color
+	end
+end)
+
+antiTrapBtn.MouseButton1Click:Connect(function()
+	antiTrapState = not antiTrapState
+	if antiTrapState then 
+		antiTrapKnob.Position = UDim2.new(0.65, 0, 0.8, -8)
+		antiTrapPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		antiTrapKnob.Position = UDim2.new(0.1, 0, 0.8, -8)
+		antiTrapPlate.BackgroundColor3 = blk_color
+	end
+end)
+
+flyBtn.MouseButton1Click:Connect(function()
+	flyState = not flyState
+	if flyState then 
+		flyKnob.Position = UDim2.new(0.65, 0, 0.8, -8)
+		flyPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		flyKnob.Position = UDim2.new(0.1, 0, 0.8, -8)
+		flyPlate.BackgroundColor3 = blk_color
+	end
+	updateFlyState(flyState)
+end)
+
+surviveBtn.MouseButton1Click:Connect(function()
+	surviveState = not surviveState
+	if surviveState then 
+		surviveKnob.Position = UDim2.new(0.65, 0, 0.8, -8)
+		survivePlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+		if root then 
+			root.Anchored=false
+			root.Position=Vector3.new(-127,180,4)
+		end
+		surviveKnob.Position = UDim2.new(0.1, 0, 0.8, -8)
+		survivePlate.BackgroundColor3 = blk_color
+	end
+end)
 frameTitle.Parent=Mainframe
 
 local txt = Instance.new("TextLabel")
