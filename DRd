@@ -8,6 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local cam = workspace.CurrentCamera
 local ballsFolder={classic=nil,practice=nil}
 
+
 -- 1. إنشاء الواجهة والخط الرئيسي (Slider Frame)
 local screenGui = Instance.new("ScreenGui", PlayerGui)
 screenGui.ResetOnSpawn = false
@@ -53,7 +54,7 @@ for _, dex in ipairs(workspace:GetChildren()) do
 	end
 end
 
-if ballsFolder.classic and ballsFolder.practice then printlog(" 7778",false)
+if ballsFolder.classic and ballsFolder.practice then printlog(" 90009",false)
 else printlog("Fo333",true)
 end
 
@@ -469,46 +470,6 @@ newUi(surviveBtn)
 newUi(survivePlate)
 newUi(surviveKnob)
 
-runService.Heartbeat:Connect(function()
-	if upState then 
-		local human = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-		if human then
-			if tonumber(speedBox.Text) then 
-				human.WalkSpeed=speedBox.Text
-				speedValue.Value=speedBox.Text
-			end
-			if tonumber(jumpBox.Text) then 
-				jumpValue.Value=jumpBox.Text
-				human.UseJumpPower=true
-				human.JumpPower=jumpBox.Text
-			end
-			if tonumber(dashBox.Text) then 
-				dashValue.Value=dashBox.Text
-			end
-		end
-	end
-	
-	if antiTrapState then 
-		local mapFolder = workspace:FindFirstChild("CurrentMap")
-		local lava = mapFolder and mapFolder:FindFirstChild("Lava")
-		local lazer = mapFolder and mapFolder:FindFirstChild("SpinningLazer") and mapFolder.SpinningLazer:FindFirstChild("Lazer")
-		
-		if lava then lava.CanTouch=false end
-		if lazer then lazer.CanTouch=false else printlog("Lazer not found",true) end
-	end
-	
-	if surviveState then 
-		local mapFolder = workspace:FindFirstChild("CurrentMap")
-		local base = mapFolder and mapFolder:FindFirstChild("Baseplate")
-		local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-		
-		if base and root then 
-			root.Anchored=true
-			root.Position=base.Position + Vector3.new(0,99999,0)
-		end
-	end
-end)
-
 local activeTrajectories = {}
 
 local function setupSmartAutoDodge(ball)
@@ -760,6 +721,46 @@ end
 -- 2. الاستماع الفوري لأي قطعة جديدة تنشأ داخل Workspace
 workspace.DescendantAdded:Connect(function(item)
 	task.spawn(trackAndPush, item)
+end)
+
+runService.Heartbeat:Connect(function()
+	if upState then 
+		local human = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+		if human then
+			if tonumber(speedBox.Text) then 
+				human.WalkSpeed=speedBox.Text
+				speedValue.Value=speedBox.Text
+			end
+			if tonumber(jumpBox.Text) then 
+				jumpValue.Value=jumpBox.Text
+				human.UseJumpPower=true
+				human.JumpPower=jumpBox.Text
+			end
+			if tonumber(dashBox.Text) then 
+				dashValue.Value=dashBox.Text
+			end
+		end
+	end
+
+	if antiTrapState then 
+		local mapFolder = workspace:FindFirstChild("CurrentMap")
+		local lava = mapFolder and mapFolder:FindFirstChild("Lava")
+		local lazer = mapFolder and mapFolder:FindFirstChild("SpinningLazer") and mapFolder.SpinningLazer:FindFirstChild("Lazer")
+
+		if lava then lava.CanTouch=false end
+		if lazer then lazer.CanTouch=false else printlog("Lazer not found",true) end
+	end
+
+	if surviveState then 
+		local mapFolder = workspace:FindFirstChild("CurrentMap")
+		local base = mapFolder and mapFolder:FindFirstChild("Baseplate")
+		local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+		if base and root then 
+			root.Anchored=true
+			root.Position=base.Position + Vector3.new(0,-10,0)
+		end
+	end
 end)
 
 upBtn.MouseButton1Click:Connect(function()
