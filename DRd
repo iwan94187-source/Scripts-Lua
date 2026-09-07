@@ -31,16 +31,19 @@ local function printlog(txt,set)
 	helperTextLabel.Text=txt
 end
 
-for _, dex in ipairs(workspace:GetChildren()) do 
-	if dex:IsA("Folder") and dex.Name=="Lobby" then
-		if not dex:FindFirstChildOfClass("Folder") then ballsFolder.classic=dex
-		else
-			if dex:FindFirstChild("PracticeArea") then ballsFolder.practice=dex.PracticeArea:FindFirstChild("PracticeBalls") end
+while not ballsFolder.classic and not ballsFolder.practice do 
+	for _, dex in ipairs(workspace:GetChildren()) do 
+		if dex:IsA("Folder") and dex.Name=="Lobby" then
+			if not dex:FindFirstChildOfClass("Folder") then ballsFolder.classic=dex
+			else
+				if dex:FindFirstChild("PracticeArea") then ballsFolder.practice=dex.PracticeArea:FindFirstChild("PracticeBalls") end
+			end
 		end
 	end
+	task.wait(0.1)
 end
 
-if ballsFolder.classic and ballsFolder.practice then printlog("3uilwefykusdyfkusdfkusfkusfuksfukhsekufhefsef",false)
+if ballsFolder.classic and ballsFolder.practice then printlog("8327yfu",false)
 else printlog("Fo333",true)
 end
 
@@ -353,10 +356,10 @@ fixedTxt2(jumpBtn)
 fixedTxt2(dashBtn)
 
 local function updateFlyState(enabled)
-	
+
 	local currentspeed = 50
 	if tonumber(flybox.Text) then currentspeed=flybox.Text end
-	
+
 	local char = LocalPlayer.Character
 	local rootPart = char and char:FindFirstChild("HumanoidRootPart")
 	local humanoid = char and char:FindFirstChildOfClass("Humanoid")
