@@ -31,20 +31,19 @@ local function printlog(txt,set)
 	helperTextLabel.Text=txt
 end
 
+printlog("109201902910",false)
 while not ballsFolder.classic and not ballsFolder.practice do 
 	for _, dex in ipairs(workspace:GetChildren()) do 
 		if dex:IsA("Folder") and dex.Name=="Lobby" then
-			if not dex:FindFirstChildOfClass("Folder") then ballsFolder.classic=dex
+			if not dex:FindFirstChildOfClass("Folder") then 
+				ballsFolder.classic=dex
 			else
+				printlog("8327yfu",true)
 				if dex:FindFirstChild("PracticeArea") then ballsFolder.practice=dex.PracticeArea:FindFirstChild("PracticeBalls") end
 			end
 		end
 	end
 	task.wait(0.1)
-end
-
-if ballsFolder.classic and ballsFolder.practice then printlog("8327yfu",false)
-else printlog("Fo333",true)
 end
 
 local upFolder = LocalPlayer:WaitForChild("Upgrades")
