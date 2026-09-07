@@ -21,7 +21,7 @@ helperTextLabel.Transparency=0.5
 helperTextLabel.BackgroundColor3=blk_color
 helperTextLabel.TextColor=BrickColor.new("White")
 helperTextLabel.TextScaled=true
-helperTextLabel.Parent=screenGui
+helperTextLabel.Parent=nil
 
 local function printlog(txt,set)
 	if set then 
@@ -508,8 +508,8 @@ local function setupSmartAutoDodge(ball)
 
 	table.insert(activeTrajectories, hitbox)
 
-	local zoneSize = 15           -- نطاق المربع ثابت 15 متر حول الكرة
-	local maxTeleportOffset = 15  -- أقصى مدى للنقل
+	local zoneSize = 25         -- نطاق المربع ثابت 15 متر حول الكرة
+	local maxTeleportOffset = 25  -- أقصى مدى للنقل
 	local minSafeDistance = 6     -- الحد الأدنى لمنع الالتصاق
 	local wallBuffer = 3.5        -- هامش أمان لمنع النقل داخل/خلف الجدار
 	local cooldown = false
