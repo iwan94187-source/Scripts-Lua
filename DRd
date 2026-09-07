@@ -54,7 +54,7 @@ for _, dex in ipairs(workspace:GetChildren()) do
 	end
 end
 
-if ballsFolder.classic and ballsFolder.practice then printlog(" 885",false)
+if ballsFolder.classic and ballsFolder.practice then printlog(" 0000",false)
 else printlog("Fo333",true)
 end
 
@@ -828,7 +828,7 @@ surviveBtn.MouseButton1Click:Connect(function()
 		local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
 
 		if root then 
-			root.Anchored=true
+			root.Anchored=false
 			root.Position=Vector3.new(-127,180,4)
 		end
 		surviveKnob.Position = UDim2.new(0.1, 0, 0.8, -8)
