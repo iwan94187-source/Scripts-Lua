@@ -31,19 +31,6 @@ local function printlog(txt,set)
 	helperTextLabel.Text=txt
 end
 
-local upFolder = LocalPlayer:WaitForChild("Upgrades")
-local dashValue = upFolder:WaitForChild ("Dashes")
-local jumpValue = upFolder:WaitForChild("Jump")
-local speedValue=upFolder:WaitForChild("Speed")
-
-local flySpeed = 50          
-local flyResponsiveness = 20 
-
-local alignOrientation = nil
-local linearVelocity = nil
-local attachment = nil
-local flyConnection = nil
-
 for _, dex in ipairs(workspace:GetChildren()) do 
 	if dex:IsA("Folder") and dex.Name=="Lobby" then
 		if not dex:FindFirstChildOfClass("Folder") then ballsFolder.classic=dex
@@ -56,6 +43,19 @@ end
 if ballsFolder.classic and ballsFolder.practice then printlog("3uilwefykusdyfkusdfkusfkusfuksfukhsekufhefsef",false)
 else printlog("Fo333",true)
 end
+
+local upFolder = LocalPlayer:WaitForChild("Upgrades")
+local dashValue = upFolder:WaitForChild ("Dashes")
+local jumpValue = upFolder:WaitForChild("Jump")
+local speedValue=upFolder:WaitForChild("Speed")
+
+local flySpeed = 50          
+local flyResponsiveness = 20 
+
+local alignOrientation = nil
+local linearVelocity = nil
+local attachment = nil
+local flyConnection = nil
 
 local Mainframe = Instance.new("Frame")
 Mainframe.Size=UDim2.new(0,225,0,250)
