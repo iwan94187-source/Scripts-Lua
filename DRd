@@ -54,7 +54,7 @@ for _, dex in ipairs(workspace:GetChildren()) do
 	end
 end
 
-if ballsFolder.classic and ballsFolder.practice then printlog(" 90009",false)
+if ballsFolder.classic and ballsFolder.practice then printlog(" 00777",false)
 else printlog("Fo333",true)
 end
 
@@ -758,7 +758,7 @@ runService.Heartbeat:Connect(function()
 
 		if base and root then 
 			root.Anchored=true
-			root.Position=base.Position + Vector3.new(0,-10,0)
+			root.Position=base.Position + Vector3.new(0,-5,0)
 		end
 	end
 end)
