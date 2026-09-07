@@ -32,10 +32,10 @@ local function printlog(txt,set)
 	helperTextLabel.Text=txt
 end
 
---local upFolder = LocalPlayer:WaitForChild("Upgrades")
---local dashValue = upFolder:WaitForChild ("Dashes")
---local jumpValue = upFolder:WaitForChild("Jump")
---local speedValue=upFolder:WaitForChild("Speed")
+local upFolder = LocalPlayer:WaitForChild("Upgrades")
+local dashValue = upFolder:WaitForChild ("Dashes")
+local jumpValue = upFolder:WaitForChild("Jump")
+local speedValue=upFolder:WaitForChild("Speed")
 
 local flySpeed = 50          
 local flyResponsiveness = 20 
@@ -293,6 +293,10 @@ local flyBtn = newBtn(" Fly", 0.4, scroll_1)
 flyBtn.TextXAlignment = Enum.TextXAlignment.Left
 local flyPlate = newPlate(flyBtn)
 local flyKnob = newKnob(flyPlate)
+local flybox = txtBox(flyBtn)
+flybox.Size=UDim2.new(0.3,0,0.6,0)
+flybox.Text=flySpeed
+flybox.Position=UDim2.new(0.35,0,0.2,0)
 
 local surviveState = false
 local surviveBtn = newBtn(" Survive", 0.475, scroll_1)
@@ -330,6 +334,10 @@ fixedTxt(flyBtn,0.35)
 fixedTxt(surviveBtn,0.5)
 
 local function updateFlyState(enabled)
+	
+	local currentspeed = 50
+	if tonumber(flybox.Text) then currentspeed=flybox.Text end
+	
 	local char = LocalPlayer.Character
 	local rootPart = char and char:FindFirstChild("HumanoidRootPart")
 	local humanoid = char and char:FindFirstChildOfClass("Humanoid")
@@ -347,23 +355,22 @@ local function updateFlyState(enabled)
 		alignOrientation.Name = "FlyOrientation"
 		alignOrientation.Mode = Enum.OrientationAlignmentMode.OneAttachment
 		alignOrientation.Attachment0 = attachment
-		alignOrientation.MaxTorque = 1000000 -- قوة التدوير
-		alignOrientation.Responsiveness = 25 -- سلاسة تدوير الشخصية
+		alignOrientation.MaxTorque = 1000000
+		alignOrientation.Responsiveness = 25
 		alignOrientation.Parent = rootPart
 
-		-- 3. إنشاء LinearVelocity للتحكم بالحركة مع إمكانية استقبال الدفع الخارجي
+		-- 3. إنشاء LinearVelocity للتحكم بالحركة
 		linearVelocity = Instance.new("LinearVelocity")
 		linearVelocity.Name = "FlyVelocity"
 		linearVelocity.Attachment0 = attachment
-		linearVelocity.MaxForce = 10000 * flyResponsiveness -- قوة احتفاظ بالسرعة (تسمح بالدفع القوي)
+		linearVelocity.MaxForce = 10000 * flyResponsiveness
 		linearVelocity.VelocityConstraintMode = Enum.VelocityConstraintMode.Vector
 		linearVelocity.VectorVelocity = Vector3.zero
 		linearVelocity.Parent = rootPart
 
-		-- تعطيل الجاذبية وحالة السقوط للاعب أثناء الطيران
 		humanoid:ChangeState(Enum.HumanoidStateType.Flying)
 
-		-- 4. حلقة التحديث المستمرة (RenderStepped) لسلاسة الكاميرا
+		-- 4. حلقة التحديث المستمرة
 		flyConnection = runService.RenderStepped:Connect(function()
 			if not rootPart or not humanoid or humanoid.Health <= 0 then
 				updateFlyState(false)
@@ -373,17 +380,19 @@ local function updateFlyState(enabled)
 			-- توجيه الشخصية لنفس اتجاه النظر للكاميرا
 			alignOrientation.CFrame = cam.CFrame
 
-			-- جلب اتجاه الحركة الكلاسيكي من مدخلات اللاعب (WASD / الأسهم / الجويستيك)
 			local moveDir = humanoid.MoveDirection
 
 			if moveDir.Magnitude > 0 then
-				-- تحويل اتجاه الحركة الكلاسيكي ليتطابق مع اتجاه الكاميرا الحالي (بما فيه الصعود والنزول)
-				local cameraCFrame = cam.CFrame
-				local flyDirection = (cameraCFrame:VectorToWorldSpace(cameraCFrame:PointToObjectSpace(rootPart.Position + moveDir) - rootPart.Position)).Unit
+				-- تحويل MoveDirection العالم الخارجي إلى اتجاه محلي بالنسبة للشخصية
+				local relativeMove = rootPart.CFrame:VectorToObjectSpace(moveDir)
 
-				linearVelocity.VectorVelocity = flyDirection * flySpeed
+				-- تطبيق الاتجاه المحلي مباشرة على زوايا اتجاه الكاميرا الحالية
+				-- relativeMove.X = Yemin / Yasar
+				-- relativeMove.Z = Amam / Khalf
+				local flyDirection = (cam.CFrame.RightVector * relativeMove.X) - (cam.CFrame.LookVector * relativeMove.Z)
+
+				linearVelocity.VectorVelocity = flyDirection.Unit * currentspeed
 			else
-				-- التوقف السلس في المكان عند عدم الضغط على أي زر
 				linearVelocity.VectorVelocity = Vector3.zero
 			end
 		end)
@@ -477,6 +486,26 @@ runService.Heartbeat:Connect(function()
 			if tonumber(dashBox.Text) then 
 				dashValue.Value=dashBox.Text
 			end
+		end
+	end
+	
+	if antiTrapState then 
+		local mapFolder = workspace:FindFirstChild("CurrentMap")
+		local lava = mapFolder and mapFolder:FindFirstChild("Lava")
+		local lazer = mapFolder and mapFolder:FindFirstChild("SpinningLazer") and mapFolder.SpinningLazer:FindFirstChild("Lazer")
+		
+		if lava then lava.CanTouch=false end
+		if lazer then lazer.CanTouch=false else printlog("Lazer not found",true) end
+	end
+	
+	if surviveState then 
+		local mapFolder = workspace:FindFirstChild("CurrentMap")
+		local base = mapFolder and mapFolder:FindFirstChild("Baseplate")
+		local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+		
+		if base and root then 
+			root.Anchored=true
+			root.Position=base.Position + Vector3.new(0,9999,0)
 		end
 	end
 end)
@@ -787,6 +816,7 @@ flyBtn.MouseButton1Click:Connect(function()
 		flyKnob.Position = UDim2.new(0.1, 0, 0.8, -8)
 		flyPlate.BackgroundColor3 = blk_color
 	end
+	updateFlyState(flyState)
 end)
 
 surviveBtn.MouseButton1Click:Connect(function()
@@ -795,6 +825,12 @@ surviveBtn.MouseButton1Click:Connect(function()
 		surviveKnob.Position = UDim2.new(0.65, 0, 0.8, -8)
 		survivePlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
 	else 
+		local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+		if root then 
+			root.Anchored=true
+			root.Position=Vector3.new(-127,180,4)
+		end
 		surviveKnob.Position = UDim2.new(0.1, 0, 0.8, -8)
 		survivePlate.BackgroundColor3 = blk_color
 	end
