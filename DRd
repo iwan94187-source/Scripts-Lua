@@ -5,7 +5,7 @@ local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local runService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
+local cam = workspace.CurrentCamera
 local ballsFolder={classic=nil,practice=nil}
 
 
@@ -32,10 +32,18 @@ local function printlog(txt,set)
 	helperTextLabel.Text=txt
 end
 
-local upFolder = LocalPlayer:WaitForChild("Upgrades")
-local dashValue = upFolder:WaitForChild ("Dashes")
-local jumpValue = upFolder:WaitForChild("Jump")
-local speedValue=upFolder:WaitForChild("Speed")
+--local upFolder = LocalPlayer:WaitForChild("Upgrades")
+--local dashValue = upFolder:WaitForChild ("Dashes")
+--local jumpValue = upFolder:WaitForChild("Jump")
+--local speedValue=upFolder:WaitForChild("Speed")
+
+local flySpeed = 50          
+local flyResponsiveness = 20 
+
+local alignOrientation = nil
+local linearVelocity = nil
+local attachment = nil
+local flyConnection = nil
 
 for _, dex in ipairs(workspace:GetChildren()) do 
 	if dex:IsA("Folder") and dex.Name=="Lobby" then
@@ -46,12 +54,12 @@ for _, dex in ipairs(workspace:GetChildren()) do
 	end
 end
 
-if ballsFolder.classic and ballsFolder.practice then printlog(" 9343",false)
+if ballsFolder.classic and ballsFolder.practice then printlog(" 9005",false)
 else printlog("Fo333",true)
 end
 
 local Mainframe = Instance.new("Frame")
-Mainframe.Size=UDim2.new(0,225,0,200)
+Mainframe.Size=UDim2.new(0,225,0,250)
 Mainframe.Position=UDim2.new(0.125,0,0,0)
 Mainframe.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 Mainframe.Visible=false
@@ -69,7 +77,7 @@ frameTitle.TextSize=7
 frameTitle.Parent=Mainframe
 
 local txt = Instance.new("TextLabel")
-txt.Size=UDim2.new(0.6,0,1,0)
+txt.Size=UDim2.new(0.6,0,0.8,0)
 txt.Position=UDim2.new(0,0,0,0)
 txt.TextColor=BrickColor.new("White")
 txt.BackgroundTransparency=1
@@ -88,17 +96,17 @@ iconFrame.Draggable=true
 iconFrame.Parent=screenGui
 
 local destroyBtn = Instance.new("TextButton")
-destroyBtn.Size=UDim2.new(0,22.5,0,22.5)
-destroyBtn.Position=UDim2.new(0.915,0,0,0)
+destroyBtn.Size=UDim2.new(0,20,0,20)
+destroyBtn.Position=UDim2.new(0.91,0,0,0)
 destroyBtn.BackgroundColor3=Color3.fromRGB(255, 0, 0)
 destroyBtn.TextColor=BrickColor.new("White")
 destroyBtn.Text="x"
 destroyBtn.Parent=frameTitle
 
 local hideBtn = Instance.new("TextButton")
-hideBtn.Size=UDim2.new(0,22.5,0,22.5)
-hideBtn.Position=UDim2.new(0.82,0,0,0)
-hideBtn.BackgroundColor3=Color3.fromRGB(0, 170, 255)
+hideBtn.Size=UDim2.new(0,20,0,20)
+hideBtn.Position=UDim2.new(0.8,0,0,0)
+hideBtn.BackgroundColor3=gry
 hideBtn.TextColor=BrickColor.new("White")
 hideBtn.Text="–"
 hideBtn.Parent=frameTitle
@@ -136,27 +144,27 @@ local function txtBox(parent)
 
 end
 
-local function newBtn(name,pos,parent)
+local function newBtn(name, pos, parent)
 	local btn = Instance.new("TextButton")
-	btn.Size=UDim2.new(0.9,0,0.13,0)
-	btn.Position=UDim2.new(0.05,0,pos,0)
-	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
-	btn.TextColor=BrickColor.new("White")
-	btn.Text=name
-	btn.TextSize=5
-	btn.Parent=parent
+	btn.Size = UDim2.new(0.9, 0, 0.06, 0)
+	btn.Position = UDim2.new(0.05, 0, pos, 0)
+	btn.BackgroundColor3 = Color3.fromRGB(36, 36, 36)
+	btn.TextColor = BrickColor.new("White")
+	btn.Text = name
+	btn.TextSize = 5
+	btn.Parent = parent
 	return btn
 end
 
-local function newLbl(name,pos,parent)
+local function newLbl(name, pos, parent)
 	local btn = Instance.new("TextLabel")
-	btn.Size=UDim2.new(0.9,0,0.13,0)
-	btn.Position=UDim2.new(0.05,0,pos,0)
-	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
-	btn.TextColor=BrickColor.new("White")
-	btn.Text=name
-	btn.TextSize=5
-	btn.Parent=parent
+	btn.Size = UDim2.new(0.9, 0, 0.06, 0)
+	btn.Position = UDim2.new(0.05, 0, pos, 0)
+	btn.BackgroundColor3 = Color3.fromRGB(36, 36, 36)
+	btn.TextColor = BrickColor.new("White")
+	btn.Text = name
+	btn.TextSize = 5
+	btn.Parent = parent
 	return btn
 end
 
@@ -229,74 +237,172 @@ local function fixedTxt(parent,siz)
 	lbl.Parent=parent
 end
 
+local scroll_1 = Instance.new("ScrollingFrame")
+scroll_1.Size=UDim2.new(1,0,0.8,0)
+scroll_1.Position=UDim2.new(0,0,0.1,0)
+scroll_1.BackgroundColor3=blk_color
+scroll_1.Parent=Mainframe
+
 
 local upState = false
-local upBtn = newBtn(" Upgrades Enabled",0.15,Mainframe)
-upBtn.TextXAlignment="Left"
+local upBtn = newBtn(" Upgrades Enabled", 0, scroll_1)
+upBtn.TextXAlignment = Enum.TextXAlignment.Left
 local upPlate = newPlate(upBtn)
 local upTerm = newKnob(upPlate)
 
-local speedSlideBtn = newLbl("Speed",0.2,Mainframe)
-speedSlideBtn.Size=UDim2.new(0.250,0,0.14,0)
-speedSlideBtn.Position=UDim2.new(0.05,0,0.3,0)
-speedSlideBtn.TextYAlignment=Enum.TextYAlignment.Top
+-- 2. قسم الإدخال الثلاثي الأفقي (Speed, Jump, Dash)
+local speedSlideBtn = newLbl("Speed", 0.05, scroll_1)
+speedSlideBtn.Size = UDim2.new(0.28, 0, 0.08, 0)
+speedSlideBtn.Position = UDim2.new(0.05, 0, 0.075, 0)
+speedSlideBtn.TextYAlignment = Enum.TextYAlignment.Top
 local speedBox = txtBox(speedSlideBtn)
 
-local jumpBtn = newLbl("Jump",0.2,Mainframe)
-jumpBtn.Size=UDim2.new(0.250,0,0.14,0)
-jumpBtn.Position=UDim2.new(0.375,0,0.3,0)
-jumpBtn.TextYAlignment=Enum.TextYAlignment.Top
+local jumpBtn = newLbl("Jump", 0.18, scroll_1)
+jumpBtn.Size = UDim2.new(0.28, 0, 0.08, 0)
+jumpBtn.Position = UDim2.new(0.36, 0, 0.075, 0)
+jumpBtn.TextYAlignment = Enum.TextYAlignment.Top
 local jumpBox = txtBox(jumpBtn)
 
-
-local dashBtn = newLbl("Dash",0.2,Mainframe)
-dashBtn.Size=UDim2.new(0.250,0,0.14,0)
-dashBtn.Position=UDim2.new(0.7,0,0.3,0)
-dashBtn.TextYAlignment=Enum.TextYAlignment.Top
+local dashBtn = newLbl("Dash", 0.4, scroll_1)
+dashBtn.Size = UDim2.new(0.28, 0, 0.08, 0)
+dashBtn.Position = UDim2.new(0.67, 0, 0.075, 0)
+dashBtn.TextYAlignment = Enum.TextYAlignment.Top
 local dashBox = txtBox(dashBtn)
 
+-- 3. قائمة التبديل (Toggles List)
 local AutoDodgeState = false
-local AutoDodgeBtn = newBtn(" Auto Dodge",0.45,Mainframe)
-AutoDodgeBtn.TextXAlignment="Left"
+local AutoDodgeBtn = newBtn(" Auto Dodge", 0.175, scroll_1)
+AutoDodgeBtn.TextXAlignment = Enum.TextXAlignment.Left
 local AutoDodgePlate = newPlate(AutoDodgeBtn)
 local AutoDodgeKnob = newKnob(AutoDodgePlate)
 
 local DodgeAuraState = false
-local DodgeAuraBtn = newBtn(" Dodge Aura",0.6,Mainframe)
-DodgeAuraBtn.TextXAlignment="Left"
+local DodgeAuraBtn = newBtn(" Dodge Aura", 0.25, scroll_1)
+DodgeAuraBtn.TextXAlignment = Enum.TextXAlignment.Left
 local DodgeAuraPlate = newPlate(DodgeAuraBtn)
 local DodgeAuraKnob = newKnob(DodgeAuraPlate)
 
 local antiTrapState = false
-local antiTrapBtn = newBtn(" Anti-Trap",0.75,Mainframe)
+local antiTrapBtn = newBtn(" Anti-Trap", 0.325, scroll_1)
 antiTrapBtn.TextXAlignment = Enum.TextXAlignment.Left
 local antiTrapPlate = newPlate(antiTrapBtn)
 local antiTrapKnob = newKnob(antiTrapPlate)
 
+local flyState = false
+local flyBtn = newBtn(" Fly", 0.4, scroll_1)
+flyBtn.TextXAlignment = Enum.TextXAlignment.Left
+local flyPlate = newPlate(flyBtn)
+local flyKnob = newKnob(flyPlate)
+
+local surviveState = false
+local surviveBtn = newBtn(" Survive", 0.475, scroll_1)
+surviveBtn.TextXAlignment = Enum.TextXAlignment.Left
+local survivePlate = newPlate(surviveBtn)
+local surviveKnob = newKnob(survivePlate)
+
+-- 4. التوقيع والأيقونة بالأسفل
 local titlelbl = Instance.new("TextLabel")
-titlelbl.Size=UDim2.new(0.5,0,0.05,0)
-titlelbl.Position=UDim2.new(0.5,0,0.925,0)
-titlelbl.BackgroundTransparency=1
-titlelbl.TextColor=BrickColor.new("White")
+titlelbl.Size = UDim2.new(0.5, 0, 0.05, 0)
+titlelbl.Position = UDim2.new(0.05, 0, 0.92, 0)
+titlelbl.BackgroundTransparency = 1
+titlelbl.TextColor = BrickColor.new("White")
 titlelbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
-titlelbl.TextStrokeTransparency=0
-titlelbl.TextStrokeColor3=blk_color
-titlelbl.TextScaled=true
-titlelbl.Text="By iwangamer931"
-titlelbl.TextXAlignment=Enum.TextXAlignment.Left
-titlelbl.Parent=Mainframe
+titlelbl.TextStrokeTransparency = 0
+titlelbl.TextStrokeColor3 = blk_color
+titlelbl.TextScaled = true
+titlelbl.Text = "Created By iwangamer931"
+titlelbl.TextXAlignment = Enum.TextXAlignment.Left
+titlelbl.Parent = Mainframe
 
 local imageicon = Instance.new("ImageLabel")
-imageicon.Size=UDim2.new(0.2,0,1,5)
-imageicon.Position=UDim2.new(0.7,0,0,-2.5)
-imageicon.Image="rbxassetid://106299005851806"
-imageicon.BackgroundTransparency=1
-imageicon.Parent=titlelbl
+imageicon.Size = UDim2.new(0.2, 0, 1, 0)
+imageicon.Position = UDim2.new(1.05, 0, 0, 0)
+imageicon.Image = "rbxassetid://106299005851806"
+imageicon.BackgroundTransparency = 1
+imageicon.Parent = titlelbl
 
 fixedTxt(upBtn,0.6)
 fixedTxt(AutoDodgeBtn,0.5)
 fixedTxt(DodgeAuraBtn,0.5)
 fixedTxt(antiTrapBtn,0.5)
+
+fixedTxt(flyBtn,0.35)
+fixedTxt(surviveBtn,0.5)
+
+local function updateFlyState(enabled)
+	local char = LocalPlayer.Character
+	local rootPart = char and char:FindFirstChild("HumanoidRootPart")
+	local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+
+	if not rootPart or not humanoid then return end
+
+	if enabled then
+		-- 1. إنشاء Attachment في الشخصية إذا لم يكن موجوداً
+		attachment = rootPart:FindFirstChild("FlyAttachment") or Instance.new("Attachment")
+		attachment.Name = "FlyAttachment"
+		attachment.Parent = rootPart
+
+		-- 2. إنشاء AlignOrientation لجعل الشخصية تتجه مع الكاميرا بمرونة
+		alignOrientation = Instance.new("AlignOrientation")
+		alignOrientation.Name = "FlyOrientation"
+		alignOrientation.Mode = Enum.OrientationAlignmentMode.OneAttachment
+		alignOrientation.Attachment0 = attachment
+		alignOrientation.MaxTorque = 1000000 -- قوة التدوير
+		alignOrientation.Responsiveness = 25 -- سلاسة تدوير الشخصية
+		alignOrientation.Parent = rootPart
+
+		-- 3. إنشاء LinearVelocity للتحكم بالحركة مع إمكانية استقبال الدفع الخارجي
+		linearVelocity = Instance.new("LinearVelocity")
+		linearVelocity.Name = "FlyVelocity"
+		linearVelocity.Attachment0 = attachment
+		linearVelocity.MaxForce = 10000 * flyResponsiveness -- قوة احتفاظ بالسرعة (تسمح بالدفع القوي)
+		linearVelocity.VelocityConstraintMode = Enum.VelocityConstraintMode.Vector
+		linearVelocity.VectorVelocity = Vector3.zero
+		linearVelocity.Parent = rootPart
+
+		-- تعطيل الجاذبية وحالة السقوط للاعب أثناء الطيران
+		humanoid:ChangeState(Enum.HumanoidStateType.Flying)
+
+		-- 4. حلقة التحديث المستمرة (RenderStepped) لسلاسة الكاميرا
+		flyConnection = runService.RenderStepped:Connect(function()
+			if not rootPart or not humanoid or humanoid.Health <= 0 then
+				updateFlyState(false)
+				return
+			end
+
+			-- توجيه الشخصية لنفس اتجاه النظر للكاميرا
+			alignOrientation.CFrame = cam.CFrame
+
+			-- جلب اتجاه الحركة الكلاسيكي من مدخلات اللاعب (WASD / الأسهم / الجويستيك)
+			local moveDir = humanoid.MoveDirection
+
+			if moveDir.Magnitude > 0 then
+				-- تحويل اتجاه الحركة الكلاسيكي ليتطابق مع اتجاه الكاميرا الحالي (بما فيه الصعود والنزول)
+				local cameraCFrame = cam.CFrame
+				local flyDirection = (cameraCFrame:VectorToWorldSpace(cameraCFrame:PointToObjectSpace(rootPart.Position + moveDir) - rootPart.Position)).Unit
+
+				linearVelocity.VectorVelocity = flyDirection * flySpeed
+			else
+				-- التوقف السلس في المكان عند عدم الضغط على أي زر
+				linearVelocity.VectorVelocity = Vector3.zero
+			end
+		end)
+	else
+		-- إيقاف الطيران والتنظيف
+		if flyConnection then
+			flyConnection:Disconnect()
+			flyConnection = nil
+		end
+
+		if alignOrientation then alignOrientation:Destroy() alignOrientation = nil end
+		if linearVelocity then linearVelocity:Destroy() linearVelocity = nil end
+		if attachment then attachment:Destroy() attachment = nil end
+
+		if humanoid then
+			humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
+		end
+	end
+end
 
 local function newUi(parent) 
 	local ui = Instance.new("UICorner")
@@ -347,6 +453,14 @@ newUi(jumpBox)
 newUi(dashBtn)
 newUi(dashBox)
 
+newUi(flyBtn)
+newUi(flyPlate)
+newUi(flyKnob)
+
+newUi(surviveBtn)
+newUi(survivePlate)
+newUi(surviveKnob)
+
 runService.Heartbeat:Connect(function()
 	if upState then 
 		local human = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
@@ -385,7 +499,7 @@ local function setupSmartAutoDodge(ball)
 
 	table.insert(activeTrajectories, hitbox)
 
-	local zoneSize = 20           -- نطاق المربع ثابت 15 متر حول الكرة
+	local zoneSize = 15           -- نطاق المربع ثابت 15 متر حول الكرة
 	local maxTeleportOffset = 15  -- أقصى مدى للنقل
 	local minSafeDistance = 6     -- الحد الأدنى لمنع الالتصاق
 	local wallBuffer = 3.5        -- هامش أمان لمنع النقل داخل/خلف الجدار
@@ -661,5 +775,27 @@ antiTrapBtn.MouseButton1Click:Connect(function()
 	else 
 		antiTrapKnob.Position = UDim2.new(0.1, 0, 0.8, -8)
 		antiTrapPlate.BackgroundColor3 = blk_color
+	end
+end)
+
+flyBtn.MouseButton1Click:Connect(function()
+	flyState = not flyState
+	if flyState then 
+		flyKnob.Position = UDim2.new(0.65, 0, 0.8, -8)
+		flyPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		flyKnob.Position = UDim2.new(0.1, 0, 0.8, -8)
+		flyPlate.BackgroundColor3 = blk_color
+	end
+end)
+
+surviveBtn.MouseButton1Click:Connect(function()
+	surviveState = not surviveState
+	if surviveState then 
+		surviveKnob.Position = UDim2.new(0.65, 0, 0.8, -8)
+		survivePlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		surviveKnob.Position = UDim2.new(0.1, 0, 0.8, -8)
+		survivePlate.BackgroundColor3 = blk_color
 	end
 end)
