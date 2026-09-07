@@ -54,7 +54,7 @@ for _, dex in ipairs(workspace:GetChildren()) do
 	end
 end
 
-if ballsFolder.classic and ballsFolder.practice then printlog(" 9005",false)
+if ballsFolder.classic and ballsFolder.practice then printlog(" 885",false)
 else printlog("Fo333",true)
 end
 
