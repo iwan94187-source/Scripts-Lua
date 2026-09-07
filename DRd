@@ -8,7 +8,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local cam = workspace.CurrentCamera
 local ballsFolder={classic=nil,practice=nil}
 
-
 -- 1. إنشاء الواجهة والخط الرئيسي (Slider Frame)
 local screenGui = Instance.new("ScreenGui", PlayerGui)
 screenGui.ResetOnSpawn = false
