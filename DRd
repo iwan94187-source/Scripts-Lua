@@ -31,7 +31,7 @@ local function printlog(txt,set)
 	helperTextLabel.Text=txt
 end
 
-printlog("roupuf wqefuyidfhw",false)
+printlog("lriueofer8ogoeryguoeryguhergergerger",false)
 while not ballsFolder.classic and not ballsFolder.practice do 
 	for _, dex in ipairs(workspace:GetChildren()) do 
 		if dex:IsA("Folder") and dex.Name=="Lobby" then
