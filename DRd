@@ -31,20 +31,29 @@ local function printlog(txt,set)
 	helperTextLabel.Text=txt
 end
 
-printlog("23uy rewfnjwenmwehmwefghgdhm",true)
-while not ballsFolder.classic and not ballsFolder.practice do 
-	for _, dex in ipairs(workspace:GetChildren()) do 
-		if dex:IsA("Folder") and dex.Name=="Lobby" then
-			if not dex:FindFirstChildOfClass("Folder") then 
-				ballsFolder.classic=dex
-			else
-				if dex:FindFirstChild("PracticeArea") then 
-					ballsFolder.practice=dex.PracticeArea:FindFirstChild("PracticeBalls") end
-			end
+local lobby = workspace:WaitForChild("Lobby", 10)
+
+if lobby then
+	-- إذا كان اللوبي الأساسي (Classic) هو نفسه مجلد اللوبي
+	if not lobby:FindFirstChildOfClass("Folder") then
+		ballsFolder.classic = lobby
+	end
+
+	-- البحث عن منطقة التدريب والانتظار حتى تحمل المجلدات الفرعية
+	local practiceArea = lobby:WaitForChild("PracticeArea", 5)
+	if practiceArea then
+		local practiceBalls = practiceArea:WaitForChild("PracticeBalls", 5)
+		if practiceBalls then
+			ballsFolder.practice = practiceBalls
 		end
 	end
-	if ballsFolder.classic then print("Yesess",false) end
-	task.wait(0.1)
+end
+
+-- التحقق بعد إعطاء مهلة للتحميل
+if ballsFolder.classic and ballsFolder.practice then 
+	printlog("92289292", false)
+else 
+	printlog("رةرةر", true)
 end
 
 local upFolder = LocalPlayer:WaitForChild("Upgrades")
