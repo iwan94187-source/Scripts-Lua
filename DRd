@@ -21,7 +21,7 @@ helperTextLabel.Transparency=0.5
 helperTextLabel.BackgroundColor3=blk_color
 helperTextLabel.TextColor=BrickColor.new("White")
 helperTextLabel.TextScaled=true
-helperTextLabel.Parent=nil
+helperTextLabel.Parent=screenGui
 
 local function printlog(txt,set)
 	if set then 
@@ -54,7 +54,7 @@ for _, dex in ipairs(workspace:GetChildren()) do
 	end
 end
 
-if ballsFolder.classic and ballsFolder.practice then printlog(" 90009",false)
+if ballsFolder.classic and ballsFolder.practice then printlog("0202010",false)
 else printlog("Fo333",true)
 end
 
