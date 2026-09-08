@@ -1,0 +1,464 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local runService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local cam = workspace.CurrentCamera
+local event = ReplicatedStorage:WaitForChild("Remotes")
+local dubEvent = event and event:WaitForChild("SubmitAnswer")
+local setActEvent = event:WaitForChild("SetActivePlayer")
+
+local screenPart = workspace:WaitForChild("Screen")
+local lines = {nil,nil}
+
+-- 1. إنشاء الواجهة والخط الرئيسي (Slider Frame)
+local screenGui = Instance.new("ScreenGui", PlayerGui)
+screenGui.ResetOnSpawn = false
+
+local blk_color, gry = Color3.fromRGB(24,24,24), Color3.fromRGB(52, 52, 52)
+
+local helperTextLabel = Instance.new("TextLabel")
+helperTextLabel.Size=UDim2.new(0,200,0,50)
+helperTextLabel.Transparency=0.5
+helperTextLabel.BackgroundColor3=blk_color
+helperTextLabel.TextColor=BrickColor.new("White")
+helperTextLabel.TextScaled=true
+helperTextLabel.Parent=screenGui
+
+local function printlog(txt,set)
+	if set then 
+		helperTextLabel.TextColor=BrickColor.new("Really red")
+	else
+		helperTextLabel.TextColor=BrickColor.new("Lime green")
+	end
+	helperTextLabel.Text=txt
+end
+
+while true do 
+	for _, dex in ipairs(screenPart:GetDescendants()) do 
+		if dex:IsA("TextLabel") and dex.Name=="Line1" then lines[1]=dex 
+		elseif dex:IsA("TextLabel") and dex.Name=="Line2" then lines[2]=dex end
+	end
+	if lines[1] and lines[2] then
+		printlog("O",false)
+		break 
+	else printlog("x",true) end
+	task.wait(0.1)
+end
+
+local Mainframe = Instance.new("Frame")
+Mainframe.Size=UDim2.new(0,225,0,150)
+Mainframe.Position=UDim2.new(0.125,0,0,0)
+Mainframe.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+Mainframe.Visible=false
+Mainframe.Active=true
+Mainframe.Draggable=true
+Mainframe.Parent=screenGui
+
+local frameTitle = Instance.new("TextLabel")
+frameTitle.Size=UDim2.new(1,0,0.15,0)
+frameTitle.Text="   Egg Toss V7.0"
+frameTitle.TextXAlignment=Enum.TextXAlignment.Left
+frameTitle.TextTransparency=1
+frameTitle.BackgroundColor3=blk_color
+frameTitle.TextSize=7
+frameTitle.Parent=Mainframe
+
+local txt = Instance.new("TextLabel")
+txt.Size=UDim2.new(0.6,0,0.8,0)
+txt.Position=UDim2.new(0,0,0,0)
+txt.TextColor=BrickColor.new("White")
+txt.BackgroundTransparency=1
+txt.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+txt.Text="Monkey Math"
+txt.TextScaled=true
+txt.Parent=frameTitle
+
+local iconFrame = Instance.new("ImageButton")
+iconFrame.Size=UDim2.new(0,40,0,40)
+iconFrame.Position=UDim2.new(0.3,0,0.3,0)
+iconFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+iconFrame.Image = "rbxassetid://85847690672478"
+iconFrame.Active=true
+iconFrame.Draggable=true
+iconFrame.Parent=screenGui
+
+local destroyBtn = Instance.new("TextButton")
+destroyBtn.Size=UDim2.new(0,20,0,20)
+destroyBtn.Position=UDim2.new(0.91,0,0,0)
+destroyBtn.BackgroundColor3=Color3.fromRGB(255, 0, 0)
+destroyBtn.TextColor=BrickColor.new("White")
+destroyBtn.Text="x"
+destroyBtn.Parent=frameTitle
+
+local hideBtn = Instance.new("TextButton")
+hideBtn.Size=UDim2.new(0,20,0,20)
+hideBtn.Position=UDim2.new(0.8,0,0,0)
+hideBtn.BackgroundColor3=gry
+hideBtn.TextColor=BrickColor.new("White")
+hideBtn.Text="–"
+hideBtn.Parent=frameTitle
+
+iconFrame.MouseButton1Click:Connect(function()
+	iconFrame.Visible=not iconFrame.Visible
+	if iconFrame.Visible then 
+		Mainframe.Visible=false
+	else
+		Mainframe.Position=iconFrame.Position
+		Mainframe.Visible=true
+	end
+end)
+
+hideBtn.MouseButton1Click:Connect(function()
+	Mainframe.Visible=false
+	iconFrame.Position=Mainframe.Position
+	iconFrame.Visible=true
+end)
+
+destroyBtn.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+end)
+
+local function txtBox(parent) 
+	local box = Instance.new("TextBox")
+	box.Size=UDim2.new(0.8, 0,0.4,0)
+	box.Position=UDim2.new(0.1,0,0.4,0)
+	box.BackgroundColor3=blk_color
+	box.Text="Number"
+	box.TextScaled=true
+	box.TextColor=BrickColor.new("White")
+	box.Parent=parent
+	return box
+
+end
+
+local function newBtn(name, pos, parent)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0.9, 0, 0.18, 0)
+	btn.Position = UDim2.new(0.05, 0, pos, 0)
+	btn.BackgroundColor3 = Color3.fromRGB(36, 36, 36)
+	btn.TextColor = BrickColor.new("White")
+	btn.Text = name
+	btn.TextSize = 5
+	btn.Parent = parent
+	return btn
+end
+
+local function newLbl(name, pos, parent)
+	local btn = Instance.new("TextLabel")
+	btn.Size = UDim2.new(0.9, 0, 0.12, 0)
+	btn.Position = UDim2.new(0.05, 0, pos, 0)
+	btn.BackgroundColor3 = Color3.fromRGB(36, 36, 36)
+	btn.TextColor = BrickColor.new("White")
+	btn.Text = name
+	btn.TextSize = 5
+	btn.Parent = parent
+	return btn
+end
+
+local function newTrem(parent)
+	local trem = Instance.new("TextLabel")
+	trem.Size = UDim2.new(0,25,1,0)
+	trem.Position=UDim2.new(0.85,0,0,0)
+	trem.BackgroundTransparency=1
+	trem.Text="🔴"
+	trem.TextSize=20
+	trem.Parent=parent
+	return trem
+end
+
+local function newKnob(parent)
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0,8,0,8)
+	frame.Position=UDim2.new(0.1,0,0.8,-8)
+	frame.BackgroundColor3=Color3.fromRGB(255, 255, 255)
+	frame.Parent=parent
+	return frame
+end
+
+local function newPlate(parent)
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0,27.5,0,12.5)
+	frame.Position=UDim2.new(0.75,0,0.25,0)
+	frame.BackgroundColor3=blk_color
+	frame.Parent=parent
+	return frame
+end
+
+local function newsideBtn(name, pos)
+	local btn=Instance.new("TextButton")
+	btn.Size=UDim2.new(0.17,0,0.1,0)
+	btn.Position=UDim2.new(0.01,0,pos)
+	btn.BackgroundColor3=gry
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextScaled=true
+	btn.Parent=Mainframe
+	return btn
+end
+
+local function newBox(pos, parent)
+	local box = Instance.new("TextBox")
+	box.Size=UDim2.new(0.5,0,0.1,0)
+	box.Position=UDim2.new(0,0,pos,0)
+	box.BackgroundColor=BrickColor.new("Black")
+	box.TextColor=BrickColor.new("White")
+	box.TextScaled=true
+	box.Text="Number"
+	box.Parent=parent
+	return box
+end
+
+local function fixedTxt(parent,siz,pos)
+	parent.TextTransparency=1
+
+	local lbl = Instance.new("TextLabel")
+	lbl.Size=UDim2.new(siz,0,0.8,0)
+	lbl.Position=UDim2.new(pos,0,0.1,0)
+	lbl.TextColor=BrickColor.new("White")
+	lbl.TextStrokeTransparency=0
+	lbl.TextStrokeColor3=blk_color
+	lbl.BackgroundTransparency=1
+	lbl.Text=parent.Text
+	lbl.TextScaled=true
+	lbl.Parent=parent
+end
+
+local function fixedTxt2(parent)
+	parent.TextTransparency=1
+
+	local lbl = Instance.new("TextLabel")
+	lbl.Size=UDim2.new(0.4,0,0.5,0)
+	lbl.Position=UDim2.new(0.3,0,0,-5)
+	lbl.TextColor=BrickColor.new("White")
+	lbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+	lbl.TextStrokeTransparency=0
+	lbl.TextStrokeColor3=blk_color
+	lbl.BackgroundTransparency=1
+	lbl.Text=parent.Text
+	lbl.TextScaled=true
+	lbl.Parent=parent
+end
+
+local send = false
+local solutionLbl = Instance.new("TextLabel")
+solutionLbl.Size=UDim2.new(0.9,0,0.125,0)
+solutionLbl.Position=UDim2.new(0.05,0,0.15,0)
+solutionLbl.BackgroundTransparency=1
+solutionLbl.TextColor=BrickColor.new("Really red")
+solutionLbl.TextXAlignment=Enum.TextXAlignment.Left
+solutionLbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+solutionLbl.TextScaled=true
+solutionLbl.TextStrokeTransparency = 0
+solutionLbl.TextStrokeColor3 = blk_color
+solutionLbl.Text="Solution: ??"
+
+solutionLbl.Parent=Mainframe
+
+local autoGuessState = false
+local autoGuessBtn = newBtn(" Auto Guess", 0.325, Mainframe)
+autoGuessBtn.TextXAlignment = Enum.TextXAlignment.Left
+local autoGuessPlate = newPlate(autoGuessBtn)
+autoGuessKnob = newKnob(autoGuessPlate)
+
+local MoveEnabledState = false
+local MoveEnabledBtn = newBtn(" Move Enabled", 0.575, Mainframe)
+MoveEnabledBtn.TextXAlignment = Enum.TextXAlignment.Left
+local MoveEnabledPlate = newPlate(MoveEnabledBtn)
+local MoveEnabledKnob = newKnob(MoveEnabledPlate)
+
+-- 4. التوقيع والأيقونة بالأسفل
+local titlelbl = Instance.new("TextLabel")
+titlelbl.Size = UDim2.new(0.5, 0, 0.1, 0)
+titlelbl.Position = UDim2.new(0.05, 0, 0.85, 0)
+titlelbl.BackgroundTransparency = 1
+titlelbl.TextColor = BrickColor.new("White")
+titlelbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+titlelbl.TextStrokeTransparency = 0
+titlelbl.TextStrokeColor3 = blk_color
+titlelbl.TextScaled = true
+titlelbl.Text = "Created By iwangamer931"
+titlelbl.TextXAlignment = Enum.TextXAlignment.Left
+titlelbl.Parent = Mainframe
+
+local imageicon = Instance.new("ImageLabel")
+imageicon.Size = UDim2.new(0.2, 0, 1, 0)
+imageicon.Position = UDim2.new(1.05, 0, 0, 0)
+imageicon.Image = "rbxassetid://106299005851806"
+imageicon.BackgroundTransparency = 1
+imageicon.Parent = titlelbl
+
+local function newUi(parent) 
+	local ui = Instance.new("UICorner")
+	ui.CornerRadius = UDim.new(0,10)
+	ui.Parent=parent
+	return ui
+end
+
+local function newCustomUi(parent, rb,lb,ru,lu) 
+	local ui = Instance.new("UICorner")
+	ui.BottomLeftRadius =UDim.new(0,lb)
+	ui.BottomRightRadius=UDim.new(0,rb)
+	ui.TopLeftRadius=UDim.new(0,lu)
+	ui.TopRightRadius=UDim.new(0,ru)
+	ui.Parent=parent
+	return ui
+end
+
+fixedTxt(autoGuessBtn,0.4,0)
+fixedTxt(MoveEnabledBtn,0.4,0)
+
+newUi(destroyBtn)
+newUi(hideBtn)
+
+newUi(Mainframe)
+newCustomUi(frameTitle,0,0,10,10)
+newUi(iconFrame)
+
+newUi(autoGuessBtn)
+newUi(autoGuessPlate)
+newUi(autoGuessKnob)
+
+newUi(MoveEnabledBtn)
+newUi(MoveEnabledPlate)
+newUi(MoveEnabledKnob)
+
+-- دالة لحساب المعادلات النصية وفق أسبقيات الرياضيات
+local function evalMath(expression)
+	-- 1. تنظيف النص وتحويل الرموز الشائعة
+	expression = string.gsub(expression, "%s+", "") -- إزالة الفراغات
+	expression = string.gsub(expression, "÷", "/") -- تحويل ÷ إلى /
+	expression = string.gsub(expression, "×", "*")
+	
+	-- 2. معالجة عمليات الضرب والقسمة أولاً (الأسبقية الأولى)
+	while string.find(expression, "[%d%.]+[%*%/][%d%.]+") do
+		expression = string.gsub(expression, "([%d%.]+)([%*%/])([%d%.]+)", function(a, op, b)
+			local num1, num2 = tonumber(a), tonumber(b)
+			if op == "*" then
+				return tostring(num1 * num2)
+			elseif op == "/" then
+				return num2 ~= 0 and tostring(num1 / num2) or "0"
+			end
+		end)
+	end
+
+	-- 3. معالجة عمليات الجمع والطرح ثانياً (الأسبقية الثانية)
+	while string.find(expression, "[%d%.]+[%+%-][%d%.]+") do
+		expression = string.gsub(expression, "([%d%.]+)([%+%-])([%d%.]+)", function(a, op, b)
+			local num1, num2 = tonumber(a), tonumber(b)
+			if op == "+" then
+				return tostring(num1 + num2)
+			elseif op == "-" then
+				return tostring(num1 - num2)
+			end
+		end)
+	end
+
+	return tonumber(expression)
+end
+
+-- دمج الدالة داخل حلقة Heartbeat
+runService.Heartbeat:Connect(function()
+	if solutionLbl and lines and lines[1] then
+		local questionText = lines[1].Text or tostring(lines[1])
+
+		-- 1. قطع النص عند علامة '=' ليأخذ المعادلة التي قبلها فقط
+		local beforeEquals = string.match(questionText, "^([^=]+)") or questionText
+
+		-- 2. استخراج الأرقام والعمليات الحسابية من النص المقطوع
+		local cleanExpr = string.match(beforeEquals, "[%d%s%+%-%*%/%x%X%÷%.]+")
+
+		if cleanExpr and string.gsub(cleanExpr, "%s+", "") ~= "" then
+			local result = evalMath(cleanExpr)
+			if result then
+				if autoGuessState and send then
+					send=false
+					dubEvent:FireServer(tostring(result)) 
+				end
+				solutionLbl.TextColor = BrickColor.new("Lime green")
+				solutionLbl.Text = "Solution: " .. tostring(result)
+			else
+				send=false
+				solutionLbl.TextColor = BrickColor.new("Really red")
+				solutionLbl.Text = "Solution: ??"
+			end
+		else
+			send=false
+			solutionLbl.TextColor = BrickColor.new("Really red")
+			solutionLbl.Text = "Solution: ??"
+		end
+	end
+end)
+
+runService.Heartbeat:Connect(function()
+	if MoveEnabledState then
+		local char = LocalPlayer.Character
+		local rootPart = char and char:FindFirstChild("HumanoidRootPart")
+		local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+
+		if rootPart and humanoid and humanoid.Health > 0 then
+			-- 1. إذا كان اللاعب جالساً، يتم إجباره على الوقوف وفك الالتصاق بالمقعد
+			if humanoid.Sit then
+				humanoid.Sit = false
+				humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+			end
+
+			humanoid.UseJumpPower, humanoid.JumpPower = true, 99
+			humanoid.WalkSpeed = 22
+
+			-- 2. إعادة تفعيل التدوير التلقائي
+			humanoid.AutoRotate = true
+
+			-- 3. إجبار تدوير الوجه باتجاه الحركة (MoveDirection) عند المشي
+			local moveDir = humanoid.MoveDirection
+			if moveDir.Magnitude > 0 then
+				local currentPos = rootPart.Position
+				-- الحفاظ على مستوى الارتفاع Z/X وتوجيه النظر للأمام فقط
+				local targetLook = currentPos + Vector3.new(moveDir.X, 0, moveDir.Z)
+				rootPart.CFrame = CFrame.new(currentPos, targetLook)
+			end
+		end
+	end
+end)
+
+autoGuessBtn.MouseButton1Click:Connect(function()
+	autoGuessState = not autoGuessState
+	if autoGuessState then 
+		autoGuessKnob.Position = UDim2.new(0.65, 0, 0.8, -8)
+		autoGuessPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		autoGuessKnob.Position = UDim2.new(0.1, 0, 0.8, -8)
+		autoGuessPlate.BackgroundColor3 = blk_color
+	end
+end)
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local localPlayer = Players.LocalPlayer
+local Event = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("SetActivePlayer")
+
+
+setActEvent.OnClientEvent:Connect(function(activePlayer)
+	printlog("event activate",false)
+	-- التأكد من أن اللاعب النشط الممرر في الحدث هو حسابك الحالي
+	if activePlayer == localPlayer then
+		send = true
+		printlog("is player",false)
+	else
+		send = false
+		printlog("not player",true)
+	end
+end)
+
+MoveEnabledBtn.MouseButton1Click:Connect(function()
+	MoveEnabledState = not MoveEnabledState
+	if MoveEnabledState then 
+		MoveEnabledKnob.Position = UDim2.new(0.65, 0, 0.8, -8)
+		MoveEnabledPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		MoveEnabledKnob.Position = UDim2.new(0.1, 0, 0.8, -8)
+		MoveEnabledPlate.BackgroundColor3 = blk_color
+	end
+end)
