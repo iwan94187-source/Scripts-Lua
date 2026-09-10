@@ -6,7 +6,7 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local runService = game:GetService("RunService")
 
 local eggvalue = nil
-	
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local remoteEvents = ReplicatedStorage:WaitForChild("RemoteEvents")
 local eggThrowEvent = remoteEvents:WaitForChild("EggThrowEvent")
@@ -20,8 +20,6 @@ screenGui.ResetOnSpawn = false
 local blk_color, gry = Color3.fromRGB(24,24,24), Color3.fromRGB(52, 52, 52)
 
 local eggvalue = LocalPlayer:WaitForChild("otherLeaderstats"):WaitForChild("Eggs")
-
-printlog("Susseccful found "..eggvalue.Name)
 
 local Mainframe = Instance.new("Frame")
 Mainframe.Size=UDim2.new(0,250,0,300)
@@ -520,7 +518,7 @@ end)
 infEggBtn.MouseButton1Click:Connect(function()
 	infEggState = not infEggState
 	if infEggState then 
-		
+
 		eggvalue.Value=99
 		infEggKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
 		infEggPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
