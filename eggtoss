@@ -577,29 +577,37 @@ newUi(infCoinBtn)
 newUi(infCoinKnob)
 newUi(infCoinPlate)
 
+local UserInputService = game:GetService("UserInputService")
 local PlayerModule = require(LocalPlayer:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule"))
 local Controls = PlayerModule:GetControls()
 
+local isDesktop = UserInputService.KeyboardEnabled and UserInputService.MouseEnabled
+
 local function forceDynamicControl()
-	-- 1. فرض نمط الحركة الديناميكية
-	LocalPlayer.DevTouchMovementMode = Enum.DevTouchMovementMode.DynamicThumbstick
+	if isDesktop then
+		if Controls then
+			Controls:Enable(true)
+		end
+	else
+		-- 2. للهواتف / Touch: فرض نمط الحركة الديناميكية
+		LocalPlayer.DevTouchMovementMode = Enum.DevTouchMovementMode.DynamicThumbstick
 
-	-- 2. إجبار نظام التحكم البرمجي على التفعيل (Enable)
-	if Controls then
-		Controls:Enable(true)
-	end
+		if Controls then
+			Controls:Enable(true)
+		end
 
-	-- 3. إظهار واجهات اللمس وإعادة تفعيلها في PlayerGui
-	local touchGui = PlayerGui:FindFirstChild("TouchGui")
-	if touchGui then
-		touchGui.Enabled = true
-		local touchControlFrame = touchGui:FindFirstChild("TouchControlFrame")
-		if touchControlFrame then
-			touchControlFrame.Visible = true
+		-- إظهار واجهات اللمس
+		local touchGui = PlayerGui:FindFirstChild("TouchGui")
+		if touchGui then
+			touchGui.Enabled = true
+			local touchControlFrame = touchGui:FindFirstChild("TouchControlFrame")
+			if touchControlFrame then
+				touchControlFrame.Visible = true
 
-			local dynamicThumbstick = touchControlFrame:FindFirstChild("DynamicThumbstickFrame")
-			if dynamicThumbstick then
-				dynamicThumbstick.Visible = true
+				local dynamicThumbstick = touchControlFrame:FindFirstChild("DynamicThumbstickFrame")
+				if dynamicThumbstick then
+					dynamicThumbstick.Visible = true
+				end
 			end
 		end
 	end
