@@ -19,10 +19,30 @@ screenGui.ResetOnSpawn = false
 
 local blk_color, gry = Color3.fromRGB(24,24,24), Color3.fromRGB(52, 52, 52)
 
+local helperTextLabel = Instance.new("TextLabel")
+helperTextLabel.Size=UDim2.new(0,200,0,50)
+helperTextLabel.Transparency=0.5
+helperTextLabel.BackgroundColor3=blk_color
+helperTextLabel.TextColor=BrickColor.new("White")
+helperTextLabel.TextScaled=true
+helperTextLabel.Parent=screenGui
+
+local function printlog(txt,set)
+	if set then 
+		helperTextLabel.TextColor=BrickColor.new("Really red")
+	else
+		helperTextLabel.TextColor=BrickColor.new("Lime green")
+	end
+	helperTextLabel.Text=txt
+end
+
 local eggvalue = LocalPlayer:WaitForChild("otherLeaderstats"):WaitForChild("Eggs")
+local coinValue = LocalPlayer:WaitForChild("otherLeaderstats"):WaitForChild("Coins")
+
+printlog("Egg found",false)
 
 local Mainframe = Instance.new("Frame")
-Mainframe.Size=UDim2.new(0,250,0,300)
+Mainframe.Size=UDim2.new(0,250,0,250)
 Mainframe.Position=UDim2.new(0.125,0,0,0)
 Mainframe.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 Mainframe.Visible=false
@@ -122,20 +142,19 @@ local function newLbl(name,pos,parent)
 end
 
 local function newTrem(parent)
-	local trem = Instance.new("TextLabel")
-	trem.Size = UDim2.new(0,25,1,0)
-	trem.Position=UDim2.new(0.85,0,0,0)
-	trem.BackgroundTransparency=1
-	trem.Text="🔴"
-	trem.TextSize=20
-	trem.Parent=parent
-	return trem
+	local frame = Instance.new("ImageLabel")
+	frame.Size=UDim2.new(0,15,0,15)
+	frame.Position=UDim2.new(0.8,0,0.1,0)
+	frame.BackgroundTransparency=1
+	frame.Image="rbxassetid://9468220156"
+	frame.Parent=parent
+	return frame
 end
 
 local function newKnob(parent)
 	local frame = Instance.new("Frame")
-	frame.Size=UDim2.new(0,10,0,10)
-	frame.Position=UDim2.new(0.1,0,0.65,-8)
+	frame.Size=UDim2.new(0,7.5,0,7.5)
+	frame.Position=UDim2.new(0.1,0,0.9,-8)
 	frame.BackgroundColor3=Color3.fromRGB(255, 255, 255)
 	frame.Parent=parent
 	return frame
@@ -143,9 +162,9 @@ end
 
 local function newPlate(parent)
 	local frame = Instance.new("Frame")
-	frame.Size=UDim2.new(0,30,0,15)
+	frame.Size=UDim2.new(0,20,0,11)
 	frame.Position=UDim2.new(0.75,0,0.29,0)
-	frame.BackgroundColor3=blk_color
+	frame.BackgroundColor3=Color3.fromRGB(0, 0, 0)
 	frame.Parent=parent
 	return frame
 end
@@ -174,89 +193,175 @@ local function newBox(pos, parent)
 	return box
 end
 
-local frame_1=Instance.new("ScrollingFrame")
-frame_1.Size=UDim2.new(0.8,0,0.9,0)
-frame_1.Position=UDim2.new(0.2,0,0.1,0)
-frame_1.BackgroundColor3=blk_color
-frame_1.Visible=true
-frame_1.Parent=Mainframe
+local basicFrame = Instance.new("Frame")
+basicFrame.Size=UDim2.new(0.4,0,0.3,0)
+basicFrame.Position=UDim2.new(0.55,0,0.1,0)
+basicFrame.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+basicFrame.Parent=Mainframe
 
-local frame_2=Instance.new("Frame")
-frame_2.Size=UDim2.new(0.8,0,0.9,0)
-frame_2.Position=UDim2.new(0.2,0,0.1,0)
-frame_2.BackgroundColor3=blk_color
-frame_2.Visible=false
-frame_2.Parent=Mainframe
+local basicTitle = Instance.new("TextLabel")
+basicTitle.Size=UDim2.new(0.8,0,0.1,0)
+basicTitle.Position=UDim2.new(0.1,0,0.05,0)
+basicTitle.BackgroundTransparency=1
+basicTitle.TextColor=BrickColor.new("White")
+basicTitle.Text="Player"
+basicTitle.Parent=basicFrame
 
-local mainBtn = newsideBtn("Enable", 0.1)
-mainBtn.TextSize,mainBtn.TextScaled=5,false
-local gameplayBtn = newsideBtn("Press", 0.22)
-gameplayBtn.TextSize,gameplayBtn.TextScaled=6,false
+local remoteFrame = Instance.new("Frame")
+remoteFrame.Size=UDim2.new(0.45,0,0.55,0)
+remoteFrame.Position=UDim2.new(0.05,0,0.375,0)
+remoteFrame.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+remoteFrame.Parent=Mainframe
+
+local remoteTitle = Instance.new("TextLabel")
+remoteTitle.Size=UDim2.new(0.8,0,0.1,0)
+remoteTitle.Position=UDim2.new(0.1,0,0.04,0)
+remoteTitle.BackgroundTransparency=1
+remoteTitle.TextColor=BrickColor.new("White")
+remoteTitle.Text="Remote"
+remoteTitle.Parent=remoteFrame
+
+local extraFrame = Instance.new("Frame")
+extraFrame.Size=UDim2.new(0.4,0,0.4,0)
+extraFrame.Position=UDim2.new(0.55,0,0.425,0)
+extraFrame.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+extraFrame.Parent=Mainframe
+
+local extraTitle = Instance.new("TextLabel")
+extraTitle.Size=UDim2.new(0.8,0,0.1,0)
+extraTitle.Position=UDim2.new(0.1,0,0.05,0)
+extraTitle.BackgroundTransparency=1
+extraTitle.TextColor=BrickColor.new("White")
+extraTitle.Text="Extra"
+extraTitle.Parent=extraFrame
 
 local upState = false
-local upBtn = newBtn(" Status Enabled",0.01,frame_1)
+local upBtn = newBtn(" Status Enabled",0.01,Mainframe)
+upBtn.Size=UDim2.new(0.45,0,0.1,0)
+upBtn.Position=UDim2.new(0.05,0,0.1,0)
 upBtn.TextXAlignment="Left"
 local upPlate = newPlate(upBtn)
 local upTerm = newKnob(upPlate)
 
-local speedSlideBtn = newLbl("Speed",0.08,frame_1)
-speedSlideBtn.Size=UDim2.new(0.425,0,0.06,0)
+local speedSlideBtn = newLbl("Speed",0.08,Mainframe)
+speedSlideBtn.Size=UDim2.new(0.225,0,0.12,0)
+speedSlideBtn.Position=UDim2.new(0.05,0,0.225,0)
 speedSlideBtn.TextYAlignment=Enum.TextYAlignment.Top
+speedSlideBtn.Visible=false
 local speedBox = txtBox(speedSlideBtn)
+speedBox.Text=22
 
-local jumpBtn = newLbl("Jump",0.08,frame_1)
-jumpBtn.Size=UDim2.new(0.425,0,0.06,0)
-jumpBtn.Position=UDim2.new(0.525,0,0.08,0)
+local jumpBtn = newLbl("Jump",0.08,Mainframe)
+jumpBtn.Size=UDim2.new(0.225,0,0.12,0)
+jumpBtn.Position=UDim2.new(0.3,0,0.225,0)
 jumpBtn.TextYAlignment=Enum.TextYAlignment.Top
+jumpBtn.Visible=false
 local jumpBox = txtBox(jumpBtn)
+jumpBox.Text=55
 
 local noClipState = false
-local noClipBtn = newBtn(" No Clip",0.15,frame_1)
+local noClipBtn = newBtn("  No Clip",0.15,basicFrame)
+noClipBtn.Size=UDim2.new(0.9,0,0.2,0)
+noClipBtn.Position=UDim2.new(0.05,0,0.2,0)
 noClipBtn.TextXAlignment="Left"
 local noClipPlate = newPlate(noClipBtn)
+noClipPlate.Size=UDim2.new(0,18,0,8)
+noClipPlate.Position=UDim2.new(0.7,0,0.29,0)
 local noClipKnob = newKnob(noClipPlate)
+noClipKnob.Size=UDim2.new(0,5,0,5)
+noClipKnob.Position=UDim2.new(0.1,0,0.9,-6)
 
 local moveState = false
-local moveBtn = newBtn(" Move Enabled",0.22,frame_1)
+local moveBtn = newBtn(" Move Enabled",0.22,basicFrame)
+moveBtn.Size=UDim2.new(0.9,0,0.2,0)
+moveBtn.Position=UDim2.new(0.05,0,0.45,0)
 moveBtn.TextXAlignment="Left"
 local movePlate = newPlate(moveBtn)
+movePlate.Size=UDim2.new(0,18,0,8)
+movePlate.Position=UDim2.new(0.7,0,0.29,0)
 local moveKnob = newKnob(movePlate)
+moveKnob.Size=UDim2.new(0,5,0,5)
+moveKnob.Position=UDim2.new(0.1,0,0.9,-6)
 
 local antiLavaState = false
-local antiLavaBtn = newBtn(" Anti Lava",0.29,frame_1)
+local antiLavaBtn = newBtn(" Anti Lava",0.29,remoteFrame)
+antiLavaBtn.Size=UDim2.new(0.9,0,0.175,0)
+antiLavaBtn.Position=UDim2.new(0.05,0,0.525,0)
 antiLavaBtn.TextXAlignment="Left"
 local antiLavaPlate = newPlate(antiLavaBtn)
+antiLavaPlate.Size=UDim2.new(0,20,0,9)
+antiLavaPlate.Position=UDim2.new(0.75,0,0.29,0)
 local antiLavaKnob = newKnob(antiLavaPlate)
+antiLavaKnob.Size=UDim2.new(0,5,0,5)
+antiLavaKnob.Position=UDim2.new(0.1,0,0.9,-7)
 
 local anitBackState = false
-local anitBackBtn = newBtn(" Anit Step-Back",0.36,frame_1)
+local anitBackBtn = newBtn(" Anit Step-Back",0.36,remoteFrame)
+anitBackBtn.Size=UDim2.new(0.9,0,0.175,0)
+anitBackBtn.Position=UDim2.new(0.05,0,0.7,0)
 anitBackBtn.TextXAlignment="Left"
 local anitBackPlate = newPlate(anitBackBtn)
+anitBackPlate.Size=UDim2.new(0,20,0,9)
+anitBackPlate.Position=UDim2.new(0.75,0,0.29,0)
 local anitBackKnob = newKnob(anitBackPlate)
+anitBackKnob.Size=UDim2.new(0,5,0,5)
+anitBackKnob.Position=UDim2.new(0.1,0,0.9,-7)
 
 local maxZoomState = false
-local maxZoomBtn = newBtn(" Max-Zoom",0.43,frame_1)
+local maxZoomBtn = newBtn(" Max-Zoom",0.43,basicFrame)
+maxZoomBtn.Size=UDim2.new(0.9,0,0.2,0)
+maxZoomBtn.Position=UDim2.new(0.05,0,0.7,0)
 maxZoomBtn.TextXAlignment="Left"
 local maxZoomPlate = newPlate(maxZoomBtn)
+maxZoomPlate.Size=UDim2.new(0,18,0,8)
+maxZoomPlate.Position=UDim2.new(0.7,0,0.29,0)
 local maxZoomKnob = newKnob(maxZoomPlate)
+maxZoomKnob.Size=UDim2.new(0,5,0,5)
+maxZoomKnob.Position=UDim2.new(0.1,0,0.9,-6)
 
 local infEggState = false
-local infEggBtn = newBtn(" Infinity Eggs",0.50,frame_1)
+local infEggBtn = newBtn(" Infinity Eggs",0.50,extraFrame)
+infEggBtn.Size=UDim2.new(0.9,0,0.2,0)
+infEggBtn.Position=UDim2.new(0.05,0,0.2,0)
 infEggBtn.TextXAlignment="Left"
 local infEggPlate = newPlate(infEggBtn)
+infEggPlate.Size=UDim2.new(0,20,0,9)
+infEggPlate.Position=UDim2.new(0.7,0,0.29,0)
 local infEggKnob = newKnob(infEggPlate)
+infEggKnob.Size=UDim2.new(0,6,0,6)
+infEggKnob.Position=UDim2.new(0.1,0,0.9,-7)
 
-local catchBtn = newBtn(" Catch Egg [Click]",0.05,frame_2)
-catchBtn.Size=UDim2.new(0.9,0,0.12,0)
+local infCoinState = false
+local infCoinBtn = newBtn(" Infinity Coins",0.50,extraFrame)
+infCoinBtn.Size=UDim2.new(0.9,0,0.2,0)
+infCoinBtn.Position=UDim2.new(0.05,0,0.45,0)
+infCoinBtn.TextXAlignment="Left"
+local infCoinPlate = newPlate(infCoinBtn)
+infCoinPlate.Size=UDim2.new(0,20,0,9)
+infCoinPlate.Position=UDim2.new(0.7,0,0.29,0)
+local infCoinKnob = newKnob(infCoinPlate)
+infCoinKnob.Size=UDim2.new(0,6,0,6)
+infCoinKnob.Position=UDim2.new(0.1,0,0.9,-7)
+
+local catchBtn = newBtn(" Catch Egg",0.05,remoteFrame)
+catchBtn.Size=UDim2.new(0.9,0,0.15,0)
+catchBtn.Position=UDim2.new(0.05,0,0.15,0)
 catchBtn.TextXAlignment="Left"
 
-local throwBtn = newBtn(" Perfect Throw💯 [Click]",0.20,frame_2)
-throwBtn.Size=UDim2.new(0.9,0,0.12,0)
-throwBtn.TextXAlignment="Left"
+local catchBtnTerm = newTrem(catchBtn)
 
-local reBtn = newBtn(" Rest Chaarcter [Click]",0.35,frame_2)
-reBtn.Size=UDim2.new(0.9,0,0.12,0)
+local throwBtn = newBtn(" Perfect Throw💯",0.20,remoteFrame)
+throwBtn.Size=UDim2.new(0.9,0,0.15,0)
+throwBtn.Position=UDim2.new(0.05,0,0.35,0)
+throwBtn.TextXAlignment="Left"
+local throwBtnTerm = newTrem(throwBtn)
+
+local reBtn = newBtn(" Rest Chaarcter",0.35,extraFrame)
+reBtn.Size=UDim2.new(0.9,0,0.15,0)
+reBtn.Position=UDim2.new(0.05,0,0.7,0)
 reBtn.TextXAlignment="Left"
+
+local reTerm = newTrem(reBtn)
 
 
 local function newUi(parent) 
@@ -276,24 +381,16 @@ local function newCustomUi(parent, rb,lb,ru,lu)
 	return ui
 end
 
-local function display()
-	frame_1.Visible, frame_2.Visible=false,false
-end
-mainBtn.MouseButton1Click:Connect(function()
-	display()
-	frame_1.Visible=true
-end)
-gameplayBtn.MouseButton1Click:Connect(function()
-	display()
-	frame_2.Visible=true
-end)
-
 newUi(destroyBtn)
 newUi(hideBtn)
 
 newUi(Mainframe)
 newCustomUi(frameTitle,0,0,10,10)
 newUi(iconFrame)
+
+newUi(basicFrame)
+newUi(remoteFrame)
+newUi(extraFrame)
 
 newUi(noClipBtn)
 newUi(noClipPlate)
@@ -312,9 +409,6 @@ newUi(speedBox)
 
 newUi(jumpBtn)
 newUi(jumpBox)
-
-newUi(mainBtn)
-newUi(gameplayBtn)
 
 newUi(antiLavaBtn)
 newUi(antiLavaPlate)
@@ -335,6 +429,11 @@ newUi(infEggKnob)
 newUi(catchBtn)
 newUi(throwBtn)
 newUi(reBtn)
+
+newUi(reTerm)
+newUi(infCoinBtn)
+newUi(infCoinKnob)
+newUi(infCoinPlate)
 
 local PlayerModule = require(LocalPlayer:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule"))
 local Controls = PlayerModule:GetControls()
@@ -366,9 +465,11 @@ end
 
 runService.Stepped:Connect(function()
 	if noClipState and LocalPlayer.Character then
-		for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
-			if part:IsA("BasePart") then
-				part.CanCollide = false
+		if LocalPlayer.Character:FindFirstChild("Humanoid") and not LocalPlayer.Character.Humanoid.Sit then
+			for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
+				if part:IsA("BasePart") then
+					part.CanCollide = false
+				end
 			end
 		end
 	end
@@ -383,6 +484,7 @@ end)
 
 runService.Heartbeat:Connect(function()
 	if upState then 
+		speedSlideBtn.Visible,jumpBtn.Visible=true,true
 		local human = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
 		if human then 
 			if tonumber(speedBox.Text) then 
@@ -424,6 +526,10 @@ eggvalue:GetPropertyChangedSignal("Value"):Connect(function()
 	if infEggState then eggvalue.Value=99 end
 end)
 
+coinValue:GetPropertyChangedSignal("Value"):Connect(function()
+	if infCoinState then coinValue.Value=99999 end
+end)
+
 -- 5. حماية إضافية: في حال قام الماب بربط اتصال جديد أثناء اللعب
 StepBackEvent.OnClientEvent:Connect(function()
 	if anitBackState then
@@ -434,44 +540,45 @@ end)
 noClipBtn.MouseButton1Click:Connect(function()
 	noClipState = not noClipState
 	if noClipState then 
-		noClipKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
+		noClipKnob.Position = UDim2.new(0.6, 0, 0.9, -6)
 		noClipPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
 	else 
-		noClipKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
-		noClipPlate.BackgroundColor3 = blk_color
+		noClipKnob.Position=UDim2.new(0.1,0,0.9,-6)
+		noClipPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	end
 end)
 
 moveBtn.MouseButton1Click:Connect(function()
 	moveState = not moveState
 	if moveState then 
-		moveKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
+		moveKnob.Position = UDim2.new(0.6, 0, 0.9, -6)
 		movePlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
 	else 
-		moveKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
-		movePlate.BackgroundColor3 = blk_color
+		moveKnob.Position = UDim2.new(0.1,0,0.9,-6)
+		movePlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	end
 end)
 
 upBtn.MouseButton1Click:Connect(function()
 	upState = not upState
 	if upState then 
-		upTerm.Position = UDim2.new(0.6, 0, 0.65, -8)
+		upTerm.Position = UDim2.new(0.6, 0, 0.9, -8)
 		upPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
 	else 
-		upTerm.Position = UDim2.new(0.1, 0, 0.65, -8)
-		upPlate.BackgroundColor3 = blk_color
+		speedSlideBtn.Visible,jumpBtn.Visible=false,false
+		upTerm.Position = UDim2.new(0.1, 0, 0.9, -8)
+		upPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	end
 end)
 
 antiLavaBtn.MouseButton1Click:Connect(function()
 	antiLavaState = not antiLavaState
 	if antiLavaState then 
-		antiLavaKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
+		antiLavaKnob.Position = UDim2.new(0.65, 0, 0.9, -6)
 		antiLavaPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
 	else 
-		antiLavaKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
-		antiLavaPlate.BackgroundColor3 = blk_color
+		antiLavaKnob.Position = UDim2.new(0.1, 0, 0.9, -6)
+		antiLavaPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	end
 end)
 
@@ -496,22 +603,22 @@ anitBackBtn.MouseButton1Click:Connect(function()
 	updateStepBackState(anitBackState)
 
 	if anitBackState then 
-		anitBackKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
+		anitBackKnob.Position = UDim2.new(0.65, 0, 0.9, -6)
 		anitBackPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
 	else 
-		anitBackKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
-		anitBackPlate.BackgroundColor3 = blk_color
+		anitBackKnob.Position = UDim2.new(0.1, 0, 0.9, -6)
+		anitBackPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	end
 end)
 
 maxZoomBtn.MouseButton1Click:Connect(function()
 	maxZoomState = not maxZoomState
 	if maxZoomState then 
-		maxZoomKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
+		maxZoomKnob.Position = UDim2.new(0.6, 0, 0.9, -6)
 		maxZoomPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
 	else 
-		maxZoomKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
-		maxZoomPlate.BackgroundColor3 = blk_color
+		maxZoomKnob.Position = UDim2.new(0.1, 0, 0.9, -6)
+		maxZoomPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	end
 end)
 
@@ -520,10 +627,23 @@ infEggBtn.MouseButton1Click:Connect(function()
 	if infEggState then 
 
 		eggvalue.Value=99
-		infEggKnob.Position = UDim2.new(0.6, 0, 0.65, -8)
+		infEggKnob.Position = UDim2.new(0.6, 0, 0.9, -7)
 		infEggPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
 	else 
-		infEggKnob.Position = UDim2.new(0.1, 0, 0.65, -8)
-		infEggPlate.BackgroundColor3 = blk_color
+		infEggKnob.Position = UDim2.new(0.1, 0, 0.9, -7)
+		infEggPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	end
+end)
+
+infCoinBtn.MouseButton1Click:Connect(function()
+	infCoinState = not infCoinState
+	if infCoinState then 
+
+		coinValue.Value=99999
+		infCoinKnob.Position = UDim2.new(0.6, 0, 0.9, -7)
+		infCoinPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		infCoinKnob.Position = UDim2.new(0.1, 0, 0.9, -7)
+		infCoinPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	end
 end)
