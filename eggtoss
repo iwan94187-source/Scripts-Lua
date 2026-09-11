@@ -25,7 +25,7 @@ helperTextLabel.Transparency=0.5
 helperTextLabel.BackgroundColor3=blk_color
 helperTextLabel.TextColor=BrickColor.new("White")
 helperTextLabel.TextScaled=true
-helperTextLabel.Parent=nil
+helperTextLabel.Parent=screenGui
 
 local function printlog(txt,set)
 	if set then 
@@ -38,6 +38,8 @@ end
 
 local eggvalue = LocalPlayer:WaitForChild("otherLeaderstats"):WaitForChild("Eggs")
 local coinValue = LocalPlayer:WaitForChild("otherLeaderstats"):WaitForChild("Coins")
+
+printlog("Egg found",false)
 
 local Mainframe = Instance.new("Frame")
 Mainframe.Size=UDim2.new(0,250,0,250)
@@ -67,6 +69,26 @@ txt.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
 txt.Text="EGG TOSS"
 txt.TextScaled=true
 txt.Parent=frameTitle
+
+local titlelbl = Instance.new("TextLabel")
+titlelbl.Size = UDim2.new(0.35, 0, 0.04, 0)
+titlelbl.Position = UDim2.new(0.55, 0, 0.875, 0)
+titlelbl.BackgroundTransparency = 1
+titlelbl.TextColor = BrickColor.new("White")
+titlelbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+titlelbl.TextStrokeTransparency = 0
+titlelbl.TextStrokeColor3 = blk_color
+titlelbl.TextScaled = true
+titlelbl.Text = "Created By iwangamer931"
+titlelbl.TextXAlignment = Enum.TextXAlignment.Left
+titlelbl.Parent = Mainframe
+
+local imageicon = Instance.new("ImageLabel")
+imageicon.Size = UDim2.new(0.2, 0, 1, 0)
+imageicon.Position = UDim2.new(1.05, 0, 0, 0)
+imageicon.Image = "rbxassetid://106299005851806"
+imageicon.BackgroundTransparency = 1
+imageicon.Parent = titlelbl
 
 local iconFrame = Instance.new("ImageButton")
 iconFrame.Size=UDim2.new(0,40,0,40)
