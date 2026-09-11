@@ -55,9 +55,19 @@ frameTitle.Size=UDim2.new(1,0,0.1,0)
 frameTitle.Text="   Egg Toss V7.0"
 frameTitle.TextXAlignment=Enum.TextXAlignment.Left
 frameTitle.TextColor=BrickColor.new("White")
-frameTitle.BackgroundColor3=blk_color
+frameTitle.TextTransparency=1
 frameTitle.TextSize=7
 frameTitle.Parent=Mainframe
+
+local txt = Instance.new("TextLabel")
+txt.Size=UDim2.new(0.5,0,0.6,0)
+txt.Position=UDim2.new(0.25,0,0.1,0)
+txt.TextColor=BrickColor.new("White")
+txt.BackgroundTransparency=1
+txt.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+txt.Text="EGG TOSS"
+txt.TextScaled=true
+txt.Parent=frameTitle
 
 local iconFrame = Instance.new("ImageButton")
 iconFrame.Size=UDim2.new(0,40,0,40)
@@ -193,6 +203,52 @@ local function newBox(pos, parent)
 	return box
 end
 
+local function fixedText(parent)
+	parent.TextTransparency=1
+	
+	local lbl = Instance.new("TextLabel")
+	lbl.Size=UDim2.new(0.6,0,0.8,0)
+	lbl.Position=UDim2.new(0.05,0,0.1,0)
+	lbl.BackgroundTransparency=1
+	lbl.Text=parent.Text
+	lbl.TextScaled=true
+	lbl.TextColor=BrickColor.new("White")
+	lbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+	lbl.TextStrokeTransparency=0
+	lbl.TextStrokeColor3=blk_color
+	lbl.Parent=parent
+	return lbl
+end 
+
+local function fixedTitleText(parent)
+	parent.TextTransparency = 1 -- إخفاء النص الأصل
+	-- 2. النص الأساسي (Main Title Label)
+	local lbl = Instance.new("TextLabel")
+	lbl.Size = UDim2.new(0.8, 0, 0.8, 0)
+	lbl.Position = UDim2.new(0.05, 0, 0.1, 0)
+	lbl.BackgroundTransparency = 1
+	lbl.Text = parent.Text
+	lbl.TextScaled = true
+	lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+	lbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+	lbl.TextStrokeTransparency = 0
+	lbl.TextStrokeColor3 = Color3.fromRGB(15, 15, 15)
+	lbl.TextXAlignment = Enum.TextXAlignment.Left
+	lbl.Parent = parent
+
+	-- 3. تدرج ألوان أسطوري (UIGradient)
+	local gradient = Instance.new("UIGradient")
+	-- تدرج ناري ذهبي (يمكنك تغيير الألوان حسب رغبتك)
+	gradient.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 83, 83)), -- ذهبي فاتح من الأعلى
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))    -- برتقالي دافئ من الأسفل
+	}
+	gradient.Rotation = 90 -- تدرج من الأعلى للأسفل
+	gradient.Parent = lbl
+
+	return lbl
+end
+
 local basicFrame = Instance.new("Frame")
 basicFrame.Size=UDim2.new(0.4,0,0.3,0)
 basicFrame.Position=UDim2.new(0.55,0,0.1,0)
@@ -200,12 +256,20 @@ basicFrame.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 basicFrame.Parent=Mainframe
 
 local basicTitle = Instance.new("TextLabel")
-basicTitle.Size=UDim2.new(0.8,0,0.1,0)
-basicTitle.Position=UDim2.new(0.1,0,0.05,0)
+basicTitle.Size=UDim2.new(0.8,0,0.15,0)
+basicTitle.Position=UDim2.new(0.1,0,0.03,0)
 basicTitle.BackgroundTransparency=1
 basicTitle.TextColor=BrickColor.new("White")
 basicTitle.Text="Player"
 basicTitle.Parent=basicFrame
+local basicTitleFixed = fixedTitleText(basicTitle)
+basicTitleFixed.Size=UDim2.new(0.7,0,0.7,0)
+basicTitleFixed.Position=UDim2.new(0.4,0,0.2,0)
+local basicTitlegradient = basicTitleFixed.UIGradient
+basicTitlegradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(85, 170, 255)), -- ذهبي فاتح من الأعلى
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))    -- برتقالي دافئ من الأسفل
+}
 
 local remoteFrame = Instance.new("Frame")
 remoteFrame.Size=UDim2.new(0.45,0,0.55,0)
@@ -220,6 +284,9 @@ remoteTitle.BackgroundTransparency=1
 remoteTitle.TextColor=BrickColor.new("White")
 remoteTitle.Text="Remote"
 remoteTitle.Parent=remoteFrame
+local remoteTitleFixed = fixedTitleText(remoteTitle)
+remoteTitleFixed.Size=UDim2.new(0.7,0,0.7,0)
+remoteTitleFixed.Position=UDim2.new(0.3,0,0.25,0)
 
 local extraFrame = Instance.new("Frame")
 extraFrame.Size=UDim2.new(0.4,0,0.4,0)
@@ -234,6 +301,14 @@ extraTitle.BackgroundTransparency=1
 extraTitle.TextColor=BrickColor.new("White")
 extraTitle.Text="Extra"
 extraTitle.Parent=extraFrame
+local extraTitleFixed = fixedTitleText(extraTitle)
+extraTitleFixed.Size=UDim2.new(0.8,0,0.8,0)
+extraTitleFixed.Position=UDim2.new(0.4,0,0.25,0)
+local extraTitlegradient = extraTitleFixed.UIGradient
+extraTitlegradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 255, 0)), -- ذهبي فاتح من الأعلى
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))    -- برتقالي دافئ من الأسفل
+}
 
 local upState = false
 local upBtn = newBtn(" Status Enabled",0.01,Mainframe)
@@ -242,6 +317,9 @@ upBtn.Position=UDim2.new(0.05,0,0.1,0)
 upBtn.TextXAlignment="Left"
 local upPlate = newPlate(upBtn)
 local upTerm = newKnob(upPlate)
+local upFixed = fixedText(upBtn)
+upFixed.Size=UDim2.new(0.5,0,0.7,0)
+upFixed.Position=UDim2.new(0.05,0,0.15,0)
 
 local speedSlideBtn = newLbl("Speed",0.08,Mainframe)
 speedSlideBtn.Size=UDim2.new(0.225,0,0.12,0)
@@ -250,6 +328,12 @@ speedSlideBtn.TextYAlignment=Enum.TextYAlignment.Top
 speedSlideBtn.Visible=false
 local speedBox = txtBox(speedSlideBtn)
 speedBox.Text=22
+local speedBoxFixed = fixedText(speedBox)
+speedBoxFixed.Size=UDim2.new(1,0,0.8,0)
+speedBoxFixed.Position=UDim2.new(0,0,0.1,0)
+local speedSlideBtnFixed = fixedText(speedSlideBtn)
+speedSlideBtnFixed.Size=UDim2.new(0.6,0,0.25,0)
+speedSlideBtnFixed.Position=UDim2.new(0.2,0,0.05,0)
 
 local jumpBtn = newLbl("Jump",0.08,Mainframe)
 jumpBtn.Size=UDim2.new(0.225,0,0.12,0)
@@ -258,6 +342,13 @@ jumpBtn.TextYAlignment=Enum.TextYAlignment.Top
 jumpBtn.Visible=false
 local jumpBox = txtBox(jumpBtn)
 jumpBox.Text=55
+local jumpBoxFixed = fixedText(jumpBox)
+jumpBoxFixed.Size=UDim2.new(1,0,0.8,0)
+jumpBoxFixed.Position=UDim2.new(0,0,0.1,0)
+
+local jumpBtnFixed = fixedText(jumpBtn)
+jumpBtnFixed.Size=UDim2.new(0.6,0,0.25,0)
+jumpBtnFixed.Position=UDim2.new(0.2,0,0.05,0)
 
 local noClipState = false
 local noClipBtn = newBtn("  No Clip",0.15,basicFrame)
@@ -270,6 +361,9 @@ noClipPlate.Position=UDim2.new(0.7,0,0.29,0)
 local noClipKnob = newKnob(noClipPlate)
 noClipKnob.Size=UDim2.new(0,5,0,5)
 noClipKnob.Position=UDim2.new(0.1,0,0.9,-6)
+local noClipBtnFixed = fixedText(noClipBtn)
+noClipBtnFixed.Size=UDim2.new(0.55,1,0.55,0)
+noClipBtnFixed.Position=UDim2.new(0,0,0.2,0)
 
 local moveState = false
 local moveBtn = newBtn(" Move Enabled",0.22,basicFrame)
@@ -282,6 +376,9 @@ movePlate.Position=UDim2.new(0.7,0,0.29,0)
 local moveKnob = newKnob(movePlate)
 moveKnob.Size=UDim2.new(0,5,0,5)
 moveKnob.Position=UDim2.new(0.1,0,0.9,-6)
+local moveBtnFixed = fixedText(moveBtn)
+moveBtnFixed.Size=UDim2.new(0.6,0,0.5,0)
+moveBtnFixed.Position=UDim2.new(0,0,0.25,0)
 
 local antiLavaState = false
 local antiLavaBtn = newBtn(" Anti Lava",0.29,remoteFrame)
@@ -294,6 +391,9 @@ antiLavaPlate.Position=UDim2.new(0.75,0,0.29,0)
 local antiLavaKnob = newKnob(antiLavaPlate)
 antiLavaKnob.Size=UDim2.new(0,5,0,5)
 antiLavaKnob.Position=UDim2.new(0.1,0,0.9,-7)
+local antiLavaBtnFixed = fixedText(antiLavaBtn)
+antiLavaBtnFixed.Size=UDim2.new(0.5,0,0.5,0)
+antiLavaBtnFixed.Position=UDim2.new(0,0,0.25,0)
 
 local anitBackState = false
 local anitBackBtn = newBtn(" Anit Step-Back",0.36,remoteFrame)
@@ -306,6 +406,9 @@ anitBackPlate.Position=UDim2.new(0.75,0,0.29,0)
 local anitBackKnob = newKnob(anitBackPlate)
 anitBackKnob.Size=UDim2.new(0,5,0,5)
 anitBackKnob.Position=UDim2.new(0.1,0,0.9,-7)
+local anitBackBtnFixed = fixedText(anitBackBtn)
+anitBackBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
+anitBackBtnFixed.Position=UDim2.new(0,0,0.25,0)
 
 local maxZoomState = false
 local maxZoomBtn = newBtn(" Max-Zoom",0.43,basicFrame)
@@ -318,6 +421,9 @@ maxZoomPlate.Position=UDim2.new(0.7,0,0.29,0)
 local maxZoomKnob = newKnob(maxZoomPlate)
 maxZoomKnob.Size=UDim2.new(0,5,0,5)
 maxZoomKnob.Position=UDim2.new(0.1,0,0.9,-6)
+local maxZoomBtnFixed = fixedText(maxZoomBtn)
+maxZoomBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
+maxZoomBtnFixed.Position=UDim2.new(0,0,0.25,0)
 
 local infEggState = false
 local infEggBtn = newBtn(" Infinity Eggs",0.50,extraFrame)
@@ -330,6 +436,9 @@ infEggPlate.Position=UDim2.new(0.7,0,0.29,0)
 local infEggKnob = newKnob(infEggPlate)
 infEggKnob.Size=UDim2.new(0,6,0,6)
 infEggKnob.Position=UDim2.new(0.1,0,0.9,-7)
+local infEggBtnFixed = fixedText(infEggBtn)
+infEggBtnFixed.Size=UDim2.new(0.5,0,0.5,0)
+infEggBtnFixed.Position=UDim2.new(0,0,0.25,0)
 
 local infCoinState = false
 local infCoinBtn = newBtn(" Infinity Coins",0.50,extraFrame)
@@ -342,6 +451,9 @@ infCoinPlate.Position=UDim2.new(0.7,0,0.29,0)
 local infCoinKnob = newKnob(infCoinPlate)
 infCoinKnob.Size=UDim2.new(0,6,0,6)
 infCoinKnob.Position=UDim2.new(0.1,0,0.9,-7)
+local infCoinBtnFixed = fixedText(infCoinBtn)
+infCoinBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
+infCoinBtnFixed.Position=UDim2.new(0,0,0.25,0)
 
 local catchBtn = newBtn(" Catch Egg",0.05,remoteFrame)
 catchBtn.Size=UDim2.new(0.9,0,0.15,0)
@@ -349,12 +461,18 @@ catchBtn.Position=UDim2.new(0.05,0,0.15,0)
 catchBtn.TextXAlignment="Left"
 
 local catchBtnTerm = newTrem(catchBtn)
+local catchBtnFixed = fixedText(catchBtn)
+catchBtnFixed.Size=UDim2.new(0.55,0,0.55,0)
+catchBtnFixed.Position=UDim2.new(0,0,0.25,0)
 
 local throwBtn = newBtn(" Perfect Throw💯",0.20,remoteFrame)
 throwBtn.Size=UDim2.new(0.9,0,0.15,0)
-throwBtn.Position=UDim2.new(0.05,0,0.35,0)
+throwBtn.Position=UDim2.new(0.075,0,0.35,0)
 throwBtn.TextXAlignment="Left"
 local throwBtnTerm = newTrem(throwBtn)
+local throwBtnFixed = fixedText(throwBtn)
+throwBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
+throwBtnFixed.Position=UDim2.new(0,0,0.25,0)
 
 local reBtn = newBtn(" Rest Chaarcter",0.35,extraFrame)
 reBtn.Size=UDim2.new(0.9,0,0.15,0)
@@ -362,7 +480,10 @@ reBtn.Position=UDim2.new(0.05,0,0.7,0)
 reBtn.TextXAlignment="Left"
 
 local reTerm = newTrem(reBtn)
-
+reTerm.Position=UDim2.new(0.75,0,0,0)
+local reBtnFixed = fixedText(reBtn)
+reBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
+reBtnFixed.Position=UDim2.new(0,0,0.25,0)
 
 local function newUi(parent) 
 	local ui = Instance.new("UICorner")
