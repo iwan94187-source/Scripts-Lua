@@ -1,0 +1,247 @@
+-- Script Path: game:GetService("StarterGui").MainGUI.ShopFrame.Frame.ScrollingFrame.eggSkins
+-- Took 0.03s to decompile.
+-- Executor: Delta (1.1.736.1408)
+
+local v_u_1 = game.Players.LocalPlayer
+local v2 = v_u_1:WaitForChild("otherDataFolder")
+local v_u_3 = v2:WaitForChild("fireData")
+local v_u_4 = v2:WaitForChild("iceData")
+local v_u_5 = v_u_1:WaitForChild("leaderstats"):WaitForChild("Wins")
+local v_u_6 = game.ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("ModifyEgg")
+local v_u_7 = v2:WaitForChild("bundle1")
+local v_u_8 = v2:WaitForChild("bundle2")
+local v_u_9 = v2:WaitForChild("bundle3")
+local v_u_10 = script.Parent
+local v_u_11 = game:GetService("MarketplaceService")
+local v12 = game:GetService("UserInputService")
+local v13 = game:WaitForChild("SoundService")
+local v_u_14 = v13:WaitForChild("click")
+local v_u_15 = v13:WaitForChild("hover")
+task.wait(2)
+local function v_u_17() -- name: removeUnequip
+    -- upvalues: (copy) v_u_10
+    for _, v16 in ipairs(v_u_10:GetDescendants()) do
+        if v16:IsA("TextButton") and (v16.Name == "use" and v16.Text == "Unequip") then
+            v16.Text = "Equip"
+        end
+    end
+end
+for _, v_u_18 in ipairs(v_u_10:GetChildren()) do
+    if v_u_18:IsA("Frame") then
+        local v19 = v_u_18:GetChildren()
+        for _, v_u_20 in ipairs(v19) do
+            if v_u_20:IsA("TextButton") then
+                if v_u_20.Name == "buy" then
+                    if v_u_20.Parent.Name == "bundle1" then
+                        if v_u_7.Value == true then
+                            v_u_20.Visible = false
+                            v_u_20.Parent["4"].use.Visible = true
+                            v_u_20.Parent["5"].use.Visible = true
+                            v_u_20.Parent["6"].use.Visible = true
+                        end
+                        v_u_7:GetPropertyChangedSignal("Value"):Connect(function()
+                            -- upvalues: (copy) v_u_7, (copy) v_u_20
+                            if v_u_7.Value == true then
+                                v_u_20.Visible = false
+                                v_u_20.Parent["4"].use.Visible = true
+                                v_u_20.Parent["5"].use.Visible = true
+                                v_u_20.Parent["6"].use.Visible = true
+                            end
+                        end)
+                    end
+                    if v_u_20.Parent.Name == "bundle2" then
+                        if v_u_8.Value == true then
+                            v_u_20.Visible = false
+                            v_u_20.Parent["7"].use.Visible = true
+                            v_u_20.Parent["8"].use.Visible = true
+                            v_u_20.Parent["9"].use.Visible = true
+                        end
+                        v_u_8:GetPropertyChangedSignal("Value"):Connect(function()
+                            -- upvalues: (copy) v_u_8, (copy) v_u_20
+                            if v_u_8.Value == true then
+                                v_u_20.Visible = false
+                                v_u_20.Parent["7"].use.Visible = true
+                                v_u_20.Parent["8"].use.Visible = true
+                                v_u_20.Parent["9"].use.Visible = true
+                            end
+                        end)
+                    end
+                    if v_u_20.Parent.Name == "bundle3" then
+                        if v_u_9.Value == true then
+                            v_u_20.Visible = false
+                            v_u_20.Parent["10"].use.Visible = true
+                            v_u_20.Parent["11"].use.Visible = true
+                            v_u_20.Parent["12"].use.Visible = true
+                        end
+                        v_u_9:GetPropertyChangedSignal("Value"):Connect(function()
+                            -- upvalues: (copy) v_u_9, (copy) v_u_20
+                            if v_u_9.Value == true then
+                                v_u_20.Visible = false
+                                v_u_20.Parent["10"].use.Visible = true
+                                v_u_20.Parent["11"].use.Visible = true
+                                v_u_20.Parent["12"].use.Visible = true
+                            end
+                        end)
+                    end
+                end
+                v_u_20.MouseButton1Click:Connect(function()
+                    -- upvalues: (copy) v_u_14, (copy) v_u_20, (copy) v_u_11, (copy) v_u_1
+                    v_u_14:Play()
+                    if v_u_20.Name == "buy" then
+                        if v_u_20.Parent.Name == "bundle1" then
+                            v_u_11:PromptGamePassPurchase(v_u_1, 1013305309)
+                        end
+                        if v_u_20.Parent.Name == "bundle2" then
+                            v_u_11:PromptGamePassPurchase(v_u_1, 1013764919)
+                        end
+                        if v_u_20.Parent.Name == "bundle3" then
+                            v_u_11:PromptGamePassPurchase(v_u_1, 1013449343)
+                        end
+                    end
+                end)
+                if not v12.TouchEnabled then
+                    v_u_20.MouseEnter:Connect(function()
+                        -- upvalues: (copy) v_u_15
+                        v_u_15:Play()
+                    end)
+                end
+            end
+        end
+        for _, v21 in ipairs(v_u_18:GetChildren()) do
+            if v21:IsA("Frame") then
+                local v22 = v21:GetChildren()
+                for _, v_u_23 in ipairs(v22) do
+                    if v_u_23:IsA("TextButton") then
+                        if v_u_23.Name == "buy" then
+                            if v_u_23.Parent.Name == "24" and v_u_3.Value == true then
+                                v_u_23.Visible = false
+                                v_u_23.Parent.use.Visible = true
+                            end
+                            if v_u_23.Parent.Name == "25" and v_u_4.Value == true then
+                                v_u_23.Visible = false
+                                v_u_23.Parent.use.Visible = true
+                            end
+                            v_u_3:GetPropertyChangedSignal("Value"):Connect(function()
+                                -- upvalues: (copy) v_u_23, (copy) v_u_3
+                                if v_u_23.Parent.Name == "24" and v_u_3.Value == true then
+                                    v_u_23.Visible = false
+                                    v_u_23.Parent.use.Visible = true
+                                end
+                            end)
+                            v_u_4:GetPropertyChangedSignal("Value"):Connect(function()
+                                -- upvalues: (copy) v_u_23, (copy) v_u_4
+                                if v_u_23.Parent.Name == "25" and v_u_4.Value == true then
+                                    v_u_23.Visible = false
+                                    v_u_23.Parent.use.Visible = true
+                                end
+                            end)
+                        end
+                        local v_u_24 = false
+                        v_u_23.MouseButton1Click:Connect(function()
+                            -- upvalues: (copy) v_u_14, (copy) v_u_23, (copy) v_u_11, (copy) v_u_1, (ref) v_u_24, (copy) v_u_17, (copy) v_u_6
+                            v_u_14:Play()
+                            if v_u_23.Name == "buy" then
+                                if v_u_23.Parent.Name == "24" then
+                                    v_u_11:PromptGamePassPurchase(v_u_1, 1013131488)
+                                end
+                                if v_u_23.Parent.Name == "25" then
+                                    v_u_11:PromptGamePassPurchase(v_u_1, 1013103508)
+                                end
+                            end
+                            if v_u_23.Name == "use" and v_u_24 == false then
+                                v_u_24 = true
+                                if v_u_23.Text == "Equip" then
+                                    v_u_17()
+                                    v_u_23.Text = "Unequip"
+                                    local v25 = v_u_6
+                                    local v26 = v_u_23.Parent.Name
+                                    v25:FireServer((tonumber(v26)))
+                                elseif v_u_23.Text == "Unequip" then
+                                    v_u_17()
+                                    v_u_23.Text = "Equip"
+                                    v_u_6:FireServer(0)
+                                end
+                                task.wait(2)
+                                v_u_24 = false
+                            end
+                        end)
+                        if not v12.TouchEnabled then
+                            v_u_23.MouseEnter:Connect(function()
+                                -- upvalues: (copy) v_u_15
+                                v_u_15:Play()
+                            end)
+                        end
+                    end
+                end
+            end
+        end
+        if v_u_18.Name == "classic" then
+            for _, v27 in ipairs(v_u_18:GetChildren()) do
+                if v27.Name == "21" and v_u_5.Value >= 10 then
+                    v27:FindFirstChild("use").Visible = true
+                    v27:FindFirstChild("notice").Visible = false
+                end
+                if v27.Name == "22" and v_u_5.Value >= 20 then
+                    v27:FindFirstChild("use").Visible = true
+                    v27:FindFirstChild("notice").Visible = false
+                end
+                if v27.Name == "23" and v_u_5.Value >= 50 then
+                    v27:FindFirstChild("use").Visible = true
+                    v27:FindFirstChild("notice").Visible = false
+                end
+            end
+        end
+        if v_u_18.Name == "easterWins" then
+            for _, v28 in ipairs(v_u_18:GetChildren()) do
+                if v28.Name == "1" and v_u_5.Value >= 100 then
+                    v28:FindFirstChild("use").Visible = true
+                    v28:FindFirstChild("notice").Visible = false
+                end
+                if v28.Name == "2" and v_u_5.Value >= 200 then
+                    v28:FindFirstChild("use").Visible = true
+                    v28:FindFirstChild("notice").Visible = false
+                end
+                if v28.Name == "3" and v_u_5.Value >= 300 then
+                    v28:FindFirstChild("use").Visible = true
+                    v28:FindFirstChild("notice").Visible = false
+                end
+            end
+        end
+        v_u_5:GetPropertyChangedSignal("Value"):Connect(function()
+            -- upvalues: (copy) v_u_18, (copy) v_u_5
+            if v_u_18.Name == "classic" then
+                for _, v29 in ipairs(v_u_18:GetChildren()) do
+                    if v29.Name == "21" and v_u_5.Value >= 10 then
+                        v29:FindFirstChild("use").Visible = true
+                        v29:FindFirstChild("notice").Visible = false
+                    end
+                    if v29.Name == "22" and v_u_5.Value >= 20 then
+                        v29:FindFirstChild("use").Visible = true
+                        v29:FindFirstChild("notice").Visible = false
+                    end
+                    if v29.Name == "23" and v_u_5.Value >= 50 then
+                        v29:FindFirstChild("use").Visible = true
+                        v29:FindFirstChild("notice").Visible = false
+                    end
+                end
+            end
+            if v_u_18.Name == "easterWins" then
+                for _, v30 in ipairs(v_u_18:GetChildren()) do
+                    if v30.Name == "1" and v_u_5.Value >= 100 then
+                        v30:FindFirstChild("use").Visible = true
+                        v30:FindFirstChild("notice").Visible = false
+                    end
+                    if v30.Name == "2" and v_u_5.Value >= 200 then
+                        v30:FindFirstChild("use").Visible = true
+                        v30:FindFirstChild("notice").Visible = false
+                    end
+                    if v30.Name == "3" and v_u_5.Value >= 300 then
+                        v30:FindFirstChild("use").Visible = true
+                        v30:FindFirstChild("notice").Visible = false
+                    end
+                end
+            end
+        end)
+    end
+end
+
