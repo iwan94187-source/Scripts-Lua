@@ -6,6 +6,7 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local runService = game:GetService("RunService")
 
 local eggvalue = nil
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local bool = LocalPlayer:WaitForChild("otherDataFolder"):WaitForChild("lowGravity")
@@ -692,7 +693,7 @@ runService.Stepped:Connect(function()
 		if lava then lava.CanTouch=false else lava.CanTouch=true end
 	end
 	if lowGravityState then 
-		if not bool then 
+		if not bool.Value then 
 			usePotionEvent:FireServer("lowGravity", true)
 		end
 	end
