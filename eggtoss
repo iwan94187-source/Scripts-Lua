@@ -4,7 +4,7 @@ local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local runService = game:GetService("RunService")
-
+local cam = workspace.CurrentCamera
 local eggvalue = nil
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -714,10 +714,12 @@ runService.Heartbeat:Connect(function()
 		end
 	end
 	if maxZoomState then
+		cam.CameraType = Enum.CameraType.Fixed
 		LocalPlayer.CameraMaxZoomDistance = 100000
-
 		LocalPlayer.CameraMinZoomDistance = 0.5
 	else
+		cam.CameraType = Enum.CameraType.Custom
+
 		LocalPlayer.CameraMaxZoomDistance = 128
 		LocalPlayer.CameraMinZoomDistance = 10
 	end
