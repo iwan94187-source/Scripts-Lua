@@ -8,8 +8,11 @@ local runService = game:GetService("RunService")
 local eggvalue = nil
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local bool = LocalPlayer:WaitForChild("otherDataFolder"):WaitForChild("lowGravity")
 local remoteEvents = ReplicatedStorage:WaitForChild("RemoteEvents")
 local usePowerEvent = remoteEvents:WaitForChild("UsePower")
+local usePotionEvent = remoteEvents:WaitForChild("UsePotion")
 local eggThrowEvent = remoteEvents:WaitForChild("EggThrowEvent")
 local didCatchEvent = remoteEvents:WaitForChild("DidCatch")
 local StepBackEvent = remoteEvents:WaitForChild("StepBack")
@@ -487,6 +490,21 @@ local anitBackBtnFixed = fixedText(anitBackBtn)
 anitBackBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
 anitBackBtnFixed.Position=UDim2.new(0,0,0.25,0)
 
+local lowGravityState = false
+local lowGravityBtn = newBtn(" Low Gravity",0.36,remoteFrame_1)
+lowGravityBtn.Size=UDim2.new(0.9,0,0.08,0)
+lowGravityBtn.Position=UDim2.new(0.05,0,0.7,0)
+lowGravityBtn.TextXAlignment="Left"
+local lowGravityPlate = newPlate(lowGravityBtn)
+lowGravityPlate.Size=UDim2.new(0,20,0,9)
+lowGravityPlate.Position=UDim2.new(0.7,0,0.29,0)
+local lowGravityKnob = newKnob(lowGravityPlate)
+lowGravityKnob.Size=UDim2.new(0,5,0,5)
+lowGravityKnob.Position=UDim2.new(0.1,0,0.9,-7)
+local lowGravityBtnFixed = fixedText(lowGravityBtn)
+lowGravityBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
+lowGravityBtnFixed.Position=UDim2.new(0,0,0.25,0)
+
 local maxZoomState = false
 local maxZoomBtn = newBtn(" Max-Zoom",0.43,basicFrame)
 maxZoomBtn.Size=UDim2.new(0.9,0,0.2,0)
@@ -597,6 +615,10 @@ newUi(anitBackBtn)
 newUi(anitBackPlate)
 newUi(anitBackKnob)
 
+newUi(lowGravityBtn)
+newUi(lowGravityKnob)
+newUi(lowGravityPlate)
+
 newUi(maxZoomBtn)
 newUi(maxZoomPlate)
 newUi(maxZoomKnob)
@@ -669,6 +691,11 @@ runService.Stepped:Connect(function()
 	if antiLavaState then 
 		local lava = workspace:FindFirstChild("lava") or workspace:FindFirstChild("Lava")
 		if lava then lava.CanTouch=false else lava.CanTouch=true end
+	end
+	if lowGravityState then 
+		if not bool then 
+			usePotionEvent:FireServer("lowGravity", true)
+		end
 	end
 end)
 
@@ -810,6 +837,18 @@ anitBackBtn.MouseButton1Click:Connect(function()
 	else 
 		anitBackKnob.Position = UDim2.new(0.1, 0, 0.9, -6)
 		anitBackPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	end
+end)
+
+lowGravityBtn.MouseButton1Click:Connect(function()
+	lowGravityState = not lowGravityState
+	
+	if lowGravityState then 
+		lowGravityKnob.Position = UDim2.new(0.65, 0, 0.9, -6)
+		lowGravityPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		lowGravityKnob.Position = UDim2.new(0.1, 0, 0.9, -6)
+		lowGravityPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	end
 end)
 
