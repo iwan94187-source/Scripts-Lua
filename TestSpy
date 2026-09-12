@@ -1,110 +1,351 @@
--- Script Path: game:GetService("StarterGui").MainGUI.ShopFrame.Frame.ScrollingFrame.eggSkins
+-- Script Path: game:GetService("StarterPlayer").StarterCharacterScripts.starter
 -- Took 0.03s to decompile.
 -- Executor: Delta (1.1.736.1408)
 
-local v_u_1 = game.Players.LocalPlayer
-local v2 = v_u_1:WaitForChild("otherDataFolder")
-local v_u_3 = v2:WaitForChild("fireData")
-local v_u_4 = v2:WaitForChild("iceData")
-local v_u_5 = v_u_1:WaitForChild("leaderstats"):WaitForChild("Wins")
-local v_u_6 = game.ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("ModifyEgg")
-local v_u_7 = v2:WaitForChild("bundle1")
-local v_u_8 = v2:WaitForChild("bundle2")
-local v_u_9 = v2:WaitForChild("bundle3")
-local v_u_10 = script.Parent
-local v_u_11 = game:GetService("MarketplaceService")
-local v12 = game:GetService("UserInputService")
+local v1 = game:GetService("UserInputService")
+game:GetService("MarketplaceService")
+local v_u_2 = game.Players.LocalPlayer
+local v3 = v_u_2.Character or v_u_2.CharacterAdded:Wait()
+local v4 = v3:WaitForChild("Torso")
+repeat
+    local v_u_5 = v4:FindFirstChild("CatchPart")
+    task.wait(1)
+until v_u_5 ~= nil
+local v6 = v3:WaitForChild("Humanoid")
+local v7 = script.CatchAnim
+local v_u_8 = v6:WaitForChild("Animator"):LoadAnimation(v7)
+local v_u_9 = false
+local v_u_10 = false
+local v_u_11 = false
+local v_u_12 = false
 local v13 = game:WaitForChild("SoundService")
 local v_u_14 = v13:WaitForChild("click")
 local v_u_15 = v13:WaitForChild("hover")
-task.wait(2)
-local function v_u_17() -- name: removeUnequip
-    -- upvalues: (copy) v_u_10
-    for _, v16 in ipairs(v_u_10:GetDescendants()) do
-        if v16:IsA("TextButton") and (v16.Name == "use" and v16.Text == "Unequip") then
-            v16.Text = "Equip"
+local v_u_16 = v13:WaitForChild("explosion")
+local v_u_17 = v13:WaitForChild("shutdown")
+local v18 = game:WaitForChild("ReplicatedStorage")
+local v19 = v18:WaitForChild("RemoteEvents")
+local v20 = v19:WaitForChild("EggAnimation")
+local v_u_21 = v19:WaitForChild("CatchEggEvent")
+local v_u_22 = v19:WaitForChild("DidCatch")
+local v_u_23 = v19:WaitForChild("DidntCatch")
+v19:WaitForChild("usePotion")
+local v24 = v19:WaitForChild("Eliminated")
+local v25 = v19:WaitForChild("ExplodeEgg")
+local v26 = v19:WaitForChild("autoCatchEgg")
+local v27 = v18:WaitForChild("Bool")
+local v_u_28 = v27:WaitForChild("GameStarted")
+local v_u_29 = v27:WaitForChild("DeleteAllEggs")
+local v_u_30 = game:GetService("TweenService")
+local v31 = game.Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("MainGUI")
+local v_u_32 = v31:WaitForChild("Notif")
+local v_u_33 = v_u_32:WaitForChild("label")
+local v34 = v31:WaitForChild("Catch")
+local v_u_35 = v34:FindFirstChild("Frame")
+local v_u_36 = {}
+local v_u_37 = false
+local v38 = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0)
+local v39 = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0, false, 0)
+local v40 = v34.Size
+local v_u_41 = v_u_30:Create(v34, v39, {
+    ["Size"] = UDim2.new(0.09, 0, 0.09, 0)
+})
+local v_u_42 = v_u_30:Create(v34, v38, {
+    ["Size"] = v40
+})
+local v_u_43 = game.Workspace:WaitForChild("EggFolder")
+local v_u_44 = game:GetService("RunService")
+local v_u_45 = {}
+local v_u_46 = nil
+local v_u_47 = v18:WaitForChild("Eggs")
+local function v_u_66(p_u_48, p49, p50, p51, p52, p53) -- name: addTask
+    -- upvalues: (copy) v_u_45, (ref) v_u_46, (copy) v_u_44
+    local v54 = v_u_45
+    table.insert(v54, {
+        ["Egg"] = nil,
+        ["step"] = 0,
+        ["start"] = nil,
+        ["newTarget"] = nil,
+        ["height"] = nil,
+        ["time1"] = nil,
+        ["lookvector"] = nil,
+        ["finished"] = false,
+        ["Egg"] = p_u_48,
+        ["start"] = p49,
+        ["newTarget"] = p50,
+        ["height"] = p51,
+        ["time1"] = p52,
+        ["lookvector"] = p53
+    })
+    local v_u_55 = nil
+    v_u_55 = p_u_48.Touched:Connect(function(p56)
+        -- upvalues: (ref) v_u_45, (copy) p_u_48, (ref) v_u_55
+        if p56.Name == "CatchPart" then
+            for _, v57 in ipairs(v_u_45) do
+                if v57.Egg == p_u_48 then
+                    v57.finished = true
+                    break
+                end
+            end
+            v_u_55:Disconnect()
+        end
+    end)
+    if not v_u_46 then
+        v_u_46 = v_u_44.RenderStepped:Connect(function(p58)
+            -- upvalues: (ref) v_u_45, (ref) v_u_46
+            for v59 = #v_u_45, 1, -1 do
+                local v60 = v_u_45[v59]
+                if v60.finished then
+                    v60.Egg.Position = v60.lookvector
+                    v60.Egg.Anchored = true
+                    table.remove(v_u_45, v59)
+                else
+                    v60.step = v60.step + p58
+                    local v61 = v60.step / v60.time1
+                    local v62 = math.min(v61, 1)
+                    local v63 = v60.start * (1 - v62) + v60.newTarget * v62
+                    local v64 = v60.height * (1 - v62) * v62
+                    local v65 = v63 + Vector3.new(0, v64, 0)
+                    v60.Egg.Position = v65
+                    if v62 == 1 then
+                        if not v60.Egg.Anchored then
+                            v60.Egg:Destroy()
+                        end
+                        table.remove(v_u_45, v59)
+                    end
+                end
+            end
+            if #v_u_45 == 0 and v_u_46 then
+                v_u_46:Disconnect()
+                v_u_46 = nil
+            end
+        end)
+    end
+end
+local function v_u_70(p67) -- name: showKillNotification
+    -- upvalues: (copy) v_u_33, (copy) v_u_32, (copy) v_u_30
+    local v_u_68 = v_u_33:Clone()
+    v_u_68.Visible = true
+    v_u_68.Text = p67
+    v_u_68.Parent = v_u_32
+    v_u_30:Create(v_u_68, TweenInfo.new(1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {
+        ["Position"] = UDim2.new(0.5, 0, 0.5, 0)
+    }):Play()
+    task.wait(2)
+    local v69 = v_u_30:Create(v_u_68, TweenInfo.new(0.25, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {
+        ["Position"] = UDim2.new(0.5, 0, 1, 0)
+    })
+    v69:Play()
+    v69.Completed:Connect(function()
+        -- upvalues: (copy) v_u_68
+        v_u_68:Destroy()
+    end)
+end
+local function v_u_71() -- name: processQueue
+    -- upvalues: (copy) v_u_36, (ref) v_u_37, (copy) v_u_70
+    while #v_u_36 > 0 do
+        v_u_37 = true
+        v_u_70((table.remove(v_u_36, 1)))
+    end
+    v_u_37 = false
+end
+local function v_u_76(p72) -- name: createCatchPart
+    -- upvalues: (copy) v_u_21, (ref) v_u_5, (ref) v_u_11, (copy) v_u_8, (ref) v_u_10, (copy) v_u_22, (copy) v_u_23, (ref) v_u_9
+    v_u_21:FireServer(p72, v_u_5)
+    local v_u_75 = v_u_5.Touched:Connect(function(p73)
+        -- upvalues: (ref) v_u_11, (ref) v_u_8, (ref) v_u_10, (ref) v_u_22
+        if v_u_11 == false and p73:IsDescendantOf(game.Workspace.EggFolder) then
+            v_u_11 = true
+            local v74 = v_u_8
+            if not v74.IsPlaying then
+                v74:Play()
+            end
+            v74:AdjustSpeed(0)
+            v74.TimePosition = 0.23
+            v_u_10 = true
+            v_u_22:FireServer()
+        end
+    end)
+    delay(p72, function()
+        -- upvalues: (ref) v_u_10, (ref) v_u_23, (ref) v_u_9, (ref) v_u_75
+        if not v_u_10 then
+            v_u_23:FireServer()
+        end
+        v_u_9 = false
+        v_u_10 = false
+        if v_u_75 ~= nil then
+            v_u_75:Disconnect()
+        end
+    end)
+end
+local function v_u_78() -- name: startCooldownSpin
+    -- upvalues: (ref) v_u_12, (copy) v_u_35
+    v_u_12 = true
+    for v77 = 0, 1, 0.01 do
+        v_u_35.Size = UDim2.new(1, 0, v77, 0)
+        task.wait(0.01)
+    end
+    v_u_35.Size = UDim2.new(1, 0, 0, 0)
+    v_u_12 = false
+end
+local function v_u_82(p79) -- name: createExplosion
+    -- upvalues: (copy) v_u_43, (copy) v_u_16
+    for _, v80 in pairs(v_u_43:GetChildren()) do
+        if v80.Name ~= p79 then
+            v_u_16:Play()
+            local v81 = Instance.new("Explosion")
+            v81.Position = v80.Position
+            v81.ExplosionType = Enum.ExplosionType.NoCraters
+            v81.TimeScale = 0.5
+            v81.BlastRadius = 0
+            v81.BlastPressure = 50000
+            v81.Parent = workspace
+            v80:Destroy()
         end
     end
 end
-for _, v_u_18 in ipairs(v_u_10:GetChildren()) do
-    if v_u_18:IsA("Frame") then
-        local v19 = v_u_18:GetChildren()
-        for _, v_u_20 in ipairs(v19) do
-            if v_u_20:IsA("TextButton") then
-                if v_u_20.Name == "buy" then
-                    if v_u_20.Parent.Name == "bundle1" then
-                        if v_u_7.Value == true then
-                            v_u_20.Visible = false
-                            v_u_20.Parent["4"].use.Visible = true
-                            v_u_20.Parent["5"].use.Visible = true
-                            v_u_20.Parent["6"].use.Visible = true
-                        end
-                        v_u_7:GetPropertyChangedSignal("Value"):Connect(function()
-                            -- upvalues: (copy) v_u_7, (copy) v_u_20
-                            if v_u_7.Value == true then
-                                v_u_20.Visible = false
-                                v_u_20.Parent["4"].use.Visible = true
-                                v_u_20.Parent["5"].use.Visible = true
-                                v_u_20.Parent["6"].use.Visible = true
-                            end
-                        end)
-                    end
-                    if v_u_20.Parent.Name == "bundle2" then
-                        if v_u_8.Value == true then
-                            v_u_20.Visible = false
-                            v_u_20.Parent["7"].use.Visible = true
-                            v_u_20.Parent["8"].use.Visible = true
-                            v_u_20.Parent["9"].use.Visible = true
-                        end
-                        v_u_8:GetPropertyChangedSignal("Value"):Connect(function()
-                            -- upvalues: (copy) v_u_8, (copy) v_u_20
-                            if v_u_8.Value == true then
-                                v_u_20.Visible = false
-                                v_u_20.Parent["7"].use.Visible = true
-                                v_u_20.Parent["8"].use.Visible = true
-                                v_u_20.Parent["9"].use.Visible = true
-                            end
-                        end)
-                    end
-                    if v_u_20.Parent.Name == "bundle3" then
-                        if v_u_9.Value == true then
-                            v_u_20.Visible = false
-                            v_u_20.Parent["10"].use.Visible = true
-                            v_u_20.Parent["11"].use.Visible = true
-                            v_u_20.Parent["12"].use.Visible = true
-                        end
-                        v_u_9:GetPropertyChangedSignal("Value"):Connect(function()
-                            -- upvalues: (copy) v_u_9, (copy) v_u_20
-                            if v_u_9.Value == true then
-                                v_u_20.Visible = false
-                                v_u_20.Parent["10"].use.Visible = true
-                                v_u_20.Parent["11"].use.Visible = true
-                                v_u_20.Parent["12"].use.Visible = true
-                            end
-                        end)
-                    end
-                end
-                v_u_20.MouseButton1Click:Connect(function()
-                    -- upvalues: (copy) v_u_14, (copy) v_u_20, (copy) v_u_11, (copy) v_u_1
-                    v_u_14:Play()
-                    if v_u_20.Name == "buy" then
-                        if v_u_20.Parent.Name == "bundle1" then
-                            v_u_11:PromptGamePassPurchase(v_u_1, 1013305309)
-                        end
-                        if v_u_20.Parent.Name == "bundle2" then
-                            v_u_11:PromptGamePassPurchase(v_u_1, 1013764919)
-                        end
-                        if v_u_20.Parent.Name == "bundle3" then
-                            v_u_11:PromptGamePassPurchase(v_u_1, 1013449343)
-                        end
-                    end
-                end)
-                if not v12.TouchEnabled then
-                    v_u_20.MouseEnter:Connect(function()
-                        -- upvalues: (copy) v_u_15
-                        v_u_15:Play()
-                    end)
-                end
+local v_u_83 = {
+    ["Blue"] = "13, 105, 172",
+    ["Green"] = "44, 101, 29",
+    ["Yellow"] = "245, 205, 48",
+    ["Red"] = "196, 40, 28",
+    ["Pink"] = "255, 102, 204",
+    ["Violet"] = "107, 50, 124"
+}
+v20.OnClientEvent:Connect(function(p84)
+    -- upvalues: (copy) v_u_47, (copy) v_u_43, (copy) v_u_66, (copy) v_u_83, (copy) v_u_36, (ref) v_u_37, (copy) v_u_71
+    local v85 = p84.StartPosition
+    local v86 = p84.TargetPosition
+    local v87 = p84.ArcHeight
+    local v88 = p84.Gravity
+    local v89 = p84.Throw
+    local v90 = p84.Team
+    local v91 = p84.Skin
+    local v92 = p84.LookVector
+    local v93 = v86.X - v85.X
+    local v94 = v86.Z - v85.Z
+    local v95 = Vector3.new(v93, 0, v94)
+    local v96 = v95.Magnitude
+    if v89 == "short" then
+        v96 = v96 - 10
+    end
+    if v89 == "long" then
+        v96 = v96 + 10
+    end
+    local v97 = v85 + v95.Unit * v96
+    local v98 = v97.Y - v85.Y
+    local v99 = 2 * v87 / v88
+    local v100 = math.sqrt(v99)
+    local v101 = 2 * (v98 + v87) / v88
+    local v102 = v100 + math.sqrt(v101)
+    local v103 = v_u_47[tostring(v91)]:Clone()
+    v103.Name = tostring(v90)
+    v103.CFrame = CFrame.new(v85)
+    v103.Anchored = false
+    v103.CanCollide = false
+    v103.Parent = v_u_43
+    v_u_66(v103, v85, v97, v87, v102, v92)
+    task.wait(1)
+    if v89 == "short" then
+        local v104 = v_u_36
+        local v105 = ("<mark transparency=\"1\"><font color=\"rgb(" .. v_u_83[v90] .. ")\">" .. v90 .. " </font></mark>") .. " Team\'s Egg fell short"
+        table.insert(v104, v105)
+        if not v_u_37 then
+            v_u_71()
+        end
+    end
+    if v89 == "long" then
+        local v106 = v_u_36
+        local v107 = ("<mark transparency=\"1\"><font color=\"rgb(" .. v_u_83[v90] .. ")\">" .. v90 .. " </font></mark>") .. " Team\'s Egg overshot"
+        table.insert(v106, v107)
+        if not v_u_37 then
+            v_u_71()
+        end
+    end
+end)
+v25.OnClientEvent:Connect(function(p108)
+    -- upvalues: (copy) v_u_82, (copy) v_u_2, (ref) v_u_11, (copy) v_u_8
+    v_u_82(p108)
+    local v109 = v_u_2
+    if tostring(v109:GetAttribute("Team")) ~= p108 then
+        v_u_11 = false
+        if v_u_8 then
+            v_u_8:Stop()
+        end
+    end
+end)
+v34.MouseButton1Click:Connect(function()
+    -- upvalues: (copy) v_u_14, (ref) v_u_11, (ref) v_u_9, (ref) v_u_12, (copy) v_u_8, (copy) v_u_41, (copy) v_u_42, (copy) v_u_76, (copy) v_u_78
+    v_u_14:Play()
+    if v_u_11 == true then
+        return
+    elseif v_u_9 ~= true then
+        if not v_u_12 then
+            if v_u_8 then
+                v_u_8:Stop()
+            end
+            v_u_8:Play()
+            v_u_41:Play()
+            v_u_41.Completed:Connect(function()
+                -- upvalues: (ref) v_u_42
+                v_u_42:Play()
+            end)
+            v_u_76(0.5)
+            v_u_78()
+        end
+    end
+end)
+v26.OnClientEvent:Connect(function()
+    -- upvalues: (ref) v_u_11, (ref) v_u_9, (copy) v_u_8, (copy) v_u_76
+    if v_u_11 == true then
+        return
+    elseif v_u_9 ~= true then
+        v_u_9 = true
+        if v_u_8 then
+            v_u_8:Stop()
+        end
+        v_u_8:Play()
+        v_u_76(20)
+    end
+end)
+if not v1.TouchEnabled then
+    v34.MouseEnter:Connect(function()
+        -- upvalues: (copy) v_u_15
+        v_u_15:Play()
+    end)
+end
+v24.OnClientEvent:Connect(function(p110)
+    -- upvalues: (copy) v_u_17, (copy) v_u_83, (copy) v_u_36, (ref) v_u_37, (copy) v_u_71
+    v_u_17:Play()
+    task.wait(0.1)
+    v_u_17:Play()
+    local v111 = v_u_36
+    local v112 = ("<mark transparency=\"1\" ><font color=\"rgb(" .. v_u_83[p110] .. ")\"  >" .. p110 .. " </font></mark>") .. " Team is out!"
+    table.insert(v111, v112)
+    if not v_u_37 then
+        v_u_71()
+    end
+end)
+v_u_28:GetPropertyChangedSignal("Value"):Connect(function()
+    -- upvalues: (copy) v_u_28, (copy) v_u_43, (ref) v_u_11, (copy) v_u_8
+    if v_u_28.Value == false then
+        v_u_43:ClearAllChildren()
+    end
+    v_u_11 = false
+    if v_u_8 then
+        v_u_8:Stop()
+    end
+end)
+v_u_29:GetPropertyChangedSignal("Value"):Connect(function()
+    -- upvalues: (copy) v_u_29, (copy) v_u_43, (ref) v_u_11, (copy) v_u_8
+    if v_u_29.Value == true then
+        v_u_43:ClearAllChildren()
+    end
+    v_u_11 = false
+    if v_u_8 then
+        v_u_8:Stop()
+    end
+end)
             end
         end
         for _, v21 in ipairs(v_u_18:GetChildren()) do
