@@ -714,12 +714,9 @@ runService.Heartbeat:Connect(function()
 		end
 	end
 	if maxZoomState then
-		cam.CameraType = Enum.CameraType.Fixed
 		LocalPlayer.CameraMaxZoomDistance = 100000
 		LocalPlayer.CameraMinZoomDistance = 0.5
 	else
-		cam.CameraType = Enum.CameraType.Custom
-
 		LocalPlayer.CameraMaxZoomDistance = 128
 		LocalPlayer.CameraMinZoomDistance = 10
 	end
