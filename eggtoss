@@ -841,7 +841,7 @@ end)
 
 lowGravityBtn.MouseButton1Click:Connect(function()
 	lowGravityState = not lowGravityState
-	
+
 	if lowGravityState then 
 		lowGravityKnob.Position = UDim2.new(0.65, 0, 0.9, -6)
 		lowGravityPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
