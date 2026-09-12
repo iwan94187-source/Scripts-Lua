@@ -13,6 +13,7 @@ local bool = LocalPlayer:WaitForChild("otherDataFolder"):WaitForChild("lowGravit
 local remoteEvents = ReplicatedStorage:WaitForChild("RemoteEvents")
 local usePowerEvent = remoteEvents:WaitForChild("UsePower")
 local usePotionEvent = remoteEvents:WaitForChild("usePotion")
+local modifyEvent = remoteEvents:WaitForChild("ModifyEgg")
 local eggThrowEvent = remoteEvents:WaitForChild("EggThrowEvent")
 local didCatchEvent = remoteEvents:WaitForChild("DidCatch")
 local StepBackEvent = remoteEvents:WaitForChild("StepBack")
@@ -341,6 +342,85 @@ extraTitlegradient.Color = ColorSequence.new{
 	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))    -- برتقالي دافئ من الأسفل
 }
 
+local EggsSkin = Instance.new("ScrollingFrame")
+EggsSkin.Size=UDim2.new(0.39,0,0.5,0)
+EggsSkin.Position=UDim2.new(0.5525,0,0.8,0)
+EggsSkin.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+EggsSkin.Visible=false
+EggsSkin.Parent=Mainframe
+
+local defaultEggBtn = newBtn(" Default",0.05,EggsSkin)
+defaultEggBtn.Size=UDim2.new(0.9,0,0.04,0)
+defaultEggBtn.Position=UDim2.new(0.05,0,0,0)
+defaultEggBtn.TextXAlignment="Left"
+local defaultEggBtnFixed = fixedText(defaultEggBtn)
+defaultEggBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
+defaultEggBtnFixed.Position=UDim2.new(0,0,0.25,0)
+
+local classic_1Btn = newBtn(" Classic 1", 0.05, EggsSkin)
+classic_1Btn.Size = UDim2.new(0.9, 0, 0.04, 0)
+classic_1Btn.Position = UDim2.new(0.05, 0, 0.05, 0)
+classic_1Btn.TextXAlignment = Enum.TextXAlignment.Left
+local classic_1BtnFixed = fixedText(classic_1Btn)
+classic_1BtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
+classic_1BtnFixed.Position = UDim2.new(0, 0, 0.25, 0)
+
+local classic_2Btn = newBtn(" Classic 2", 0.05, EggsSkin)
+classic_2Btn.Size = UDim2.new(0.9, 0, 0.04, 0)
+classic_2Btn.Position = UDim2.new(0.05, 0, 0.1, 0)
+classic_2Btn.TextXAlignment = Enum.TextXAlignment.Left
+local classic_2BtnFixed = fixedText(classic_2Btn)
+classic_2BtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
+classic_2BtnFixed.Position = UDim2.new(0, 0, 0.25, 0)
+
+local classic_3Btn = newBtn(" Classic 3", 0.05, EggsSkin)
+classic_3Btn.Size = UDim2.new(0.9, 0, 0.04, 0)
+classic_3Btn.Position = UDim2.new(0.05, 0, 0.15, 0)
+classic_3Btn.TextXAlignment = Enum.TextXAlignment.Left
+local classic_3BtnFixed = fixedText(classic_3Btn)
+classic_3BtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
+classic_3BtnFixed.Position = UDim2.new(0, 0, 0.25, 0)
+
+local fireEggBtn = newBtn(" Fire Egg", 0.05, EggsSkin)
+fireEggBtn.Size = UDim2.new(0.9, 0, 0.04, 0)
+fireEggBtn.Position = UDim2.new(0.05, 0, 0.2, 0)
+fireEggBtn.TextXAlignment = Enum.TextXAlignment.Left
+local fireEggBtnFixed = fixedText(fireEggBtn)
+fireEggBtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
+fireEggBtnFixed.Position = UDim2.new(0, 0, 0.25, 0)
+
+local iceEggBtn = newBtn(" Ice Egg", 0.05, EggsSkin)
+iceEggBtn.Size = UDim2.new(0.9, 0, 0.04, 0)
+iceEggBtn.Position = UDim2.new(0.05, 0, 0.25, 0)
+iceEggBtn.TextXAlignment = Enum.TextXAlignment.Left
+local iceEggBtnFixed = fixedText(iceEggBtn)
+iceEggBtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
+iceEggBtnFixed.Position = UDim2.new(0, 0, 0.25, 0)
+
+local easter_1Btn = newBtn(" Easter 1", 0.05, EggsSkin)
+easter_1Btn.Size = UDim2.new(0.9, 0, 0.04, 0)
+easter_1Btn.Position = UDim2.new(0.05, 0, 0.3, 0)
+easter_1Btn.TextXAlignment = Enum.TextXAlignment.Left
+local easter_1BtnFixed = fixedText(easter_1Btn)
+easter_1BtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
+easter_1BtnFixed.Position = UDim2.new(0, 0, 0.25, 0)
+
+local easter_2Btn = newBtn(" Easter 2", 0.05, EggsSkin)
+easter_2Btn.Size = UDim2.new(0.9, 0, 0.04, 0)
+easter_2Btn.Position = UDim2.new(0.05, 0, 0.35, 0)
+easter_2Btn.TextXAlignment = Enum.TextXAlignment.Left
+local easter_2BtnFixed = fixedText(easter_2Btn)
+easter_2BtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
+easter_2BtnFixed.Position = UDim2.new(0, 0, 0.25, 0)
+
+local easter_3Btn = newBtn(" Easter 3", 0.05, EggsSkin)
+easter_3Btn.Size = UDim2.new(0.9, 0, 0.04, 0)
+easter_3Btn.Position = UDim2.new(0.05, 0, 0.4, 0)
+easter_3Btn.TextXAlignment = Enum.TextXAlignment.Left
+local easter_3BtnFixed = fixedText(easter_3Btn)
+easter_3BtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
+easter_3BtnFixed.Position = UDim2.new(0, 0, 0.25, 0)
+
 local upState = false
 local upBtn = newBtn(" Status Enabled",0.01,Mainframe)
 upBtn.Size=UDim2.new(0.45,0,0.1,0)
@@ -550,16 +630,26 @@ local infCoinBtnFixed = fixedText(infCoinBtn)
 infCoinBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
 infCoinBtnFixed.Position=UDim2.new(0,0,0.25,0)
 
-local reBtn = newBtn(" Rest Chaarcter",0.35,extraFrame)
+local reBtn = newBtn("Eggs Skin",0.35,extraFrame)
 reBtn.Size=UDim2.new(0.9,0,0.15,0)
 reBtn.Position=UDim2.new(0.05,0,0.7,0)
 reBtn.TextXAlignment="Left"
 
-local reTerm = newTrem(reBtn)
-reTerm.Position=UDim2.new(0.75,0,0,0)
+local rePick = Instance.new("TextLabel")
+rePick.Size=UDim2.new(0.5,0,0.8,0)
+rePick.Position=UDim2.new(0.5,0,0.1,0)
+rePick.BackgroundTransparency=1
+rePick.TextTransparency=1
+rePick.TextColor=BrickColor.new("White")
+rePick.Text="None"
+rePick.Parent=reBtn
+local rePickFixed = fixedText(rePick)
+rePickFixed.Size=UDim2.new(0.8,0,0.8,0)
+rePickFixed.Position=UDim2.new(0,0,0.25,0)
+
 local reBtnFixed = fixedText(reBtn)
 reBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
-reBtnFixed.Position=UDim2.new(0,0,0.25,0)
+reBtnFixed.Position=UDim2.new(0,-3,0.25,0)
 
 local function newUi(parent) 
 	local ui = Instance.new("UICorner")
@@ -638,6 +728,15 @@ newUi(infCoinPlate)
 newUi(autoCatchBtn)
 newUi(stepBackBtn)
 newUi(explodeBtn)
+
+newUi(classic_1Btn)
+newUi(classic_2Btn)
+newUi(classic_3Btn)
+newUi(fireEggBtn)
+newUi(iceEggBtn)
+newUi(easter_1Btn)
+newUi(easter_2Btn)
+newUi(easter_3Btn)
 
 local UserInputService = game:GetService("UserInputService")
 local PlayerModule = require(LocalPlayer:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule"))
@@ -819,10 +918,7 @@ explodeBtn.MouseButton1Click:Connect(function()
 end)
 
 reBtn.MouseButton1Click:Connect(function()
-	local human = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-	if human then
-		human.Health=0
-	end
+	EggsSkin.Visible=not EggsSkin.Visible
 end)
 
 anitBackBtn.MouseButton1Click:Connect(function()
@@ -886,4 +982,52 @@ infCoinBtn.MouseButton1Click:Connect(function()
 		infCoinKnob.Position = UDim2.new(0.1, 0, 0.9, -7)
 		infCoinPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	end
+end)
+
+defaultEggBtn.MouseButton1Click:Connect(function()
+	EggsSkin.Visible=false
+	rePickFixed.Text="(Default)"
+	modifyEvent:FireServer(0)
+end)
+
+classic_1Btn.MouseButton1Click:Connect(function()
+	EggsSkin.Visible=false
+	rePickFixed.Text="(Classic 1)"
+	modifyEvent:FireServer(21)
+end)
+
+classic_2Btn.MouseButton1Click:Connect(function()
+	EggsSkin.Visible=false
+	rePickFixed.Text="(Classic 2)"
+	modifyEvent:FireServer(22)
+end)
+classic_3Btn.MouseButton1Click:Connect(function()
+	EggsSkin.Visible=false
+	rePickFixed.Text="(Classic 3)"
+	modifyEvent:FireServer(23)
+end)
+fireEggBtn.MouseButton1Click:Connect(function()
+	EggsSkin.Visible=false
+	rePickFixed.Text="(Fire)"
+	modifyEvent:FireServer(24)
+end)
+iceEggBtn.MouseButton1Click:Connect(function()
+	EggsSkin.Visible=false
+	rePickFixed.Text="(Ice)"
+	modifyEvent:FireServer(25)
+end)
+easter_1Btn.MouseButton1Click:Connect(function()
+	EggsSkin.Visible=false
+	rePickFixed.Text="(Easter 1)"
+	modifyEvent:FireServer(1)
+end)
+easter_2Btn.MouseButton1Click:Connect(function()
+	EggsSkin.Visible=false
+	rePickFixed.Text="(Easter 2)"
+	modifyEvent:FireServer(2)
+end)
+easter_3Btn.MouseButton1Click:Connect(function()
+	EggsSkin.Visible=false
+	rePickFixed.Text="(Easter 3)"
+	modifyEvent:FireServer(3)
 end)
