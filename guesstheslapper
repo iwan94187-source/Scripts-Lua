@@ -7,7 +7,6 @@ local runService = game:GetService("RunService")
 local cam = workspace.CurrentCamera
 local eggvalue = nil
 
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local bool = LocalPlayer:WaitForChild("otherDataFolder"):WaitForChild("lowGravity")
