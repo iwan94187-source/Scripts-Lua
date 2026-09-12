@@ -9,6 +9,7 @@ local eggvalue = nil
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local remoteEvents = ReplicatedStorage:WaitForChild("RemoteEvents")
+local usePowerEvent = remoteEvents:WaitForChild("UsePower")
 local eggThrowEvent = remoteEvents:WaitForChild("EggThrowEvent")
 local didCatchEvent = remoteEvents:WaitForChild("DidCatch")
 local StepBackEvent = remoteEvents:WaitForChild("StepBack")
@@ -175,7 +176,7 @@ end
 local function newTrem(parent)
 	local frame = Instance.new("ImageLabel")
 	frame.Size=UDim2.new(0,15,0,15)
-	frame.Position=UDim2.new(0.8,0,0.1,0)
+	frame.Position=UDim2.new(0.7,0,0.1,0)
 	frame.BackgroundTransparency=1
 	frame.Image="rbxassetid://9468220156"
 	frame.Parent=parent
@@ -226,7 +227,7 @@ end
 
 local function fixedText(parent)
 	parent.TextTransparency=1
-	
+
 	local lbl = Instance.new("TextLabel")
 	lbl.Size=UDim2.new(0.6,0,0.8,0)
 	lbl.Position=UDim2.new(0.05,0,0.1,0)
@@ -308,6 +309,12 @@ remoteTitle.Parent=remoteFrame
 local remoteTitleFixed = fixedTitleText(remoteTitle)
 remoteTitleFixed.Size=UDim2.new(0.7,0,0.7,0)
 remoteTitleFixed.Position=UDim2.new(0.3,0,0.25,0)
+
+local remoteFrame_1 = Instance.new("ScrollingFrame")
+remoteFrame_1.Size=UDim2.new(0.95,0,0.7,0)
+remoteFrame_1.Position=UDim2.new(0.025,0,0.15,0)
+remoteFrame_1.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+remoteFrame_1.Parent=remoteFrame
 
 local extraFrame = Instance.new("Frame")
 extraFrame.Size=UDim2.new(0.4,0,0.4,0)
@@ -401,14 +408,63 @@ local moveBtnFixed = fixedText(moveBtn)
 moveBtnFixed.Size=UDim2.new(0.6,0,0.5,0)
 moveBtnFixed.Position=UDim2.new(0,0,0.25,0)
 
+local catchBtn = newBtn(" Catch Egg",0.05,remoteFrame_1)
+catchBtn.Size=UDim2.new(0.9,0,0.08,0)
+catchBtn.Position=UDim2.new(0.05,0,0,0)
+catchBtn.TextXAlignment="Left"
+
+local catchBtnTerm = newTrem(catchBtn)
+local catchBtnFixed = fixedText(catchBtn)
+catchBtnFixed.Size=UDim2.new(0.55,0,0.55,0)
+catchBtnFixed.Position=UDim2.new(0,0,0.25,0)
+
+local throwBtn = newBtn(" Perfect Throw💯",0.20,remoteFrame_1)
+throwBtn.Size=UDim2.new(0.9,0,0.08,0)
+throwBtn.Position=UDim2.new(0.075,0,0.1,0)
+throwBtn.TextXAlignment="Left"
+local throwBtnTerm = newTrem(throwBtn)
+local throwBtnFixed = fixedText(throwBtn)
+throwBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
+throwBtnFixed.Position=UDim2.new(0,0,0.25,0)
+
+local autoCatchBtn = newBtn(" Auto Catch",0.05,remoteFrame_1)
+autoCatchBtn.Size=UDim2.new(0.9,0,0.08,0)
+autoCatchBtn.Position=UDim2.new(0.05,0,0.2,0)
+autoCatchBtn.TextXAlignment="Left"
+
+local autoCatchTerm = newTrem(autoCatchBtn)
+local autoCatchBtnFixed = fixedText(autoCatchBtn)
+autoCatchBtnFixed.Size=UDim2.new(0.55,0,0.55,0)
+autoCatchBtnFixed.Position=UDim2.new(0,0,0.25,0)
+
+local stepBackBtn = newBtn(" Step Back",0.05,remoteFrame_1)
+stepBackBtn.Size=UDim2.new(0.9,0,0.08,0)
+stepBackBtn.Position=UDim2.new(0.05,0,0.3,0)
+stepBackBtn.TextXAlignment="Left"
+
+local stepBackTerm = newTrem(stepBackBtn)
+local stepBackBtnFixed = fixedText(stepBackBtn)
+stepBackBtnFixed.Size=UDim2.new(0.55,0,0.55,0)
+stepBackBtnFixed.Position=UDim2.new(0,0,0.3,0)
+
+local explodeBtn = newBtn(" Explode Eggs (Troll)",0.05,remoteFrame_1)
+explodeBtn.Size=UDim2.new(0.9,0,0.08,0)
+explodeBtn.Position=UDim2.new(0.05,0,0.4,0)
+explodeBtn.TextXAlignment="Left"
+
+local explodeTerm = newTrem(explodeBtn)
+local explodeBtnFixed = fixedText(explodeBtn)
+explodeBtnFixed.Size=UDim2.new(0.6,0,0.5,0)
+explodeBtnFixed.Position=UDim2.new(0,0,0.35,0)
+
 local antiLavaState = false
-local antiLavaBtn = newBtn(" Anti Lava",0.29,remoteFrame)
-antiLavaBtn.Size=UDim2.new(0.9,0,0.175,0)
-antiLavaBtn.Position=UDim2.new(0.05,0,0.525,0)
+local antiLavaBtn = newBtn(" Anti Lava",0.29,remoteFrame_1)
+antiLavaBtn.Size=UDim2.new(0.9,0,0.08,0)
+antiLavaBtn.Position=UDim2.new(0.05,0,0.5,0)
 antiLavaBtn.TextXAlignment="Left"
 local antiLavaPlate = newPlate(antiLavaBtn)
 antiLavaPlate.Size=UDim2.new(0,20,0,9)
-antiLavaPlate.Position=UDim2.new(0.75,0,0.29,0)
+antiLavaPlate.Position=UDim2.new(0.7,0,0.29,0)
 local antiLavaKnob = newKnob(antiLavaPlate)
 antiLavaKnob.Size=UDim2.new(0,5,0,5)
 antiLavaKnob.Position=UDim2.new(0.1,0,0.9,-7)
@@ -417,13 +473,13 @@ antiLavaBtnFixed.Size=UDim2.new(0.5,0,0.5,0)
 antiLavaBtnFixed.Position=UDim2.new(0,0,0.25,0)
 
 local anitBackState = false
-local anitBackBtn = newBtn(" Anit Step-Back",0.36,remoteFrame)
-anitBackBtn.Size=UDim2.new(0.9,0,0.175,0)
-anitBackBtn.Position=UDim2.new(0.05,0,0.7,0)
+local anitBackBtn = newBtn(" Anit Step-Back",0.36,remoteFrame_1)
+anitBackBtn.Size=UDim2.new(0.9,0,0.08,0)
+anitBackBtn.Position=UDim2.new(0.05,0,0.6,0)
 anitBackBtn.TextXAlignment="Left"
 local anitBackPlate = newPlate(anitBackBtn)
 anitBackPlate.Size=UDim2.new(0,20,0,9)
-anitBackPlate.Position=UDim2.new(0.75,0,0.29,0)
+anitBackPlate.Position=UDim2.new(0.7,0,0.29,0)
 local anitBackKnob = newKnob(anitBackPlate)
 anitBackKnob.Size=UDim2.new(0,5,0,5)
 anitBackKnob.Position=UDim2.new(0.1,0,0.9,-7)
@@ -475,25 +531,6 @@ infCoinKnob.Position=UDim2.new(0.1,0,0.9,-7)
 local infCoinBtnFixed = fixedText(infCoinBtn)
 infCoinBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
 infCoinBtnFixed.Position=UDim2.new(0,0,0.25,0)
-
-local catchBtn = newBtn(" Catch Egg",0.05,remoteFrame)
-catchBtn.Size=UDim2.new(0.9,0,0.15,0)
-catchBtn.Position=UDim2.new(0.05,0,0.15,0)
-catchBtn.TextXAlignment="Left"
-
-local catchBtnTerm = newTrem(catchBtn)
-local catchBtnFixed = fixedText(catchBtn)
-catchBtnFixed.Size=UDim2.new(0.55,0,0.55,0)
-catchBtnFixed.Position=UDim2.new(0,0,0.25,0)
-
-local throwBtn = newBtn(" Perfect Throw💯",0.20,remoteFrame)
-throwBtn.Size=UDim2.new(0.9,0,0.15,0)
-throwBtn.Position=UDim2.new(0.075,0,0.35,0)
-throwBtn.TextXAlignment="Left"
-local throwBtnTerm = newTrem(throwBtn)
-local throwBtnFixed = fixedText(throwBtn)
-throwBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
-throwBtnFixed.Position=UDim2.new(0,0,0.25,0)
 
 local reBtn = newBtn(" Rest Chaarcter",0.35,extraFrame)
 reBtn.Size=UDim2.new(0.9,0,0.15,0)
@@ -576,6 +613,9 @@ newUi(reTerm)
 newUi(infCoinBtn)
 newUi(infCoinKnob)
 newUi(infCoinPlate)
+newUi(autoCatchBtn)
+newUi(stepBackBtn)
+newUi(explodeBtn)
 
 local UserInputService = game:GetService("UserInputService")
 local PlayerModule = require(LocalPlayer:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule"))
@@ -738,6 +778,18 @@ end)
 
 throwBtn.MouseButton1Click:Connect(function()
 	eggThrowEvent:FireServer("perfect", false)
+end)
+
+autoCatchBtn.MouseButton1Click:Connect(function()
+	usePowerEvent:FireServer(4)
+end)
+
+stepBackBtn.MouseButton1Click:Connect(function()
+	usePowerEvent:FireServer(2)
+end)
+
+explodeBtn.MouseButton1Click:Connect(function()
+	usePowerEvent:FireServer(1)
 end)
 
 reBtn.MouseButton1Click:Connect(function()
