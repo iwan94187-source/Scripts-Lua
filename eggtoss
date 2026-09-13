@@ -899,11 +899,6 @@ runService.Stepped:Connect(function()
 		local lava = workspace:FindFirstChild("lava") or workspace:FindFirstChild("Lava")
 		if lava then lava.CanTouch=false else lava.CanTouch=true end
 	end
-	if lowGravityState then 
-		if not bool.Value then 
-			usePotionEvent:FireServer("lowGravity", true)
-		end
-	end
 end)
 
 runService.Heartbeat:Connect(function()
