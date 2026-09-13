@@ -612,16 +612,27 @@ shortThrowBtn.Size = UDim2.new(0.3, 0, 0.8, 0)
 shortThrowBtn.Position = UDim2.new(0.025, 0, 0.1, 0)
 shortThrowBtn.BackgroundColor=BrickColor.new("Really red")
 shortThrowBtn.Parent=chargeThrowFrame
+local shortThrowBtnFixed = fixedText(shortThrowBtn)
+shortThrowBtnFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+shortThrowBtnFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+
 local perfectThrowBtn = newBtn("Perfect", 0.43, remoteFrame_1)
 perfectThrowBtn.Size = UDim2.new(0.3, 0, 0.8, 0)
 perfectThrowBtn.Position = UDim2.new(0.35, 0, 0.1, 0)
 perfectThrowBtn.BackgroundColor=BrickColor.new("Bright green")
 perfectThrowBtn.Parent=chargeThrowFrame
+local perfectThrowBtnFixed = fixedText(perfectThrowBtn)
+perfectThrowBtnFixed.Size = UDim2.new(0.8, 0, 0.8, 0)
+perfectThrowBtnFixed.Position = UDim2.new(0.1, 0, 0.1, 0)
+
 local highThrowBtn = newBtn("Long", 0.43, remoteFrame_1)
 highThrowBtn.Size = UDim2.new(0.3, 0, 0.8, 0)
 highThrowBtn.Position = UDim2.new(0.675, 0, 0.1, 0)
 highThrowBtn.BackgroundColor=BrickColor.new("Really red")
 highThrowBtn.Parent=chargeThrowFrame
+local highThrowBtnFixed = fixedText(highThrowBtn)
+highThrowBtnFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+highThrowBtnFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
 
 local maxZoomState = false
 local maxZoomBtn = newBtn(" Max-Zoom",0.43,basicFrame)
