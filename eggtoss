@@ -47,7 +47,7 @@ local coinValue = LocalPlayer:WaitForChild("otherLeaderstats"):WaitForChild("Coi
 printlog("Egg found",false)
 
 local Mainframe = Instance.new("Frame")
-Mainframe.Size=UDim2.new(0,250,0,250)
+Mainframe.Size=UDim2.new(0,250,0,265)
 Mainframe.Position=UDim2.new(0.125,0,0,0)
 Mainframe.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 Mainframe.Visible=false
@@ -276,7 +276,7 @@ local function fixedTitleText(parent)
 end
 
 local basicFrame = Instance.new("Frame")
-basicFrame.Size=UDim2.new(0.4,0,0.3,0)
+basicFrame.Size=UDim2.new(0.4,0,0.375,0)
 basicFrame.Position=UDim2.new(0.55,0,0.1,0)
 basicFrame.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 basicFrame.Parent=Mainframe
@@ -298,8 +298,8 @@ basicTitlegradient.Color = ColorSequence.new{
 }
 
 local remoteFrame = Instance.new("Frame")
-remoteFrame.Size=UDim2.new(0.45,0,0.55,0)
-remoteFrame.Position=UDim2.new(0.05,0,0.375,0)
+remoteFrame.Size=UDim2.new(0.45,0,0.5,0)
+remoteFrame.Position=UDim2.new(0.055,0,0.375,0)
 remoteFrame.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 remoteFrame.Parent=Mainframe
 
@@ -321,14 +321,14 @@ remoteFrame_1.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 remoteFrame_1.Parent=remoteFrame
 
 local extraFrame = Instance.new("Frame")
-extraFrame.Size=UDim2.new(0.4,0,0.4,0)
-extraFrame.Position=UDim2.new(0.55,0,0.425,0)
+extraFrame.Size=UDim2.new(0.4,0,0.35,0)
+extraFrame.Position=UDim2.new(0.55,0,0.5,0)
 extraFrame.BackgroundColor3=Color3.fromRGB(36, 36, 36)
 extraFrame.Parent=Mainframe
 
 local extraTitle = Instance.new("TextLabel")
 extraTitle.Size=UDim2.new(0.8,0,0.1,0)
-extraTitle.Position=UDim2.new(0.1,0,0.05,0)
+extraTitle.Position=UDim2.new(0.15,0,0.1,0)
 extraTitle.BackgroundTransparency=1
 extraTitle.TextColor=BrickColor.new("White")
 extraTitle.Text="Extra"
@@ -463,8 +463,8 @@ jumpBtnFixed.Position=UDim2.new(0.2,0,0.05,0)
 
 local noClipState = false
 local noClipBtn = newBtn("  No Clip",0.15,basicFrame)
-noClipBtn.Size=UDim2.new(0.9,0,0.2,0)
-noClipBtn.Position=UDim2.new(0.05,0,0.2,0)
+noClipBtn.Size=UDim2.new(0.9,0,0.15,0)
+noClipBtn.Position=UDim2.new(0.05,0,0.175,0)
 noClipBtn.TextXAlignment="Left"
 local noClipPlate = newPlate(noClipBtn)
 noClipPlate.Size=UDim2.new(0,18,0,8)
@@ -478,8 +478,8 @@ noClipBtnFixed.Position=UDim2.new(0,0,0.2,0)
 
 local moveState = false
 local moveBtn = newBtn(" Move Enabled",0.22,basicFrame)
-moveBtn.Size=UDim2.new(0.9,0,0.2,0)
-moveBtn.Position=UDim2.new(0.05,0,0.45,0)
+moveBtn.Size=UDim2.new(0.9,0,0.15,0)
+moveBtn.Position=UDim2.new(0.05,0,0.35,0)
 moveBtn.TextXAlignment="Left"
 local movePlate = newPlate(moveBtn)
 movePlate.Size=UDim2.new(0,18,0,8)
@@ -587,8 +587,8 @@ lowGravityBtnFixed.Position=UDim2.new(0,0,0.25,0)
 
 local maxZoomState = false
 local maxZoomBtn = newBtn(" Max-Zoom",0.43,basicFrame)
-maxZoomBtn.Size=UDim2.new(0.9,0,0.2,0)
-maxZoomBtn.Position=UDim2.new(0.05,0,0.7,0)
+maxZoomBtn.Size=UDim2.new(0.9,0,0.15,0)
+maxZoomBtn.Position=UDim2.new(0.05,0,0.55,0)
 maxZoomBtn.TextXAlignment="Left"
 local maxZoomPlate = newPlate(maxZoomBtn)
 maxZoomPlate.Size=UDim2.new(0,18,0,8)
@@ -650,6 +650,104 @@ rePickFixed.Position=UDim2.new(0,0,0.25,0)
 local reBtnFixed = fixedText(reBtn)
 reBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
 reBtnFixed.Position=UDim2.new(0,-3,0.25,0)
+
+local hitBoxState = false
+local hitBoxBtn = newBtn(" Hitbox", 0.43, basicFrame)
+hitBoxBtn.Size = UDim2.new(0.9, 0, 0.15, 0)
+hitBoxBtn.Position = UDim2.new(0.05, 0, 0.75, 0)
+hitBoxBtn.TextXAlignment = Enum.TextXAlignment.Left
+local hitBoxPlate = newPlate(hitBoxBtn)
+hitBoxPlate.Size = UDim2.new(0, 18, 0, 8)
+hitBoxPlate.Position = UDim2.new(0.7, 0, 0.29, 0)
+local hitBoxKnob = newKnob(hitBoxPlate)
+hitBoxKnob.Size = UDim2.new(0, 5, 0, 5)
+hitBoxKnob.Position = UDim2.new(0.1, 0, 0.9, -6)
+local hitBoxBtnFixed = fixedText(hitBoxBtn)
+hitBoxBtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
+hitBoxBtnFixed.Position = UDim2.new(0, 0, 0.25, 0)
+
+local slapSlideBtn = newLbl(" 25", 0.13, Mainframe)
+slapSlideBtn.Size=UDim2.new(0.4,0,0.075,0)
+slapSlideBtn.Position=UDim2.new(0.55,0,0.45,0)
+slapSlideBtn.Visible=false
+slapSlideBtn.TextXAlignment = Enum.TextXAlignment.Left
+
+local slidBtnFixed = fixedText(slapSlideBtn)
+slidBtnFixed.Size=UDim2.new(0.4,0,0.5,0)
+slidBtnFixed.Position=UDim2.new(0,-10,0.3,0)
+
+local sliderBack = Instance.new("Frame", slapSlideBtn)
+sliderBack.Size = UDim2.new(0, 60, 0, 4) -- الخط الممتد
+sliderBack.Position = UDim2.new(0.75, -50, 0.45, 0)
+sliderBack.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+sliderBack.BorderSizePixel = 0
+
+-- 2. الزر القابل للحركة (Slider Knob)
+local knob = Instance.new("TextButton", sliderBack)
+knob.Size = UDim2.new(0, 8, 0, 8) -- الدائرة/الزر
+knob.Position = UDim2.new(0.25, -6, 0.5, -4) -- يبدأ من اليسار
+knob.BackgroundColor3 = Color3.fromRGB(170, 255, 255)
+knob.Text = ""
+knob.ZIndex=2
+
+local slideFill = Instance.new("TextLabel", sliderBack)
+slideFill.Size=UDim2.new(1,0,1,0)
+slideFill.Text=""
+slideFill.BackgroundColor=BrickColor.new("White")
+
+local function updateSlider(input)
+	-- حساب موقع الإصبع/الموس بالنسبة لطول الخط
+	local mousePos = input.Position.X
+	local sliderPos = sliderBack.AbsolutePosition.X
+	local sliderSize = sliderBack.AbsoluteSize.X
+
+	-- حصار القيمة بين 0 و 1 (من بداية الخط لنهايته)
+	local percentage = math.clamp((mousePos - sliderPos) / sliderSize, 0, 1)
+
+	-- تحريك الزر بصرياً
+	knob.Position = UDim2.new(percentage, -6, 0.5, -4)
+
+	-- تحويل النسبة لقيمة (مثلاً من 1 إلى 50 استود للمسافة)
+	local percentValue = percentage * 100
+	local value = string.format("%.0f", percentValue)
+	-- تحديث النص والمتغير بشكل صحيح وآمن
+	slidBtnFixed.Text = value -- يعرض النسبة بدون أرقام عشرية مثل %100
+
+	return value
+end
+
+knob.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = false
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		updateSlider(input)
+	end
+end)
+
+runService.Heartbeat:Connect(function()
+	slideFill.Size=UDim2.new(knob.Position.X.Scale,0,1,0)
+	
+	local catchPart = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Torso") and 
+		LocalPlayer.Character.Torso:FindFirstChild("CatchPart")
+	if catchPart then 
+		catchPart.Massless=true
+		if hitBoxState then 
+			catchPart.Size=Vector3.new(slidBtnFixed.Text,slidBtnFixed.Text,slidBtnFixed.Text)
+		else
+			catchPart.Size=Vector3.new(2,1,2)
+		end
+	end
+end)
 
 local function newUi(parent) 
 	local ui = Instance.new("UICorner")
@@ -720,6 +818,14 @@ newUi(infEggKnob)
 newUi(catchBtn)
 newUi(throwBtn)
 newUi(reBtn)
+
+newUi(hitBoxBtn)
+newUi(hitBoxKnob)
+newUi(hitBoxPlate)
+
+newUi(sliderBack)
+newUi(slideFill)
+newUi(knob)
 
 newUi(infCoinBtn)
 newUi(infCoinKnob)
@@ -951,10 +1057,10 @@ end)
 maxZoomBtn.MouseButton1Click:Connect(function()
 	maxZoomState = not maxZoomState
 	if maxZoomState then 
-		maxZoomKnob.Position = UDim2.new(0.6, 0, 0.9, -6)
+		maxZoomKnob.Position = UDim2.new(0.6, 0, 0.9, -7)
 		maxZoomPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
 	else 
-		maxZoomKnob.Position = UDim2.new(0.1, 0, 0.9, -6)
+		maxZoomKnob.Position = UDim2.new(0.1, 0, 0.9, -7)
 		maxZoomPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	end
 end)
@@ -983,6 +1089,18 @@ infCoinBtn.MouseButton1Click:Connect(function()
 		infCoinKnob.Position = UDim2.new(0.1, 0, 0.9, -7)
 		infCoinPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	end
+end)
+
+hitBoxBtn.MouseButton1Click:Connect(function()
+	hitBoxState = not hitBoxState
+	if hitBoxState then 
+		hitBoxKnob.Position = UDim2.new(0.6, 0, 0.9, -6)
+		hitBoxPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		hitBoxKnob.Position = UDim2.new(0.1, 0, 0.9, -6)
+		hitBoxPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	end
+	slapSlideBtn.Visible=hitBoxState
 end)
 
 defaultEggBtn.MouseButton1Click:Connect(function()
