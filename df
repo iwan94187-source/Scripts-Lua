@@ -1,0 +1,1152 @@
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local runService = game:GetService("RunService")
+local cam = workspace.CurrentCamera
+local eggvalue = nil
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local bool = LocalPlayer:WaitForChild("otherDataFolder"):WaitForChild("lowGravity")
+local remoteEvents = ReplicatedStorage:WaitForChild("RemoteEvents")
+local usePowerEvent = remoteEvents:WaitForChild("UsePower")
+local usePotionEvent = remoteEvents:WaitForChild("usePotion")
+local modifyEvent = remoteEvents:WaitForChild("ModifyEgg")
+local eggThrowEvent = remoteEvents:WaitForChild("EggThrowEvent")
+local didCatchEvent = remoteEvents:WaitForChild("DidCatch")
+local StepBackEvent = remoteEvents:WaitForChild("StepBack")
+
+-- 1. إنشاء الواجهة والخط الرئيسي (Slider Frame)
+local screenGui = Instance.new("ScreenGui", PlayerGui)
+screenGui.ResetOnSpawn = false
+
+local blk_color, gry = Color3.fromRGB(24,24,24), Color3.fromRGB(52, 52, 52)
+
+local helperTextLabel = Instance.new("TextLabel")
+helperTextLabel.Size=UDim2.new(0,200,0,50)
+helperTextLabel.Transparency=0.5
+helperTextLabel.BackgroundColor3=blk_color
+helperTextLabel.TextColor=BrickColor.new("White")
+helperTextLabel.TextScaled=true
+helperTextLabel.Parent=nil
+
+local function printlog(txt,set)
+	if set then 
+		helperTextLabel.TextColor=BrickColor.new("Really red")
+	else
+		helperTextLabel.TextColor=BrickColor.new("Lime green")
+	end
+	helperTextLabel.Text=txt
+end
+
+local eggvalue = LocalPlayer:WaitForChild("otherLeaderstats"):WaitForChild("Eggs")
+local coinValue = LocalPlayer:WaitForChild("otherLeaderstats"):WaitForChild("Coins")
+
+printlog("Egg found",false)
+
+local Mainframe = Instance.new("Frame")
+Mainframe.Size=UDim2.new(0,250,0,265)
+Mainframe.Position=UDim2.new(0.125,0,0,0)
+Mainframe.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+Mainframe.Visible=false
+Mainframe.Active=true
+Mainframe.Draggable=true
+Mainframe.Parent=screenGui
+
+local frameTitle = Instance.new("TextLabel")
+frameTitle.Size=UDim2.new(1,0,0.1,0)
+frameTitle.Text="   Egg Toss V7.0"
+frameTitle.TextXAlignment=Enum.TextXAlignment.Left
+frameTitle.TextColor=BrickColor.new("White")
+frameTitle.TextTransparency=1
+frameTitle.BackgroundColor3=blk_color
+frameTitle.TextSize=7
+frameTitle.Parent=Mainframe
+
+local txt = Instance.new("TextLabel")
+txt.Size=UDim2.new(0.5,0,0.6,0)
+txt.Position=UDim2.new(0.25,0,0.1,0)
+txt.TextColor=BrickColor.new("White")
+txt.BackgroundTransparency=1
+txt.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+txt.Text="EGG TOSS"
+txt.TextScaled=true
+txt.Parent=frameTitle
+
+local titlelbl = Instance.new("TextLabel")
+titlelbl.Size = UDim2.new(0.35, 0, 0.04, 0)
+titlelbl.Position = UDim2.new(0.55, 0, 0.875, 0)
+titlelbl.BackgroundTransparency = 1
+titlelbl.TextColor = BrickColor.new("White")
+titlelbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+titlelbl.TextStrokeTransparency = 0
+titlelbl.TextStrokeColor3 = blk_color
+titlelbl.TextScaled = true
+titlelbl.Text = "Created By iwangamer931"
+titlelbl.TextXAlignment = Enum.TextXAlignment.Left
+titlelbl.Parent = Mainframe
+
+local imageicon = Instance.new("ImageLabel")
+imageicon.Size = UDim2.new(0.2, 0, 1, 0)
+imageicon.Position = UDim2.new(1.05, 0, 0, 0)
+imageicon.Image = "rbxassetid://106299005851806"
+imageicon.BackgroundTransparency = 1
+imageicon.Parent = titlelbl
+
+local iconFrame = Instance.new("ImageButton")
+iconFrame.Size=UDim2.new(0,40,0,40)
+iconFrame.Position=UDim2.new(0.3,0,0.3,0)
+iconFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+iconFrame.Image = "rbxassetid://85847690672478"
+iconFrame.Active=true
+iconFrame.Draggable=true
+iconFrame.Parent=screenGui
+
+local destroyBtn = Instance.new("TextButton")
+destroyBtn.Size=UDim2.new(0,22.5,0,22.5)
+destroyBtn.Position=UDim2.new(0.915,0,0,0)
+destroyBtn.BackgroundColor3=Color3.fromRGB(255, 0, 0)
+destroyBtn.TextColor=BrickColor.new("White")
+destroyBtn.Text="x"
+destroyBtn.Parent=frameTitle
+
+local hideBtn = Instance.new("TextButton")
+hideBtn.Size=UDim2.new(0,22.5,0,22.5)
+hideBtn.Position=UDim2.new(0.82,0,0,0)
+hideBtn.BackgroundColor3=Color3.fromRGB(0, 170, 255)
+hideBtn.TextColor=BrickColor.new("White")
+hideBtn.Text="–"
+hideBtn.Parent=frameTitle
+
+iconFrame.MouseButton1Click:Connect(function()
+	iconFrame.Visible=not iconFrame.Visible
+	if iconFrame.Visible then 
+		Mainframe.Visible=false
+	else
+		Mainframe.Position=iconFrame.Position
+		Mainframe.Visible=true
+	end
+end)
+
+hideBtn.MouseButton1Click:Connect(function()
+	Mainframe.Visible=false
+	iconFrame.Position=Mainframe.Position
+	iconFrame.Visible=true
+end)
+
+destroyBtn.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+end)
+
+local function txtBox(parent) 
+	local box = Instance.new("TextBox")
+	box.Size=UDim2.new(0.8, 0,0.4,0)
+	box.Position=UDim2.new(0.1,0,0.4,0)
+	box.BackgroundColor3=blk_color
+	box.Text="Number"
+	box.TextSize=5
+	box.TextColor=BrickColor.new("White")
+	box.Parent=parent
+	return box
+
+end
+
+local function newBtn(name,pos,parent)
+	local btn = Instance.new("TextButton")
+	btn.Size=UDim2.new(0.9,0,0.06,0)
+	btn.Position=UDim2.new(0.05,0,pos,0)
+	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextSize=5
+	btn.Parent=parent
+	return btn
+end
+
+local function newLbl(name,pos,parent)
+	local btn = Instance.new("TextLabel")
+	btn.Size=UDim2.new(0.9,0,0.6,0)
+	btn.Position=UDim2.new(0.05,0,pos,0)
+	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextSize=5
+	btn.Parent=parent
+	return btn
+end
+
+local function newTrem(parent)
+	local frame = Instance.new("ImageLabel")
+	frame.Size=UDim2.new(0,15,0,15)
+	frame.Position=UDim2.new(0.7,0,0.1,0)
+	frame.BackgroundTransparency=1
+	frame.Image="rbxassetid://9468220156"
+	frame.Parent=parent
+	return frame
+end
+
+local function newKnob(parent)
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0,7.5,0,7.5)
+	frame.Position=UDim2.new(0.1,0,0.9,-8)
+	frame.BackgroundColor3=Color3.fromRGB(255, 255, 255)
+	frame.Parent=parent
+	return frame
+end
+
+local function newPlate(parent)
+	local frame = Instance.new("Frame")
+	frame.Size=UDim2.new(0,20,0,11)
+	frame.Position=UDim2.new(0.75,0,0.29,0)
+	frame.BackgroundColor3=Color3.fromRGB(0, 0, 0)
+	frame.Parent=parent
+	return frame
+end
+
+local function newsideBtn(name, pos)
+	local btn=Instance.new("TextButton")
+	btn.Size=UDim2.new(0.17,0,0.1,0)
+	btn.Position=UDim2.new(0.01,0,pos)
+	btn.BackgroundColor3=gry
+	btn.TextColor=BrickColor.new("White")
+	btn.Text=name
+	btn.TextScaled=true
+	btn.Parent=Mainframe
+	return btn
+end
+
+local function newBox(pos, parent)
+	local box = Instance.new("TextBox")
+	box.Size=UDim2.new(0.5,0,0.1,0)
+	box.Position=UDim2.new(0,0,pos,0)
+	box.BackgroundColor=BrickColor.new("Black")
+	box.TextColor=BrickColor.new("White")
+	box.TextScaled=true
+	box.Text="Number"
+	box.Parent=parent
+	return box
+end
+
+local function fixedText(parent)
+	parent.TextTransparency=1
+
+	local lbl = Instance.new("TextLabel")
+	lbl.Size=UDim2.new(0.6,0,0.8,0)
+	lbl.Position=UDim2.new(0.05,0,0.1,0)
+	lbl.BackgroundTransparency=1
+	lbl.Text=parent.Text
+	lbl.TextScaled=true
+	lbl.TextColor=BrickColor.new("White")
+	lbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+	lbl.TextStrokeTransparency=0
+	lbl.TextStrokeColor3=blk_color
+	lbl.Parent=parent
+	return lbl
+end 
+
+local function fixedTitleText(parent)
+	parent.TextTransparency = 1 -- إخفاء النص الأصل
+	-- 2. النص الأساسي (Main Title Label)
+	local lbl = Instance.new("TextLabel")
+	lbl.Size = UDim2.new(0.8, 0, 0.8, 0)
+	lbl.Position = UDim2.new(0.05, 0, 0.1, 0)
+	lbl.BackgroundTransparency = 1
+	lbl.Text = parent.Text
+	lbl.TextScaled = true
+	lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+	lbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+	lbl.TextStrokeTransparency = 0
+	lbl.TextStrokeColor3 = Color3.fromRGB(15, 15, 15)
+	lbl.TextXAlignment = Enum.TextXAlignment.Left
+	lbl.Parent = parent
+
+	-- 3. تدرج ألوان أسطوري (UIGradient)
+	local gradient = Instance.new("UIGradient")
+	-- تدرج ناري ذهبي (يمكنك تغيير الألوان حسب رغبتك)
+	gradient.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 83, 83)), -- ذهبي فاتح من الأعلى
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))    -- برتقالي دافئ من الأسفل
+	}
+	gradient.Rotation = 90 -- تدرج من الأعلى للأسفل
+	gradient.Parent = lbl
+
+	return lbl
+end
+
+local basicFrame = Instance.new("Frame")
+basicFrame.Size=UDim2.new(0.4,0,0.375,0)
+basicFrame.Position=UDim2.new(0.55,0,0.1,0)
+basicFrame.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+basicFrame.Parent=Mainframe
+
+local basicTitle = Instance.new("TextLabel")
+basicTitle.Size=UDim2.new(0.8,0,0.15,0)
+basicTitle.Position=UDim2.new(0.1,0,0.03,0)
+basicTitle.BackgroundTransparency=1
+basicTitle.TextColor=BrickColor.new("White")
+basicTitle.Text="Player"
+basicTitle.Parent=basicFrame
+local basicTitleFixed = fixedTitleText(basicTitle)
+basicTitleFixed.Size=UDim2.new(0.7,0,0.7,0)
+basicTitleFixed.Position=UDim2.new(0.4,0,0.2,0)
+local basicTitlegradient = basicTitleFixed.UIGradient
+basicTitlegradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(85, 170, 255)), -- ذهبي فاتح من الأعلى
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))    -- برتقالي دافئ من الأسفل
+}
+
+local remoteFrame = Instance.new("Frame")
+remoteFrame.Size=UDim2.new(0.45,0,0.5,0)
+remoteFrame.Position=UDim2.new(0.055,0,0.375,0)
+remoteFrame.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+remoteFrame.Parent=Mainframe
+
+local remoteTitle = Instance.new("TextLabel")
+remoteTitle.Size=UDim2.new(0.8,0,0.1,0)
+remoteTitle.Position=UDim2.new(0.1,0,0.04,0)
+remoteTitle.BackgroundTransparency=1
+remoteTitle.TextColor=BrickColor.new("White")
+remoteTitle.Text="Remote"
+remoteTitle.Parent=remoteFrame
+local remoteTitleFixed = fixedTitleText(remoteTitle)
+remoteTitleFixed.Size=UDim2.new(0.7,0,0.7,0)
+remoteTitleFixed.Position=UDim2.new(0.3,0,0.25,0)
+
+local remoteFrame_1 = Instance.new("ScrollingFrame")
+remoteFrame_1.Size=UDim2.new(0.95,0,0.7,0)
+remoteFrame_1.Position=UDim2.new(0.025,0,0.15,0)
+remoteFrame_1.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+remoteFrame_1.Parent=remoteFrame
+
+local extraFrame = Instance.new("Frame")
+extraFrame.Size=UDim2.new(0.4,0,0.35,0)
+extraFrame.Position=UDim2.new(0.55,0,0.5,0)
+extraFrame.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+extraFrame.Parent=Mainframe
+
+local extraTitle = Instance.new("TextLabel")
+extraTitle.Size=UDim2.new(0.8,0,0.1,0)
+extraTitle.Position=UDim2.new(0.15,0,0.1,0)
+extraTitle.BackgroundTransparency=1
+extraTitle.TextColor=BrickColor.new("White")
+extraTitle.Text="Extra"
+extraTitle.Parent=extraFrame
+local extraTitleFixed = fixedTitleText(extraTitle)
+extraTitleFixed.Size=UDim2.new(0.8,0,0.8,0)
+extraTitleFixed.Position=UDim2.new(0.4,0,0.25,0)
+local extraTitlegradient = extraTitleFixed.UIGradient
+extraTitlegradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 255, 0)), -- ذهبي فاتح من الأعلى
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))    -- برتقالي دافئ من الأسفل
+}
+
+local EggsSkin = Instance.new("ScrollingFrame")
+EggsSkin.Size=UDim2.new(0.39,0,0.5,0)
+EggsSkin.Position=UDim2.new(0.5525,0,0.8,0)
+EggsSkin.BackgroundColor3=Color3.fromRGB(36, 36, 36)
+EggsSkin.Visible=false
+EggsSkin.Parent=Mainframe
+
+local defaultEggBtn = newBtn(" Default",0.05,EggsSkin)
+defaultEggBtn.Size=UDim2.new(0.9,0,0.04,0)
+defaultEggBtn.Position=UDim2.new(0.05,0,0,0)
+defaultEggBtn.TextXAlignment="Left"
+local defaultEggBtnFixed = fixedText(defaultEggBtn)
+defaultEggBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
+defaultEggBtnFixed.Position=UDim2.new(0,0,0.25,0)
+
+local classic_1Btn = newBtn(" Classic 1", 0.05, EggsSkin)
+classic_1Btn.Size = UDim2.new(0.9, 0, 0.04, 0)
+classic_1Btn.Position = UDim2.new(0.05, 0, 0.05, 0)
+classic_1Btn.TextXAlignment = Enum.TextXAlignment.Left
+local classic_1BtnFixed = fixedText(classic_1Btn)
+classic_1BtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
+classic_1BtnFixed.Position = UDim2.new(0, 0, 0.25, 0)
+
+local classic_2Btn = newBtn(" Classic 2", 0.05, EggsSkin)
+classic_2Btn.Size = UDim2.new(0.9, 0, 0.04, 0)
+classic_2Btn.Position = UDim2.new(0.05, 0, 0.1, 0)
+classic_2Btn.TextXAlignment = Enum.TextXAlignment.Left
+local classic_2BtnFixed = fixedText(classic_2Btn)
+classic_2BtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
+classic_2BtnFixed.Position = UDim2.new(0, 0, 0.25, 0)
+
+local classic_3Btn = newBtn(" Classic 3", 0.05, EggsSkin)
+classic_3Btn.Size = UDim2.new(0.9, 0, 0.04, 0)
+classic_3Btn.Position = UDim2.new(0.05, 0, 0.15, 0)
+classic_3Btn.TextXAlignment = Enum.TextXAlignment.Left
+local classic_3BtnFixed = fixedText(classic_3Btn)
+classic_3BtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
+classic_3BtnFixed.Position = UDim2.new(0, 0, 0.25, 0)
+
+local fireEggBtn = newBtn(" Fire Egg", 0.05, EggsSkin)
+fireEggBtn.Size = UDim2.new(0.9, 0, 0.04, 0)
+fireEggBtn.Position = UDim2.new(0.05, 0, 0.2, 0)
+fireEggBtn.TextXAlignment = Enum.TextXAlignment.Left
+local fireEggBtnFixed = fixedText(fireEggBtn)
+fireEggBtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
+fireEggBtnFixed.Position = UDim2.new(0, 0, 0.25, 0)
+
+local iceEggBtn = newBtn(" Ice Egg", 0.05, EggsSkin)
+iceEggBtn.Size = UDim2.new(0.9, 0, 0.04, 0)
+iceEggBtn.Position = UDim2.new(0.05, 0, 0.25, 0)
+iceEggBtn.TextXAlignment = Enum.TextXAlignment.Left
+local iceEggBtnFixed = fixedText(iceEggBtn)
+iceEggBtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
+iceEggBtnFixed.Position = UDim2.new(0, 0, 0.25, 0)
+
+local easter_1Btn = newBtn(" Easter 1", 0.05, EggsSkin)
+easter_1Btn.Size = UDim2.new(0.9, 0, 0.04, 0)
+easter_1Btn.Position = UDim2.new(0.05, 0, 0.3, 0)
+easter_1Btn.TextXAlignment = Enum.TextXAlignment.Left
+local easter_1BtnFixed = fixedText(easter_1Btn)
+easter_1BtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
+easter_1BtnFixed.Position = UDim2.new(0, 0, 0.25, 0)
+
+local easter_2Btn = newBtn(" Easter 2", 0.05, EggsSkin)
+easter_2Btn.Size = UDim2.new(0.9, 0, 0.04, 0)
+easter_2Btn.Position = UDim2.new(0.05, 0, 0.35, 0)
+easter_2Btn.TextXAlignment = Enum.TextXAlignment.Left
+local easter_2BtnFixed = fixedText(easter_2Btn)
+easter_2BtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
+easter_2BtnFixed.Position = UDim2.new(0, 0, 0.25, 0)
+
+local easter_3Btn = newBtn(" Easter 3", 0.05, EggsSkin)
+easter_3Btn.Size = UDim2.new(0.9, 0, 0.04, 0)
+easter_3Btn.Position = UDim2.new(0.05, 0, 0.4, 0)
+easter_3Btn.TextXAlignment = Enum.TextXAlignment.Left
+local easter_3BtnFixed = fixedText(easter_3Btn)
+easter_3BtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
+easter_3BtnFixed.Position = UDim2.new(0, 0, 0.25, 0)
+
+local upState = false
+local upBtn = newBtn(" Status Enabled",0.01,Mainframe)
+upBtn.Size=UDim2.new(0.45,0,0.1,0)
+upBtn.Position=UDim2.new(0.05,0,0.1,0)
+upBtn.TextXAlignment="Left"
+local upPlate = newPlate(upBtn)
+local upTerm = newKnob(upPlate)
+local upFixed = fixedText(upBtn)
+upFixed.Size=UDim2.new(0.5,0,0.7,0)
+upFixed.Position=UDim2.new(0.05,0,0.15,0)
+
+local speedSlideBtn = newLbl("Speed",0.08,Mainframe)
+speedSlideBtn.Size=UDim2.new(0.225,0,0.12,0)
+speedSlideBtn.Position=UDim2.new(0.05,0,0.225,0)
+speedSlideBtn.TextYAlignment=Enum.TextYAlignment.Top
+speedSlideBtn.Visible=false
+local speedBox = txtBox(speedSlideBtn)
+speedBox.Text=22
+local speedBoxFixed = fixedText(speedBox)
+speedBoxFixed.Size=UDim2.new(1,0,0.8,0)
+speedBoxFixed.Position=UDim2.new(0,0,0.1,0)
+local speedSlideBtnFixed = fixedText(speedSlideBtn)
+speedSlideBtnFixed.Size=UDim2.new(0.6,0,0.25,0)
+speedSlideBtnFixed.Position=UDim2.new(0.2,0,0.05,0)
+
+local jumpBtn = newLbl("Jump",0.08,Mainframe)
+jumpBtn.Size=UDim2.new(0.225,0,0.12,0)
+jumpBtn.Position=UDim2.new(0.3,0,0.225,0)
+jumpBtn.TextYAlignment=Enum.TextYAlignment.Top
+jumpBtn.Visible=false
+local jumpBox = txtBox(jumpBtn)
+jumpBox.Text=55
+local jumpBoxFixed = fixedText(jumpBox)
+jumpBoxFixed.Size=UDim2.new(1,0,0.8,0)
+jumpBoxFixed.Position=UDim2.new(0,0,0.1,0)
+
+local jumpBtnFixed = fixedText(jumpBtn)
+jumpBtnFixed.Size=UDim2.new(0.6,0,0.25,0)
+jumpBtnFixed.Position=UDim2.new(0.2,0,0.05,0)
+
+local noClipState = false
+local noClipBtn = newBtn("  No Clip",0.15,basicFrame)
+noClipBtn.Size=UDim2.new(0.9,0,0.15,0)
+noClipBtn.Position=UDim2.new(0.05,0,0.175,0)
+noClipBtn.TextXAlignment="Left"
+local noClipPlate = newPlate(noClipBtn)
+noClipPlate.Size=UDim2.new(0,18,0,8)
+noClipPlate.Position=UDim2.new(0.7,0,0.29,0)
+local noClipKnob = newKnob(noClipPlate)
+noClipKnob.Size=UDim2.new(0,5,0,5)
+noClipKnob.Position=UDim2.new(0.1,0,0.9,-6)
+local noClipBtnFixed = fixedText(noClipBtn)
+noClipBtnFixed.Size=UDim2.new(0.55,1,0.55,0)
+noClipBtnFixed.Position=UDim2.new(0,0,0.2,0)
+
+local moveState = false
+local moveBtn = newBtn(" Move Enabled",0.22,basicFrame)
+moveBtn.Size=UDim2.new(0.9,0,0.15,0)
+moveBtn.Position=UDim2.new(0.05,0,0.35,0)
+moveBtn.TextXAlignment="Left"
+local movePlate = newPlate(moveBtn)
+movePlate.Size=UDim2.new(0,18,0,8)
+movePlate.Position=UDim2.new(0.7,0,0.29,0)
+local moveKnob = newKnob(movePlate)
+moveKnob.Size=UDim2.new(0,5,0,5)
+moveKnob.Position=UDim2.new(0.1,0,0.9,-6)
+local moveBtnFixed = fixedText(moveBtn)
+moveBtnFixed.Size=UDim2.new(0.6,0,0.5,0)
+moveBtnFixed.Position=UDim2.new(0,0,0.25,0)
+
+local catchBtn = newBtn(" Catch Egg",0.05,remoteFrame_1)
+catchBtn.Size=UDim2.new(0.9,0,0.08,0)
+catchBtn.Position=UDim2.new(0.05,0,0,0)
+catchBtn.TextXAlignment="Left"
+
+local catchBtnTerm = newTrem(catchBtn)
+local catchBtnFixed = fixedText(catchBtn)
+catchBtnFixed.Size=UDim2.new(0.55,0,0.55,0)
+catchBtnFixed.Position=UDim2.new(0,0,0.25,0)
+
+local throwBtn = newBtn(" Perfect Throw💯",0.20,remoteFrame_1)
+throwBtn.Size=UDim2.new(0.9,0,0.08,0)
+throwBtn.Position=UDim2.new(0.075,0,0.1,0)
+throwBtn.TextXAlignment="Left"
+local throwBtnTerm = newTrem(throwBtn)
+local throwBtnFixed = fixedText(throwBtn)
+throwBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
+throwBtnFixed.Position=UDim2.new(0,0,0.25,0)
+
+local autoCatchBtn = newBtn(" Auto Catch",0.05,remoteFrame_1)
+autoCatchBtn.Size=UDim2.new(0.9,0,0.08,0)
+autoCatchBtn.Position=UDim2.new(0.05,0,0.2,0)
+autoCatchBtn.TextXAlignment="Left"
+
+local autoCatchTerm = newTrem(autoCatchBtn)
+local autoCatchBtnFixed = fixedText(autoCatchBtn)
+autoCatchBtnFixed.Size=UDim2.new(0.55,0,0.55,0)
+autoCatchBtnFixed.Position=UDim2.new(0,0,0.25,0)
+
+local stepBackBtn = newBtn(" Step Back",0.05,remoteFrame_1)
+stepBackBtn.Size=UDim2.new(0.9,0,0.08,0)
+stepBackBtn.Position=UDim2.new(0.05,0,0.3,0)
+stepBackBtn.TextXAlignment="Left"
+
+local stepBackTerm = newTrem(stepBackBtn)
+local stepBackBtnFixed = fixedText(stepBackBtn)
+stepBackBtnFixed.Size=UDim2.new(0.55,0,0.55,0)
+stepBackBtnFixed.Position=UDim2.new(0,0,0.3,0)
+
+local explodeBtn = newBtn(" Explode Eggs (Troll)",0.05,remoteFrame_1)
+explodeBtn.Size=UDim2.new(0.9,0,0.08,0)
+explodeBtn.Position=UDim2.new(0.05,0,0.4,0)
+explodeBtn.TextXAlignment="Left"
+
+local explodeTerm = newTrem(explodeBtn)
+local explodeBtnFixed = fixedText(explodeBtn)
+explodeBtnFixed.Size=UDim2.new(0.6,0,0.5,0)
+explodeBtnFixed.Position=UDim2.new(0,0,0.35,0)
+
+local antiLavaState = false
+local antiLavaBtn = newBtn(" Anti Lava",0.29,remoteFrame_1)
+antiLavaBtn.Size=UDim2.new(0.9,0,0.08,0)
+antiLavaBtn.Position=UDim2.new(0.05,0,0.5,0)
+antiLavaBtn.TextXAlignment="Left"
+local antiLavaPlate = newPlate(antiLavaBtn)
+antiLavaPlate.Size=UDim2.new(0,20,0,9)
+antiLavaPlate.Position=UDim2.new(0.7,0,0.29,0)
+local antiLavaKnob = newKnob(antiLavaPlate)
+antiLavaKnob.Size=UDim2.new(0,5,0,5)
+antiLavaKnob.Position=UDim2.new(0.1,0,0.9,-7)
+local antiLavaBtnFixed = fixedText(antiLavaBtn)
+antiLavaBtnFixed.Size=UDim2.new(0.5,0,0.5,0)
+antiLavaBtnFixed.Position=UDim2.new(0,0,0.25,0)
+
+local anitBackState = false
+local anitBackBtn = newBtn(" Anit Step-Back",0.36,remoteFrame_1)
+anitBackBtn.Size=UDim2.new(0.9,0,0.08,0)
+anitBackBtn.Position=UDim2.new(0.05,0,0.6,0)
+anitBackBtn.TextXAlignment="Left"
+local anitBackPlate = newPlate(anitBackBtn)
+anitBackPlate.Size=UDim2.new(0,20,0,9)
+anitBackPlate.Position=UDim2.new(0.7,0,0.29,0)
+local anitBackKnob = newKnob(anitBackPlate)
+anitBackKnob.Size=UDim2.new(0,5,0,5)
+anitBackKnob.Position=UDim2.new(0.1,0,0.9,-7)
+local anitBackBtnFixed = fixedText(anitBackBtn)
+anitBackBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
+anitBackBtnFixed.Position=UDim2.new(0,0,0.25,0)
+
+local lowGravityState = false
+local lowGravityBtn = newBtn(" Low Gravity",0.36,remoteFrame_1)
+lowGravityBtn.Size=UDim2.new(0.9,0,0.08,0)
+lowGravityBtn.Position=UDim2.new(0.05,0,0.7,0)
+lowGravityBtn.TextXAlignment="Left"
+local lowGravityPlate = newPlate(lowGravityBtn)
+lowGravityPlate.Size=UDim2.new(0,20,0,9)
+lowGravityPlate.Position=UDim2.new(0.7,0,0.29,0)
+local lowGravityKnob = newKnob(lowGravityPlate)
+lowGravityKnob.Size=UDim2.new(0,5,0,5)
+lowGravityKnob.Position=UDim2.new(0.1,0,0.9,-7)
+local lowGravityBtnFixed = fixedText(lowGravityBtn)
+lowGravityBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
+lowGravityBtnFixed.Position=UDim2.new(0,0,0.25,0)
+
+local maxZoomState = false
+local maxZoomBtn = newBtn(" Max-Zoom",0.43,basicFrame)
+maxZoomBtn.Size=UDim2.new(0.9,0,0.15,0)
+maxZoomBtn.Position=UDim2.new(0.05,0,0.55,0)
+maxZoomBtn.TextXAlignment="Left"
+local maxZoomPlate = newPlate(maxZoomBtn)
+maxZoomPlate.Size=UDim2.new(0,18,0,8)
+maxZoomPlate.Position=UDim2.new(0.7,0,0.29,0)
+local maxZoomKnob = newKnob(maxZoomPlate)
+maxZoomKnob.Size=UDim2.new(0,5,0,5)
+maxZoomKnob.Position=UDim2.new(0.1,0,0.9,-6)
+local maxZoomBtnFixed = fixedText(maxZoomBtn)
+maxZoomBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
+maxZoomBtnFixed.Position=UDim2.new(0,0,0.25,0)
+
+local infEggState = false
+local infEggBtn = newBtn(" Infinity Eggs",0.50,extraFrame)
+infEggBtn.Size=UDim2.new(0.9,0,0.2,0)
+infEggBtn.Position=UDim2.new(0.05,0,0.2,0)
+infEggBtn.TextXAlignment="Left"
+local infEggPlate = newPlate(infEggBtn)
+infEggPlate.Size=UDim2.new(0,20,0,9)
+infEggPlate.Position=UDim2.new(0.7,0,0.29,0)
+local infEggKnob = newKnob(infEggPlate)
+infEggKnob.Size=UDim2.new(0,6,0,6)
+infEggKnob.Position=UDim2.new(0.1,0,0.9,-7)
+local infEggBtnFixed = fixedText(infEggBtn)
+infEggBtnFixed.Size=UDim2.new(0.5,0,0.5,0)
+infEggBtnFixed.Position=UDim2.new(0,0,0.25,0)
+
+local infCoinState = false
+local infCoinBtn = newBtn(" Infinity Coins",0.50,extraFrame)
+infCoinBtn.Size=UDim2.new(0.9,0,0.2,0)
+infCoinBtn.Position=UDim2.new(0.05,0,0.45,0)
+infCoinBtn.TextXAlignment="Left"
+local infCoinPlate = newPlate(infCoinBtn)
+infCoinPlate.Size=UDim2.new(0,20,0,9)
+infCoinPlate.Position=UDim2.new(0.7,0,0.29,0)
+local infCoinKnob = newKnob(infCoinPlate)
+infCoinKnob.Size=UDim2.new(0,6,0,6)
+infCoinKnob.Position=UDim2.new(0.1,0,0.9,-7)
+local infCoinBtnFixed = fixedText(infCoinBtn)
+infCoinBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
+infCoinBtnFixed.Position=UDim2.new(0,0,0.25,0)
+
+local reBtn = newBtn("Eggs Skin",0.35,extraFrame)
+reBtn.Size=UDim2.new(0.9,0,0.15,0)
+reBtn.Position=UDim2.new(0.05,0,0.7,0)
+reBtn.TextXAlignment="Left"
+
+local rePick = Instance.new("TextLabel")
+rePick.Size=UDim2.new(0.5,0,0.8,0)
+rePick.Position=UDim2.new(0.5,0,0.1,0)
+rePick.BackgroundTransparency=1
+rePick.TextTransparency=1
+rePick.TextColor=BrickColor.new("White")
+rePick.Text="None"
+rePick.Parent=reBtn
+local rePickFixed = fixedText(rePick)
+rePickFixed.Size=UDim2.new(0.8,0,0.8,0)
+rePickFixed.Position=UDim2.new(0,0,0.25,0)
+
+local reBtnFixed = fixedText(reBtn)
+reBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
+reBtnFixed.Position=UDim2.new(0,-3,0.25,0)
+
+local hitBoxState = false
+local hitBoxBtn = newBtn(" Hitbox", 0.43, basicFrame)
+hitBoxBtn.Size = UDim2.new(0.9, 0, 0.15, 0)
+hitBoxBtn.Position = UDim2.new(0.05, 0, 0.75, 0)
+hitBoxBtn.TextXAlignment = Enum.TextXAlignment.Left
+local hitBoxPlate = newPlate(hitBoxBtn)
+hitBoxPlate.Size = UDim2.new(0, 18, 0, 8)
+hitBoxPlate.Position = UDim2.new(0.7, 0, 0.29, 0)
+local hitBoxKnob = newKnob(hitBoxPlate)
+hitBoxKnob.Size = UDim2.new(0, 5, 0, 5)
+hitBoxKnob.Position = UDim2.new(0.1, 0, 0.9, -6)
+local hitBoxBtnFixed = fixedText(hitBoxBtn)
+hitBoxBtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
+hitBoxBtnFixed.Position = UDim2.new(0, 0, 0.25, 0)
+
+local slapSlideBtn = newLbl(" 25", 0.13, Mainframe)
+slapSlideBtn.Size=UDim2.new(0.4,0,0.075,0)
+slapSlideBtn.Position=UDim2.new(0.55,0,0.45,0)
+slapSlideBtn.Visible=false
+slapSlideBtn.TextXAlignment = Enum.TextXAlignment.Left
+
+local slidBtnFixed = fixedText(slapSlideBtn)
+slidBtnFixed.Size=UDim2.new(0.4,0,0.5,0)
+slidBtnFixed.Position=UDim2.new(0,-10,0.3,0)
+
+local sliderBack = Instance.new("Frame", slapSlideBtn)
+sliderBack.Size = UDim2.new(0, 60, 0, 4) -- الخط الممتد
+sliderBack.Position = UDim2.new(0.75, -50, 0.45, 0)
+sliderBack.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+sliderBack.BorderSizePixel = 0
+
+-- 2. الزر القابل للحركة (Slider Knob)
+local knob = Instance.new("TextButton", sliderBack)
+knob.Size = UDim2.new(0, 8, 0, 8) -- الدائرة/الزر
+knob.Position = UDim2.new(0.25, -6, 0.5, -4) -- يبدأ من اليسار
+knob.BackgroundColor3 = Color3.fromRGB(170, 255, 255)
+knob.Text = ""
+knob.ZIndex=2
+
+local slideFill = Instance.new("TextLabel", sliderBack)
+slideFill.Size=UDim2.new(1,0,1,0)
+slideFill.Text=""
+slideFill.BackgroundColor=BrickColor.new("White")
+
+local function updateSlider(input)
+	-- حساب موقع الإصبع/الموس بالنسبة لطول الخط
+	local mousePos = input.Position.X
+	local sliderPos = sliderBack.AbsolutePosition.X
+	local sliderSize = sliderBack.AbsoluteSize.X
+
+	-- حصار القيمة بين 0 و 1 (من بداية الخط لنهايته)
+	local percentage = math.clamp((mousePos - sliderPos) / sliderSize, 0, 1)
+
+	-- تحريك الزر بصرياً
+	knob.Position = UDim2.new(percentage, -6, 0.5, -4)
+
+	-- تحويل النسبة لقيمة (مثلاً من 1 إلى 50 استود للمسافة)
+	local percentValue = percentage * 100
+	local value = string.format("%.0f", percentValue)
+	-- تحديث النص والمتغير بشكل صحيح وآمن
+	slidBtnFixed.Text = value -- يعرض النسبة بدون أرقام عشرية مثل %100
+
+	return value
+end
+
+knob.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = false
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		updateSlider(input)
+	end
+end)
+
+runService.Heartbeat:Connect(function()
+	slideFill.Size=UDim2.new(knob.Position.X.Scale,0,1,0)
+	
+	local catchPart = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Torso") and 
+		LocalPlayer.Character.Torso:FindFirstChild("CatchPart")
+	if catchPart then
+		catchPart.Massless=true
+		if hitBoxState then
+			catchPart.Size=Vector3.new(slidBtnFixed.Text,slidBtnFixed.Text,slidBtnFixed.Text)
+		else
+			catchPart.Size=Vector3.new(2,1,2)
+		end
+	end
+end)
+
+local function newUi(parent) 
+	local ui = Instance.new("UICorner")
+	ui.CornerRadius = UDim.new(0,10)
+	ui.Parent=parent
+	return ui
+end
+
+local function newCustomUi(parent, rb,lb,ru,lu) 
+	local ui = Instance.new("UICorner")
+	ui.BottomLeftRadius =UDim.new(0,lb)
+	ui.BottomRightRadius=UDim.new(0,rb)
+	ui.TopLeftRadius=UDim.new(0,lu)
+	ui.TopRightRadius=UDim.new(0,ru)
+	ui.Parent=parent
+	return ui
+end
+
+newUi(destroyBtn)
+newUi(hideBtn)
+
+newUi(Mainframe)
+newCustomUi(frameTitle,0,0,10,10)
+newUi(iconFrame)
+
+newUi(basicFrame)
+newUi(remoteFrame)
+newUi(extraFrame)
+
+newUi(noClipBtn)
+newUi(noClipPlate)
+newUi(noClipKnob)
+
+newUi(moveBtn)
+newUi(movePlate)
+newUi(moveKnob)
+
+newUi(upBtn)
+newUi(upPlate)
+newUi(upTerm)
+
+newUi(speedSlideBtn)
+newUi(speedBox)
+
+newUi(jumpBtn)
+newUi(jumpBox)
+
+newUi(antiLavaBtn)
+newUi(antiLavaPlate)
+newUi(antiLavaKnob)
+
+newUi(anitBackBtn)
+newUi(anitBackPlate)
+newUi(anitBackKnob)
+
+newUi(lowGravityBtn)
+newUi(lowGravityKnob)
+newUi(lowGravityPlate)
+
+newUi(maxZoomBtn)
+newUi(maxZoomPlate)
+newUi(maxZoomKnob)
+
+newUi(infEggBtn)
+newUi(infEggPlate)
+newUi(infEggKnob)
+
+newUi(catchBtn)
+newUi(throwBtn)
+newUi(reBtn)
+
+newUi(hitBoxBtn)
+newUi(hitBoxKnob)
+newUi(hitBoxPlate)
+
+newUi(sliderBack)
+newUi(slideFill)
+newUi(knob)
+
+newUi(infCoinBtn)
+newUi(infCoinKnob)
+newUi(infCoinPlate)
+newUi(autoCatchBtn)
+newUi(stepBackBtn)
+newUi(explodeBtn)
+
+newUi(defaultEggBtn)
+newUi(classic_1Btn)
+newUi(classic_2Btn)
+newUi(classic_3Btn)
+newUi(fireEggBtn)
+newUi(iceEggBtn)
+newUi(easter_1Btn)
+newUi(easter_2Btn)
+newUi(easter_3Btn)
+newCustomUi(EggsSkin,10,10,0,0)
+
+local UserInputService = game:GetService("UserInputService")
+local PlayerModule = require(LocalPlayer:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule"))
+local Controls = PlayerModule:GetControls()
+
+local isDesktop = UserInputService.KeyboardEnabled and UserInputService.MouseEnabled
+
+local function forceDynamicControl()
+	if isDesktop then
+		if Controls then
+			Controls:Enable(true)
+		end
+	else
+		-- 2. للهواتف / Touch: فرض نمط الحركة الديناميكية
+		LocalPlayer.DevTouchMovementMode = Enum.DevTouchMovementMode.DynamicThumbstick
+
+		if Controls then
+			Controls:Enable(true)
+		end
+
+		-- إظهار واجهات اللمس
+		local touchGui = PlayerGui:FindFirstChild("TouchGui")
+		if touchGui then
+			touchGui.Enabled = true
+			local touchControlFrame = touchGui:FindFirstChild("TouchControlFrame")
+			if touchControlFrame then
+				touchControlFrame.Visible = true
+
+				local dynamicThumbstick = touchControlFrame:FindFirstChild("DynamicThumbstickFrame")
+				if dynamicThumbstick then
+					dynamicThumbstick.Visible = true
+				end
+			end
+		end
+	end
+end
+
+runService.Stepped:Connect(function()
+	if noClipState and LocalPlayer.Character then
+		if LocalPlayer.Character:FindFirstChild("Humanoid") and not LocalPlayer.Character.Humanoid.Sit then
+			for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
+				if part:IsA("BasePart") then
+					part.CanCollide = false
+				end
+			end
+		end
+	end
+	if moveState then
+		forceDynamicControl()
+	end
+	if antiLavaState then 
+		local lava = workspace:FindFirstChild("lava") or workspace:FindFirstChild("Lava")
+		if lava then lava.CanTouch=false else lava.CanTouch=true end
+	end
+	if lowGravityState then 
+		if not bool.Value then 
+			usePotionEvent:FireServer("lowGravity", true)
+		end
+	end
+end)
+
+runService.Heartbeat:Connect(function()
+	if upState then 
+		speedSlideBtn.Visible,jumpBtn.Visible=true,true
+		local human = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+		if human then 
+			if tonumber(speedBox.Text) then 
+				human.WalkSpeed=speedBox.Text
+			end
+			if tonumber(jumpBox.Text) then 
+				human.UseJumpPower=true
+				human.JumpPower=jumpBox.Text
+			end
+		end
+	end
+	if maxZoomState then
+		LocalPlayer.CameraMaxZoomDistance = 100000
+		LocalPlayer.CameraMinZoomDistance = 0.5
+	else
+		LocalPlayer.CameraMaxZoomDistance = 128
+		LocalPlayer.CameraMinZoomDistance = 10
+	end
+end)
+
+-- 2. دالة تحديث حالة الريموت
+local function updateStepBackState(enabled)
+	anitBackState = enabled
+
+	-- تعطيل أو تفعيل جميع الـ Connections المربوطة بالحدث
+	if getconnections then
+		for _, connection in ipairs(getconnections(StepBackEvent.OnClientEvent)) do
+			if enabled then
+				connection:Disable() -- حظر الريموت
+			else
+				connection:Enable()  -- إرجاع الريموت للعمل الطبيعي
+			end
+		end
+	end
+end
+
+eggvalue:GetPropertyChangedSignal("Value"):Connect(function()
+	if infEggState then eggvalue.Value=99 end
+end)
+
+coinValue:GetPropertyChangedSignal("Value"):Connect(function()
+	if infCoinState then coinValue.Value=99999 end
+end)
+
+-- 5. حماية إضافية: في حال قام الماب بربط اتصال جديد أثناء اللعب
+StepBackEvent.OnClientEvent:Connect(function()
+	if anitBackState then
+		updateStepBackState(true)
+	end
+end)
+
+noClipBtn.MouseButton1Click:Connect(function()
+	noClipState = not noClipState
+	if noClipState then
+		noClipKnob.Position = UDim2.new(0.6, 0, 0.9, -6)
+		noClipPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		noClipKnob.Position=UDim2.new(0.1,0,0.9,-6)
+		noClipPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	end
+end)
+
+moveBtn.MouseButton1Click:Connect(function()
+	moveState = not moveState
+	if moveState then
+		moveKnob.Position = UDim2.new(0.6, 0, 0.9, -6)
+		movePlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		moveKnob.Position = UDim2.new(0.1,0,0.9,-6)
+		movePlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	end
+end)
+
+upBtn.MouseButton1Click:Connect(function()
+	upState = not upState
+	if upState then
+		upTerm.Position = UDim2.new(0.6, 0, 0.9, -8)
+		upPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		speedSlideBtn.Visible,jumpBtn.Visible=false,false
+		upTerm.Position = UDim2.new(0.1, 0, 0.9, -8)
+		upPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	end
+end)
+
+antiLavaBtn.MouseButton1Click:Connect(function()
+	antiLavaState = not antiLavaState
+	if antiLavaState then 
+		antiLavaKnob.Position = UDim2.new(0.65, 0, 0.9, -6)
+		antiLavaPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		antiLavaKnob.Position = UDim2.new(0.1, 0, 0.9, -6)
+		antiLavaPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	end
+end)
+
+catchBtn.MouseButton1Click:Connect(function()
+	didCatchEvent:FireServer()
+end)
+
+throwBtn.MouseButton1Click:Connect(function()
+	eggThrowEvent:FireServer("perfect", lowGravityState)
+end)
+
+autoCatchBtn.MouseButton1Click:Connect(function()
+	usePowerEvent:FireServer(4)
+end)
+
+stepBackBtn.MouseButton1Click:Connect(function()
+	usePowerEvent:FireServer(2)
+end)
+
+explodeBtn.MouseButton1Click:Connect(function()
+	usePowerEvent:FireServer(1)
+end)
+
+reBtn.MouseButton1Click:Connect(function()
+	EggsSkin.Visible=not EggsSkin.Visible
+end)
+
+anitBackBtn.MouseButton1Click:Connect(function()
+	anitBackState = not anitBackState
+
+	updateStepBackState(anitBackState)
+
+	if anitBackState then 
+		anitBackKnob.Position = UDim2.new(0.65, 0, 0.9, -6)
+		anitBackPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		anitBackKnob.Position = UDim2.new(0.1, 0, 0.9, -6)
+		anitBackPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	end
+end)
+
+lowGravityBtn.MouseButton1Click:Connect(function()
+	lowGravityState = not lowGravityState
+
+	if lowGravityState then 
+		lowGravityKnob.Position = UDim2.new(0.65, 0, 0.9, -6)
+		lowGravityPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		lowGravityKnob.Position = UDim2.new(0.1, 0, 0.9, -6)
+		lowGravityPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	end
+end)
+
+maxZoomBtn.MouseButton1Click:Connect(function()
+	maxZoomState = not maxZoomState
+	if maxZoomState then 
+		maxZoomKnob.Position = UDim2.new(0.6, 0, 0.9, -7)
+		maxZoomPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		maxZoomKnob.Position = UDim2.new(0.1, 0, 0.9, -7)
+		maxZoomPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	end
+end)
+
+infEggBtn.MouseButton1Click:Connect(function()
+	infEggState = not infEggState
+	if infEggState then 
+
+		eggvalue.Value=99
+		infEggKnob.Position = UDim2.new(0.6, 0, 0.9, -7)
+		infEggPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		infEggKnob.Position = UDim2.new(0.1, 0, 0.9, -7)
+		infEggPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	end
+end)
+
+infCoinBtn.MouseButton1Click:Connect(function()
+	infCoinState = not infCoinState
+	if infCoinState then 
+
+		coinValue.Value=99999
+		infCoinKnob.Position = UDim2.new(0.6, 0, 0.9, -7)
+		infCoinPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		infCoinKnob.Position = UDim2.new(0.1, 0, 0.9, -7)
+		infCoinPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	end
+end)
+
+hitBoxBtn.MouseButton1Click:Connect(function()
+	hitBoxState = not hitBoxState
+	if hitBoxState then 
+		hitBoxKnob.Position = UDim2.new(0.6, 0, 0.9, -6)
+		hitBoxPlate.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	else 
+		hitBoxKnob.Position = UDim2.new(0.1, 0, 0.9, -6)
+		hitBoxPlate.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	end
+	slapSlideBtn.Visible=hitBoxState
+end)
+
+defaultEggBtn.MouseButton1Click:Connect(function()
+	EggsSkin.Visible=false
+	rePickFixed.Text="(Default)"
+	modifyEvent:FireServer(0)
+end)
+
+classic_1Btn.MouseButton1Click:Connect(function()
+	EggsSkin.Visible=false
+	rePickFixed.Text="(Classic 1)"
+	modifyEvent:FireServer(21)
+end)
+
+classic_2Btn.MouseButton1Click:Connect(function()
+	EggsSkin.Visible=false
+	rePickFixed.Text="(Classic 2)"
+	modifyEvent:FireServer(22)
+end)
+classic_3Btn.MouseButton1Click:Connect(function()
+	EggsSkin.Visible=false
+	rePickFixed.Text="(Classic 3)"
+	modifyEvent:FireServer(23)
+end)
+fireEggBtn.MouseButton1Click:Connect(function()
+	EggsSkin.Visible=false
+	rePickFixed.Text="(Fire)"
+	modifyEvent:FireServer(24)
+end)
+iceEggBtn.MouseButton1Click:Connect(function()
+	EggsSkin.Visible=false
+	rePickFixed.Text="(Ice)"
+	modifyEvent:FireServer(25)
+end)
+easter_1Btn.MouseButton1Click:Connect(function()
+	EggsSkin.Visible=false
+	rePickFixed.Text="(Easter 1)"
+	modifyEvent:FireServer(1)
+end)
+easter_2Btn.MouseButton1Click:Connect(function()
+	EggsSkin.Visible=false
+	rePickFixed.Text="(Easter 2)"
+	modifyEvent:FireServer(2)
+end)
+easter_3Btn.MouseButton1Click:Connect(function()
+	EggsSkin.Visible=false
+	rePickFixed.Text="(Easter 3)"
+	modifyEvent:FireServer(3)
+end)
