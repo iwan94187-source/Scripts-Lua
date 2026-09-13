@@ -297,7 +297,6 @@ basicTitlegradient.Color = ColorSequence.new{
 	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))    -- برتقالي دافئ من الأسفل
 }
 
-
 local remoteFrame = Instance.new("Frame")
 remoteFrame.Size=UDim2.new(0.45,0,0.5,0)
 remoteFrame.Position=UDim2.new(0.055,0,0.375,0)
@@ -898,6 +897,11 @@ runService.Stepped:Connect(function()
 	if antiLavaState then 
 		local lava = workspace:FindFirstChild("lava") or workspace:FindFirstChild("Lava")
 		if lava then lava.CanTouch=false else lava.CanTouch=true end
+	end
+	if lowGravityState then 
+		if not bool.Value then 
+			usePotionEvent:FireServer("lowGravity", true)
+		end
 	end
 end)
 
