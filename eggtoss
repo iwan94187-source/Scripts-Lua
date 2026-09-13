@@ -1009,7 +1009,7 @@ catchBtn.MouseButton1Click:Connect(function()
 end)
 
 throwBtn.MouseButton1Click:Connect(function()
-	eggThrowEvent:FireServer("perfect", false)
+	eggThrowEvent:FireServer("perfect", true)
 end)
 
 autoCatchBtn.MouseButton1Click:Connect(function()
