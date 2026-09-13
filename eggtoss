@@ -1010,7 +1010,7 @@ catchBtn.MouseButton1Click:Connect(function()
 end)
 
 throwBtn.MouseButton1Click:Connect(function()
-	eggThrowEvent:FireServer("perfect", true)
+	eggThrowEvent:FireServer("perfect", lowGravityState)
 end)
 
 autoCatchBtn.MouseButton1Click:Connect(function()
