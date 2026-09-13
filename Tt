@@ -1,453 +1,85 @@
--- Script Path: game:GetService("ReplicatedStorage").DataStore2
--- Took 0.03s to decompile.
+-- Script Path: game:GetService("Players").vip_ali2022.PlayerScripts.LocalScript
+-- Took 0.01s to decompile.
 -- Executor: Delta (1.1.736.1408)
 
-game:GetService("Players")
-local v_u_1 = game:GetService("RunService")
-local v2 = game:GetService("ServerStorage")
-local v_u_3 = require(script.Constants)
-local v_u_4 = require(script.Promise)
-local v_u_5 = require(script.SavingMethods)
-local v_u_6 = require(script.Settings)
-local v_u_7 = require(script.TableUtil)
-local v_u_8 = require(script.Verifier)
-local v_u_9 = v2:FindFirstChild("SaveInStudio")
-local v_u_10
-if v_u_9 then
-    v_u_10 = v_u_9.Value
-else
-    v_u_10 = v_u_9
-end
-local function v_u_12(p11) -- name: clone
-    -- upvalues: (copy) v_u_7
-    if typeof(p11) == "table" then
-        return v_u_7.clone(p11)
-    else
-        return p11
-    end
-end
-local v_u_38 = {
-    ["BeforeInitialGet"] = function(p13, p14) -- name: BeforeInitialGet
-        p13.combinedBeforeInitialGet = p14
-    end,
-    ["BeforeSave"] = function(p15, p16) -- name: BeforeSave
-        p15.combinedBeforeSave = p16
-    end,
-    ["Get"] = function(p17, p18, p19) -- name: Get
-        -- upvalues: (copy) v_u_7, (copy) v_u_12
-        local v20 = p17.combinedStore:Get({})
-        local v21 = v20[p17.combinedName]
-        if not p19 then
-            if v21 == nil then
-                v21 = p18
-            elseif p17.combinedBeforeInitialGet and not p17.combinedInitialGot then
-                v21 = p17.combinedBeforeInitialGet(v21)
-            end
-        end
-        p17.combinedInitialGot = true
-        local v22 = p17.combinedName
-        local v23
-        if typeof(v21) == "table" then
-            v23 = v_u_7.clone(v21)
-        else
-            v23 = v21
-        end
-        v20[v22] = v23
-        p17.combinedStore:Set(v20, true)
-        return v_u_12(v21)
-    end,
-    ["Set"] = function(p24, p25, p26) -- name: Set
-        local v27 = p24.combinedStore:GetTable({})
-        v27[p24.combinedName] = p25
-        p24.combinedStore:Set(v27, p26)
-        p24:_Update(p26)
-    end,
-    ["Update"] = function(p28, p29) -- name: Update
-        p28:Set(p29(p28:Get()))
-        p28:_Update()
-    end,
-    ["Save"] = function(p30) -- name: Save
-        p30.combinedStore:Save()
-    end,
-    ["OnUpdate"] = function(p31, p32) -- name: OnUpdate
-        if p31.onUpdateCallbacks then
-            p31.onUpdateCallbacks[#p31.onUpdateCallbacks + 1] = p32
-        else
-            p31.onUpdateCallbacks = { p32 }
-        end
-    end,
-    ["_Update"] = function(p33, p34) -- name: _Update
-        if not p34 then
-            for _, v35 in pairs(p33.onUpdateCallbacks or {}) do
-                v35(p33:Get(), p33)
-            end
-        end
-        p33.combinedStore:_Update(true)
-    end,
-    ["SetBackup"] = function(p36, p37) -- name: SetBackup
-        p36.combinedStore:SetBackup(p37)
-    end
-}
-local v_u_118 = {
-    ["__index"] = {
-        ["Debug"] = function(p39, ...) -- name: Debug
-            if p39.debug then
-                print(...)
-            end
-        end,
-        ["_GetRaw"] = function(p_u_40) -- name: _GetRaw
-            if p_u_40.getRawPromise then
-                return p_u_40.getRawPromise
-            end
-            p_u_40.getRawPromise = p_u_40.savingMethod:Get():andThen(function(p41)
-                -- upvalues: (copy) p_u_40
-                p_u_40.value = p41
-                p_u_40:Debug("value received")
-                p_u_40.haveValue = true
-            end):finally(function()
-                -- upvalues: (copy) p_u_40
-                p_u_40.getting = false
-            end)
-            return p_u_40.getRawPromise
-        end,
-        ["_Update"] = function(p42, p43) -- name: _Update
-            if not p43 then
-                for _, v44 in pairs(p42.callbacks) do
-                    v44(p42.value, p42)
-                end
-            end
-            p42.haveValue = true
-            p42.valueUpdated = true
-        end,
-        ["Get"] = function(p45, p46, p47) -- name: Get
-            -- upvalues: (copy) v_u_7
-            if p47 then
-                return p45.value
-            end
-            if not p45.haveValue then
-                local v48 = 0
-                while not p45.haveValue do
-                    local v49, v50 = p45:_GetRaw():await()
-                    if not v49 then
-                        if p45.backupRetries then
-                            v48 = v48 + 1
-                            if p45.backupRetries <= v48 then
-                                p45.backup = true
-                                p45.haveValue = true
-                                p45.value = p45.backupValue
-                                break
-                            end
-                        end
-                        p45:Debug("Get returned error:", v50)
-                    end
-                end
-                if p45.value ~= nil then
-                    for _, v51 in pairs(p45.beforeInitialGet) do
-                        p45.value = v51(p45.value, p45)
-                    end
-                end
-            end
-            if p45.value ~= nil or p46 == nil then
-                p46 = p45.value
-            end
-            if typeof(p46) == "table" then
-                p46 = v_u_7.clone(p46)
-            end
-            p45.value = p46
-            return p46
-        end,
-        ["GetAsync"] = function(p_u_52, ...) -- name: GetAsync
-            -- upvalues: (copy) v_u_4
-            local v_u_53 = { ... }
-            return v_u_4.async(function(p54)
-                -- upvalues: (copy) p_u_52, (copy) v_u_53
-                local v55 = v_u_53
-                p54(p_u_52:Get(unpack(v55)))
-            end)
-        end,
-        ["GetTable"] = function(p56, p57, ...) -- name: GetTable
-            local v58, v59 = p56:GetTableAsync(p57, ...):await()
-            if not v58 then
-                error(v59)
-            end
-            return v59
-        end,
-        ["GetTableAsync"] = function(p_u_60, p_u_61, ...) -- name: GetTableAsync
-            local v62 = p_u_61 ~= nil
-            assert(v62, "You must provide a default value.")
-            return p_u_60:GetAsync(p_u_61, ...):andThen(function(p63)
-                -- upvalues: (copy) p_u_61, (copy) p_u_60
-                local v64 = typeof(p63) == "table"
-                assert(v64, ":GetTable/:GetTableAsync was used when the value in the data store isn\'t a table.")
-                local v65 = false
-                for v66, v67 in pairs(p_u_61) do
-                    if p63[v66] == nil then
-                        p63[v66] = v67
-                        v65 = true
-                    end
-                end
-                if v65 then
-                    p_u_60:Set(p63)
-                end
-                return p63
-            end)
-        end,
-        ["Set"] = function(p68, p69, p70) -- name: Set
-            -- upvalues: (copy) v_u_7
-            if typeof(p69) == "table" then
-                p69 = v_u_7.clone(p69)
-            end
-            p68.value = p69
-            p68:_Update(p70)
-        end,
-        ["Update"] = function(p71, p72) -- name: Update
-            p71.value = p72(p71.value)
-            p71:_Update()
-        end,
-        ["Increment"] = function(p73, p74, p75) -- name: Increment
-            p73:Set(p73:Get(p75) + p74)
-        end,
-        ["IncrementAsync"] = function(p_u_76, p_u_77, p78) -- name: IncrementAsync
-            p_u_76:GetAsync(p78):andThen(function(p79)
-                -- upvalues: (copy) p_u_76, (copy) p_u_77
-                p_u_76:Set(p79 + p_u_77)
-            end)
-        end,
-        ["OnUpdate"] = function(p80, p81) -- name: OnUpdate
-            local v82 = p80.callbacks
-            table.insert(v82, p81)
-        end,
-        ["BeforeInitialGet"] = function(p83, p84) -- name: BeforeInitialGet
-            local v85 = p83.beforeInitialGet
-            table.insert(v85, p84)
-        end,
-        ["BeforeSave"] = function(p86, p87) -- name: BeforeSave
-            p86.beforeSave = p87
-        end,
-        ["AfterSave"] = function(p88, p89) -- name: AfterSave
-            local v90 = p88.afterSave
-            table.insert(v90, p89)
-        end,
-        ["SetBackup"] = function(p91, p92, p93) -- name: SetBackup
-            p91.backupRetries = p92
-            p91.backupValue = p93
-        end,
-        ["ClearBackup"] = function(p94) -- name: ClearBackup
-            p94.backup = nil
-            p94.haveValue = false
-            p94.value = nil
-        end,
-        ["IsBackup"] = function(p95) -- name: IsBackup
-            return p95.backup ~= nil
-        end,
-        ["Save"] = function(p96) -- name: Save
-            local v97, v98 = p96:SaveAsync():await()
-            if not v97 then
-                error(v98)
-            end
-        end,
-        ["SaveAsync"] = function(p_u_99) -- name: SaveAsync
-            -- upvalues: (copy) v_u_4, (copy) v_u_1, (copy) v_u_10, (copy) v_u_9, (copy) v_u_7, (copy) v_u_3, (copy) v_u_8
-            return v_u_4.async(function(p_u_100, p101)
-                -- upvalues: (copy) p_u_99, (ref) v_u_1, (ref) v_u_10, (ref) v_u_9, (ref) v_u_7, (ref) v_u_3, (ref) v_u_8
-                if p_u_99.valueUpdated then
-                    if v_u_1:IsStudio() and not v_u_10 then
-                        warn(("Data store %s attempted to save in studio while SaveInStudio is false."):format(p_u_99.Name))
-                        if not v_u_9 then
-                            warn("You can set the value of this by creating a BoolValue named SaveInStudio in ServerStorage.")
-                        end
-                        p_u_100(false)
-                        return
-                    elseif p_u_99.backup then
-                        warn("This data store is a backup store, and thus will not be saved.")
-                        p_u_100(false)
-                        return
-                    elseif p_u_99.value ~= nil then
-                        local v_u_102 = p_u_99.value
-                        if typeof(v_u_102) == "table" then
-                            v_u_102 = v_u_7.clone(v_u_102)
-                        end
-                        if p_u_99.beforeSave then
-                            local v103
-                            v103, v_u_102 = pcall(p_u_99.beforeSave, v_u_102, p_u_99)
-                            if not v103 then
-                                p101(v_u_102, v_u_3.SaveFailure.BeforeSaveError)
-                                return
-                            end
-                        end
-                        local v104 = v_u_8.testValidity(v_u_102)
-                        if not v104 then
-                            return p_u_99.savingMethod:Set(v_u_102):andThen(function()
-                                -- upvalues: (copy) p_u_100, (ref) v_u_102
-                                p_u_100(true, v_u_102)
-                            end)
-                        end
-                        p101(v104, v_u_3.SaveFailure.InvalidData)
-                    end
-                else
-                    warn(("Data store %s was not saved as it was not updated."):format(p_u_99.Name))
-                    p_u_100(false)
-                    return
-                end
-            end):andThen(function(p105, p106)
-                -- upvalues: (copy) p_u_99
-                if p105 then
-                    for _, v107 in pairs(p_u_99.afterSave) do
-                        local v108, v109 = pcall(v107, p106, p_u_99)
-                        if not v108 then
-                            warn("Error on AfterSave: " .. v109)
-                        end
-                    end
-                    p_u_99.valueUpdated = false
-                end
-            end)
-        end,
-        ["BindToClose"] = function(p110, p111) -- name: BindToClose
-            local v112 = p110.bindToClose
-            table.insert(v112, p111)
-        end,
-        ["GetKeyValue"] = function(p113, p114) -- name: GetKeyValue
-            return (p113.value or {})[p114]
-        end,
-        ["SetKeyValue"] = function(p115, p116, p117) -- name: SetKeyValue
-            if not p115.value then
-                p115.value = p115:Get({})
-            end
-            p115.value[p116] = p117
-        end
-    }
-}
-local v_u_119 = {}
-local v_u_120 = {}
-local v_u_121 = {}
-function v_u_120.Combine(p122, ...) -- name: Combine
-    -- upvalues: (copy) v_u_121
-    for _, v123 in pairs({ ... }) do
-        v_u_121[v123] = p122
-    end
-end
-function v_u_120.ClearCache() -- name: ClearCache
-    -- upvalues: (ref) v_u_119
-    v_u_119 = {}
-end
-function v_u_120.SaveAll(p124) -- name: SaveAll
-    -- upvalues: (ref) v_u_119
-    if v_u_119[p124] then
-        for _, v125 in pairs(v_u_119[p124]) do
-            if v125.combinedStore == nil then
-                v125:Save()
-            end
-        end
-    end
-end
-function v_u_120.PatchGlobalSettings(p126) -- name: PatchGlobalSettings
-    -- upvalues: (copy) v_u_6
-    for v127, v128 in pairs(p126) do
-        local v129 = v_u_6[v127] ~= nil
-        local v130 = "No such key exists: " .. v127
-        assert(v129, v130)
-        v_u_6[v127] = v128
-    end
-end
-function v_u_120.__call(_, p131, p_u_132) -- name: __call
-    -- upvalues: (ref) v_u_119, (copy) v_u_121, (copy) v_u_120, (copy) v_u_12, (copy) v_u_38, (copy) v_u_5, (copy) v_u_6, (copy) v_u_118
-    local v133
-    if typeof(p131) == "string" then
-        v133 = typeof(p_u_132) == "Instance"
-    else
-        v133 = false
-    end
-    local v134 = typeof(p131)
-    local v135 = typeof(p_u_132)
-    assert(v133, ("DataStore2() API call expected {string dataStoreName, Instance player}, got {%s, %s}"):format(v134, v135))
-    if v_u_119[p_u_132] and v_u_119[p_u_132][p131] then
-        return v_u_119[p_u_132][p131]
-    end
-    if v_u_121[p131] then
-        local v_u_136 = v_u_120(v_u_121[p131], p_u_132)
-        v_u_136:BeforeSave(function(p137)
-            -- upvalues: (ref) v_u_121, (ref) v_u_120, (copy) p_u_132, (ref) v_u_12
-            for v138 in pairs(p137) do
-                if v_u_121[v138] then
-                    local v139 = v_u_120(v138, p_u_132)
-                    local v140 = v139:Get(nil, true)
-                    if v140 ~= nil then
-                        if v139.combinedBeforeSave then
-                            v140 = v139.combinedBeforeSave(v_u_12(v140))
-                        end
-                        p137[v138] = v140
-                    end
-                end
-            end
-            return p137
-        end)
-        local v142 = {
-            ["__index"] = function(_, p141) -- name: __index
-                -- upvalues: (ref) v_u_38, (copy) v_u_136
-                return v_u_38[p141] or v_u_136[p141]
-            end
-        }
-        local v143 = setmetatable({
-            ["combinedName"] = p131,
-            ["combinedStore"] = v_u_136
-        }, v142)
-        if not v_u_119[p_u_132] then
-            v_u_119[p_u_132] = {}
-        end
-        v_u_119[p_u_132][p131] = v143
-        return v143
-    end
-    local v_u_144 = {
-        ["Name"] = p131,
-        ["UserId"] = p_u_132.UserId,
-        ["callbacks"] = {},
-        ["beforeInitialGet"] = {},
-        ["afterSave"] = {},
-        ["bindToClose"] = {}
-    }
-    v_u_144.savingMethod = v_u_5[v_u_6.SavingMethod].new(v_u_144)
-    local v145 = v_u_118
-    setmetatable(v_u_144, v145)
-    local v_u_146 = Instance.new("BindableEvent")
-    local v_u_147 = false
-    game:BindToClose(function()
-        -- upvalues: (ref) v_u_147, (copy) p_u_132, (copy) v_u_146, (copy) v_u_144
-        if not v_u_147 then
-            spawn(function()
-                -- upvalues: (ref) p_u_132
-                p_u_132.Parent = nil
-            end)
-            v_u_146.Event:wait()
-        end
-        local v148 = v_u_144:Get(nil, true)
-        for _, v149 in pairs(v_u_144.bindToClose) do
-            v149(p_u_132, v148)
+local v_u_1 = game:GetService("StarterGui")
+repeat
+    local v2 = pcall(function()
+        -- upvalues: (copy) v_u_1
+        v_u_1:SetCore("ResetButtonCallback", false)
+    end)
+    task.wait(1)
+until v2
+task.wait(5)
+local v_u_3 = game:GetService("MarketplaceService")
+local v_u_4 = game.Players.LocalPlayer
+local v5 = game.Workspace:WaitForChild("BuyEggs")
+local v6 = v5:WaitForChild("fire"):WaitForChild("ProximityPrompt")
+local v7 = v5:WaitForChild("ice"):WaitForChild("ProximityPrompt")
+local v8 = v5:WaitForChild("easter1"):WaitForChild("ProximityPrompt")
+local v9 = v5:WaitForChild("easter2"):WaitForChild("ProximityPrompt")
+local v10 = v5:WaitForChild("easter3"):WaitForChild("ProximityPrompt")
+v6.Triggered:Connect(function()
+    -- upvalues: (copy) v_u_3, (copy) v_u_4
+    v_u_3:PromptGamePassPurchase(v_u_4, 1013131488)
+end)
+v7.Triggered:Connect(function()
+    -- upvalues: (copy) v_u_3, (copy) v_u_4
+    v_u_3:PromptGamePassPurchase(v_u_4, 1013103508)
+end)
+v8.Triggered:Connect(function()
+    -- upvalues: (copy) v_u_3, (copy) v_u_4
+    v_u_3:PromptGamePassPurchase(v_u_4, 1013305309)
+end)
+v9.Triggered:Connect(function()
+    -- upvalues: (copy) v_u_3, (copy) v_u_4
+    v_u_3:PromptGamePassPurchase(v_u_4, 1013764919)
+end)
+v10.Triggered:Connect(function()
+    -- upvalues: (copy) v_u_3, (copy) v_u_4
+    v_u_3:PromptGamePassPurchase(v_u_4, 1013449343)
+end)
+wait(100)
+local v11 = game.Players.LocalPlayer:WaitForChild("otherLeaderstats"):FindFirstChild("3")
+if v11 ~= nil and v11.Value == 0 then
+    local v_u_12 = nil
+    v_u_12 = game:GetService("AvatarEditorService").PromptSetFavoriteCompleted:Connect(function(p13)
+        -- upvalues: (ref) v_u_12
+        v_u_12:Disconnect()
+        if p13 then
+            print("PromptSetFavorite process completed.")
+            game.ReplicatedStorage.RemoteEvents.Favorite:FireServer()
         end
     end)
-    local v_u_150 = nil
-    v_u_150 = p_u_132.AncestryChanged:Connect(function()
-        -- upvalues: (copy) p_u_132, (ref) v_u_150, (copy) v_u_144, (copy) v_u_146, (ref) v_u_147, (ref) v_u_119
-        if not p_u_132:IsDescendantOf(game) then
-            v_u_150:Disconnect()
-            v_u_144:SaveAsync():andThen(function() end):catch(function(p151)
-                warn("error when player left! " .. p151)
-            end):finally(function()
-                -- upvalues: (ref) v_u_146, (ref) v_u_147
-                v_u_146:Fire()
-                v_u_147 = true
-            end)
-            delay(40, function()
-                -- upvalues: (ref) v_u_119, (ref) p_u_132
-                v_u_119[p_u_132] = nil
-            end)
+    game:GetService("AvatarEditorService"):PromptSetFavorite(78948849
+end)
+v7.Triggered:Connect(function()
+    -- upvalues: (copy) v_u_3, (copy) v_u_4
+    v_u_3:PromptGamePassPurchase(v_u_4, 1013103508)
+end)
+v8.Triggered:Connect(function()
+    -- upvalues: (copy) v_u_3, (copy) v_u_4
+    v_u_3:PromptGamePassPurchase(v_u_4, 1013305309)
+end)
+v9.Triggered:Connect(function()
+    -- upvalues: (copy) v_u_3, (copy) v_u_4
+    v_u_3:PromptGamePassPurchase(v_u_4, 1013764919)
+end)
+v10.Triggered:Connect(function()
+    -- upvalues: (copy) v_u_3, (copy) v_u_4
+    v_u_3:PromptGamePassPurchase(v_u_4, 1013449343)
+end)
+wait(100)
+local v11 = game.Players.LocalPlayer:WaitForChild("otherLeaderstats"):FindFirstChild("3")
+if v11 ~= nil and v11.Value == 0 then
+    local v_u_12 = nil
+    v_u_12 = game:GetService("AvatarEditorService").PromptSetFavoriteCompleted:Connect(function(p13)
+        -- upvalues: (ref) v_u_12
+        v_u_12:Disconnect()
+        if p13 then
+            print("PromptSetFavorite process completed.")
+            game.ReplicatedStorage.RemoteEvents.Favorite:FireServer()
         end
     end)
-    if not v_u_119[p_u_132] then
-        v_u_119[p_u_132] = {}
-    end
-    v_u_119[p_u_132][p131] = v_u_144
-    return v_u_144
+    game:GetService("AvatarEditorService"):PromptSetFavorite(78948849017501, Enum.AvatarItemType.Asset, true)
 end
-v_u_120.Constants = v_u_3
-return setmetatable(v_u_120, v_u_120)
-
