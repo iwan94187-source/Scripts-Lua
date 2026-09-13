@@ -1228,18 +1228,18 @@ easter_3Btn.MouseButton1Click:Connect(function()
 	modifyEvent:FireServer(3)
 end)
 
--- حفظ الدالة الأصلية للحدث
-local rawFireServer = eggThrowEvent.FireServer
-
--- اعتراض الحدث وتغيير الوسيط الأول إذا تحقق الشرط
-eggThrowEvent.FireServer = function(self, ...)
+local rawNamecall
+rawNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+	local method = getnamecallmethod()
 	local args = {...}
 
-	if autoThrowState then
-		-- استبدال الوسيط الأول بالمتغير throwTerm
-		args[1] = throwTerm
+	-- التأكد من أن الحدث هو EggThrowEvent والدالة المستدعاة هي FireServer
+	if self == eggThrowEvent and method == "FireServer" then
+		if autoThrowState then
+			args[1] = throwTerm -- تغيير الوسيط الأول
+		end
+		return rawNamecall(self, unpack(args))
 	end
 
-	-- تمرير الوسائط المعدلة للحدث الأصلي
-	return rawFireServer(self, unpack(args))
-end
+	return rawNamecall(self, ...)
+end)
