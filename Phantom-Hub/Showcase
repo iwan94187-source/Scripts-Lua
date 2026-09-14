@@ -275,15 +275,25 @@ local function newHub()
 	end)
 end
 
--- التحقق أولاً: هل "Phantom Hub" موجود بالفعل؟
-local existingHub = uiParent:FindFirstChild("Phantom Hub",true)
+local function ExistingUI(name)
+	for _, child in ipairs(uiParent:GetDescendants()) do
+		if child:IsA("ScreenGui") and child.Name == name then
+			return child
+		end
+	end
+end
 
+local existingHub = ExistingUI("Phantom Hub")
+local existingMenu = ExistingUI("ExcitScreen")
+
+if not existingHub then warn("Hub not found.")
+else print("Hub found") end
 if existingHub then
-	-- إنشاء نافذة التنبيه فقط في حال وجود السكربت مسبقاً
+	if existingMenu then return end
 	local excitscreenGui = Instance.new("ScreenGui")
 	excitscreenGui.Name = "ExcitScreen"
 	excitscreenGui.ResetOnSpawn = false
-	excitscreenGui.Parent = playerGui
+	excitscreenGui.Parent = uiParent
 
 	local replaceFrame = Instance.new("Frame")
 	replaceFrame.Size = UDim2.new(0.3, 0, 0.3, 0)
@@ -292,7 +302,7 @@ if existingHub then
 	replaceFrame.BackgroundTransparency = 0.5
 	replaceFrame.Visible = true
 	replaceFrame.ZIndex = 2
-	replaceFrame.Parent = uiParent
+	replaceFrame.Parent = excitscreenGui 
 
 	local replaceLabel = Instance.new("TextLabel")
 	replaceLabel.Size = UDim2.new(1, 0, 0.4, 0)
@@ -341,10 +351,11 @@ if existingHub then
 	replacebtn.MouseButton1Click:Connect(function()
 		existingHub:Destroy()
 		excitscreenGui:Destroy()
-		
+
 		newHub()
 	end)
 else
 	newHub()
 end
+
 
