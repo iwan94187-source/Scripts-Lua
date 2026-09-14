@@ -1,0 +1,37 @@
+local function newlbl(name,parent)
+					local lbl = Instance.new("TextLabel")
+					lbl.Size=UDim2.new(0.5,0,0.05,0)
+					lbl.Position=UDim2.new()
+					lbl.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+					lbl.BackgroundTransparency=0.5
+					lbl.BorderSizePixel=1
+					lbl.BorderColor3=Color3.fromRGB(86, 86, 86)
+					lbl.Text=name
+					lbl.Parent=parent
+					return lbl
+				end
+				
+				local function newbtn(name,parent)
+					local btn = Instance.new("TextButton")
+					btn.Size=UDim2.new(0.5,0,0.05,0)
+					btn.Position=UDim2.new(0.5)
+					btn.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+					btn.BackgroundTransparency=0.5
+					btn.BorderSizePixel=1
+					btn.BorderColor3=Color3.fromRGB(86, 86, 86)
+					btn.Text=name
+					btn.Parent=parent
+					return btn
+				end
+				
+				local function newTerm(parent)
+					local term = Instance.new("ImageLabel")
+					term.Size=UDim2.new(0,15,0,15)
+					term.Position=UDim2.new(0.05,0,0.1,0)
+					term.BackgroundColor3=Color3.fromRGB(64, 64, 64)
+					term.Image="rbxassetid://79837885108596"
+					term.ImageTransparency=1
+					term.Parent=parent
+					
+					return term
+				end
