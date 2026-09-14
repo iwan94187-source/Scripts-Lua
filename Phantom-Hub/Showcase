@@ -276,7 +276,7 @@ local function newHub()
 end
 
 -- التحقق أولاً: هل "Phantom Hub" موجود بالفعل؟
-local existingHub = playerGui:FindFirstChild("Phantom Hub")
+local existingHub = uiParent:FindFirstChild("Phantom Hub",true)
 
 if existingHub then
 	-- إنشاء نافذة التنبيه فقط في حال وجود السكربت مسبقاً
