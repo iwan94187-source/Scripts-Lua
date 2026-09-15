@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local houseFolder = workspace:WaitForChild("HOUSE")
 
-print("32ref3")
+print("2ww2")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -373,46 +373,17 @@ local function newHub(txt)
 				getKeysPlatform.BackgroundTransparency = 1
 				getKeysPlatform.Parent = frame_1
 				
-				local getKeyslbl_L = newlbl("Get All-Keys",getKeysPlatform)
+				local getKeyslbl_L = newlbl("Auto-Farm",getKeysPlatform)
 				local getKeyslbl_LFixed = fixedTxt(getKeyslbl_L, 0.8, 0.1)
 				getKeyslbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
 				getKeyslbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
 				getKeyslbl_LFixed.TextXAlignment="Left"
-
+				
+				
 
 				local getKeysState=false
 				local getKeysbtn_R = newbtn("",getKeysPlatform)
 				local getKeysclick = newClick(getKeysbtn_R)
-				
-				local getPartsPlatform = Instance.new("Frame")
-				getPartsPlatform.Size = UDim2.new(1, 0, 0.125, 0)
-				getPartsPlatform.BackgroundTransparency = 1
-				getPartsPlatform.Parent = frame_1
-
-				local getPartslbl_L = newlbl("Destroy doors", getPartsPlatform)
-				local getPartslbl_LFixed = fixedTxt(getPartslbl_L, 0.8, 0.1)
-				getPartslbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
-				getPartslbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
-				getPartslbl_LFixed.TextXAlignment = "Left"
-
-				local getPartsState = false
-				local getPartsbtn_R = newbtn("", getPartsPlatform)
-				local getPartsclick = newClick(getPartsbtn_R)
-				
-				local getHammerPlatform = Instance.new("Frame")
-				getHammerPlatform.Size = UDim2.new(1, 0, 0.125, 0)
-				getHammerPlatform.BackgroundTransparency = 1
-				getHammerPlatform.Parent = frame_1
-
-				local getHammerlbl_L = newlbl("Finish the Game", getHammerPlatform)
-				local getHammerlbl_LFixed = fixedTxt(getHammerlbl_L, 0.8, 0.1)
-				getHammerlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
-				getHammerlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
-				getHammerlbl_LFixed.TextXAlignment = "Left"
-
-				local getHammerState = false
-				local getHammerbtn_R = newbtn("", getHammerPlatform)
-				local getHammerclick = newClick(getHammerbtn_R)
 				
 				local switcherLine = Instance.new("Frame")
 				switcherLine.Size=UDim2.new(0.2,0,0.01,0)
