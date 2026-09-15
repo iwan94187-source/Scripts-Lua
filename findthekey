@@ -8,8 +8,7 @@ local houseFolder = workspace:WaitForChild("HOUSE")
 local keysFolder = houseFolder:WaitForChild("key")
 local hammerFolder = houseFolder:WaitForChild("Hammer")
 
-local partsFolder = workspace:WaitForChild("Parts")
-print("Susseccfull")
+print("121212")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -469,7 +468,8 @@ local function newHub(txt)
 					getdescents(keysFolder)
 				end)
 				getPartsbtn_R.MouseButton1Click:Connect(function()
-					getdescents(partsFolder)
+					local partsFolder = workspace:FindFirstChild("Parts")
+					if partsFolder then getdescents(partsFolder)end
 				end)
 				getHammerbtn_R.MouseButton1Click:Connect(function()
 					getdescents(hammerFolder)
