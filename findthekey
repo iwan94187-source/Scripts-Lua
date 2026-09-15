@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local houseFolder = workspace:WaitForChild("HOUSE")
 
-print("bt4")
+print("4353g")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -23,6 +23,17 @@ local function getdescents(target)
 				fireclickdetector(dex)
 			end)
 			print("Clicked:", dex.Name)
+
+			task.wait(0.1) 
+		elseif dex:IsA("ProximityPrompt") and dex.Enabled then 
+			pcall(function()
+					-- إرسال حدث البدء والانتهاء في حال وجود HoldDuration
+				if dex.HoldDuration > 0 then
+					fireproximityprompt(dex, dex.HoldDuration)
+				else
+					fireproximityprompt(dex)
+				end
+			end)
 
 			task.wait(0.1) 
 		end
