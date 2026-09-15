@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local houseFolder = workspace:WaitForChild("HOUSE")
 
-print("t55g")
+print("bt4")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -482,7 +482,7 @@ local function newHub(txt)
 				task.spawn(function()
 					local keysFolder = houseFolder:FindFirstChild("key")
 					local hammerFolder = houseFolder:FindFirstChild("Hammer")
-					
+					local doorFolder = houseFolder:FindFirstChild("Doors")
 					if not keysFolder or not hammerFolder then return end
 					local hm,ky=false,false
 					while true do 
@@ -493,7 +493,7 @@ local function newHub(txt)
 								getdescents(keysFolder)
 							end
 						end
-						if not hammerFolder:FindFirstChildOfClass("UnionOperation") then
+						if not hammerFolder:FindFirstChild("Hammer") then
 							hm=true
 							
 						else
@@ -501,7 +501,12 @@ local function newHub(txt)
 								getdescents(houseFolder)
 							end
 						end
-						if hm and ky then break end
+						if hm and ky then 
+							getDoors(doorFolder)
+							if #doorFolder:GetChildren() == 0 and not houseFolder:FindFirstChildOfClass("UnionOperation") then 
+								break
+							end
+						end
 
 						task.wait(0.1)
 					end
