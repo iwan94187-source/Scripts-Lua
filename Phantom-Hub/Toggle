@@ -60,9 +60,4 @@ end
 				
 local btnState=false
 local btn_R = newbtn("",frame)
-local click = Instance.new("ImageLabel")
-click.Size=UDim2.new(0.2,0,0.9,0)
-click.Position=UDim2.new(0,0,0.05,0)
-click.BackgroundTransparency=1
-click.Image="rbxassetid://9468220156"
-click.Parent=btn_R
+local click = newClick(btn_R)
