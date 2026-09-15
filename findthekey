@@ -5,10 +5,8 @@ local tweenService = game:GetService("TweenService")
 local runService = game:GetService("RunService")
 
 local houseFolder = workspace:WaitForChild("HOUSE")
-local keysFolder = houseFolder:WaitForChild("key")
-local hammerFolder = houseFolder:WaitForChild("Hammer")
 
-print("234233253")
+print("Susseccfull")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -21,8 +19,17 @@ end
 local function getdescents(target)
 	for _, dex in ipairs(target:GetDescendants()) do 
 		if dex:IsA("ClickDetector") then 
-			print("Susseccful Clicked")
-			fireclickdetector(dex)
+			local success, err = pcall(function()
+				fireclickdetector(dex)
+			end)
+
+			if success then
+				print("Successfully Clicked:", dex:GetFullName())
+			else
+				warn("Failed to click:", dex:GetFullName(), "Error:", err)
+			end
+
+			task.wait(0.05)
 		end
 	end
 end
@@ -465,13 +472,17 @@ local function newHub(txt)
 				end)
 				
 				getKeysbtn_R.MouseButton1Click:Connect(function()
-					getdescents(keysFolder)
+					local keysFolder= houseFolder:FindFirstChild("key")
+					if keysFolder then 
+						getdescents(keysFolder)
+					end
 				end)
 				getPartsbtn_R.MouseButton1Click:Connect(function()
 					local partsFolder = workspace:FindFirstChild("Parts")
 					if partsFolder then getdescents(partsFolder)end
 				end)
 				getHammerbtn_R.MouseButton1Click:Connect(function()
+					local hammerFolder = houseFolder:FindFirstChild("Hammer")
 					getdescents(hammerFolder)
 				end)
 				
