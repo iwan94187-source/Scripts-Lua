@@ -16,7 +16,7 @@ end
 
 local function newlbl(name,parent)
 	local lbl = Instance.new("TextLabel")
-	lbl.Size=UDim2.new(0.5,0,0.05,0)
+	lbl.Size=UDim2.new(0.5,0,1,0)
 	lbl.Position=UDim2.new()
 	lbl.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 	lbl.BackgroundTransparency=0.5
@@ -29,7 +29,7 @@ end
 
 local function newBox(name,parent)
 	local box = Instance.new("TextBox")
-	box.Size=UDim2.new(0.5,0,0.05,0)
+	box.Size=UDim2.new(0.5,0,1,0)
 	box.Position=UDim2.new(0.5)
 	box.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 	box.BackgroundTransparency=0.5
@@ -41,17 +41,22 @@ local function newBox(name,parent)
 
 end
 
-local lbl_L = newlbl("WalkSpeed",frame)
+local platform = Instance.new("Frame")
+platform.Size = UDim2.new(1, 0, 0.1, 0)
+platform.BackgroundTransparency = 1
+platform.Parent = frame_1
+
+local lbl_L = newlbl("WalkSpeed", platform)
 local lbl_LFixed = fixedTxt(lbl_L, 0.8, 0.1)
 lbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
 lbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
-lbl_LFixed.TextXAlignment="Left"
-				
-local Box_R = newBox("",frame)
+lbl_LFixed.TextXAlignment = "Left"
+
+local Box_R = newBox("", platform)
 local Box_RFixed = fixedTxt(Box_R, 0.8, 0.1)
 Box_RFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
 Box_RFixed.Position = UDim2.new(0.05, 0, 0.15, 0)
-Box_RFixed.TextXAlignment="Left"
+Box_RFixed.TextXAlignment = "Left"
 
 Box_R:GetPropertyChangedSignal("Text"):Connect(function()
 	local cleanText = Box_R.Text:gsub("[^%d%.]", "")
@@ -59,4 +64,3 @@ Box_R:GetPropertyChangedSignal("Text"):Connect(function()
 
 	Box_RFixed.Text = cleanText
 end)
-
