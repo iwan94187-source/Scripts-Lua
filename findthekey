@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local houseFolder = workspace:WaitForChild("HOUSE")
 
-print("23322")
+print("ؤصصص")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -25,20 +25,18 @@ local function getdescents(target)
 
 			task.wait(0.1) 
 		elseif dex:IsA("ProximityPrompt") and dex.Enabled then 
-			print("Firing Prompt via Dex method...")
+			print("Firing Prompt via Dex method:", dex:GetFullName())
 
 			pcall(function()
-				-- 1. محاكاة بدء الضغط
-				dex:InputHoldBegin()
+				-- تحديد أقصى مدة انتظار لمنع تعليق السكربت
+				local holdTime = math.min(dex.HoldDuration or 0, 2)
 
-				-- 2. الانتظار بحسب مدة الضغط المطول (إن وجدت)
-				if dex.HoldDuration > 0 then
-					task.wait(dex.HoldDuration + 0.02)
+				dex:InputHoldBegin()
+				if holdTime > 0 then
+					task.wait(holdTime + 0.02)
 				else
 					task.wait(0.02)
 				end
-
-				-- 3. محاكاة إنهاء الضغط وإطلاق الحدث
 				dex:InputHoldEnd()
 			end)
 
