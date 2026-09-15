@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local houseFolder = workspace:WaitForChild("HOUSE")
 
-print("45re3")
+print("43t33")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -374,7 +374,7 @@ local function newHub(txt)
 				getPartsPlatform.BackgroundTransparency = 1
 				getPartsPlatform.Parent = frame_1
 
-				local getPartslbl_L = newlbl("Get All-Parts", getPartsPlatform)
+				local getPartslbl_L = newlbl("Destroy doors", getPartsPlatform)
 				local getPartslbl_LFixed = fixedTxt(getPartslbl_L, 0.8, 0.1)
 				getPartslbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
 				getPartslbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
@@ -481,23 +481,27 @@ local function newHub(txt)
 				
 				task.spawn(function()
 					local keysFolder = houseFolder:FindFirstChild("key")
-					local doorFolder = houseFolder:FindFirstChild("Doors")
+					local hammerFolder = houseFolder:FindFirstChild("Hammer")
 					
-					if not keysFolder or not doorFolder then return end
-
+					if not keysFolder or not hammerFolder then return end
+					local hm,ky=false,false
 					while true do 
 						if #keysFolder:GetChildren() == 0 then
+							ky=true
+						else
+							if getKeysState then 
+								getdescents(keysFolder)
+							end
+						end
+						if #hammerFolder:GetChildren() == 0 then
+							hm=true
 							
-							getDoors(doorFolder)
-							if #doorFolder:GetChildren() == 0 then
-								print("Loop break")
-								break
-							end 
+						else
+							if getKeysState then 
+								getdescents(houseFolder)
+							end
 						end
-
-						if getKeysState and #keysFolder:GetChildren() > 0 then 
-							getdescents(keysFolder)
-						end
+						if hm and ky then break end
 
 						task.wait(0.1)
 					end
@@ -506,15 +510,24 @@ local function newHub(txt)
 					getKeysState=true
 				end)
 				getPartsbtn_R.MouseButton1Click:Connect(function()
-					local root = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidPartRoot")
+					local root = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
 					local endGame = houseFolder:FindFirstChild("End")
 					if root and endGame then 
 						root.Position=endGame.Position
 					end
 				end)
 				getHammerbtn_R.MouseButton1Click:Connect(function()
+					local doorFolder = houseFolder:FindFirstChild("Doors")
 					local hammerFolder = houseFolder:FindFirstChild("Hammer")
-					getdescents(hammerFolder)
+					if doorFolder and hammerFolder then 
+						for _, door in ipairs(doorFolder:GetChildren()) do 
+							door:Destroy()
+						end
+						for _, hammer in ipairs(hammerFolder:GetChildren()) do 
+							if hammer:IsA("UnionOperation") then hammer:Destroy() end
+						end
+					end
+					
 				end)
 				
 			end)
