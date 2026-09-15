@@ -8,7 +8,7 @@ local houseFolder = workspace:WaitForChild("HOUSE")
 local keysFolder = houseFolder:WaitForChild("key")
 local hammerFolder = houseFolder:WaitForChild("Hammer")
 
-print("121212")
+print("234233253")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
