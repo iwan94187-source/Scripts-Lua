@@ -25,7 +25,7 @@ local function getdescents(target)
 			print("Clicked:", dex.Name)
 
 			-- إعطاء السيرفر مهلة لتفادي حظر السبام (Debounce)
-			task.wait(1) 
+			task.wait(1.2) 
 		end
 	end
 end
