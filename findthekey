@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local houseFolder = workspace:WaitForChild("HOUSE")
 
-print("3254222")
+print("4343")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -24,8 +24,7 @@ local function getdescents(target)
 			end)
 			print("Clicked:", dex.Name)
 
-			-- إعطاء السيرفر مهلة لتفادي حظر السبام (Debounce)
-			task.wait(1.2) 
+			task.wait(0.1) 
 		end
 	end
 end
@@ -467,11 +466,26 @@ local function newHub(txt)
 					end) 
 				end)
 				
-				getKeysbtn_R.MouseButton1Click:Connect(function()
-					local keysFolder= houseFolder:FindFirstChild("key")
-					if keysFolder then 
-						getdescents(keysFolder)
+				task.spawn(function()
+					local keysFolder = houseFolder:FindFirstChild("key")
+
+					if not keysFolder then return end
+
+					while true do 
+						if #keysFolder:GetChildren() == 0 then
+							print("المجلد فارغ، تم كسر الحلقة!")
+							break
+						end
+
+						if getKeysState then 
+							getdescents(keysFolder)
+						end
+
+						task.wait(0.1)
 					end
+				end)
+				getKeysbtn_R.MouseButton1Click:Connect(function()
+					getKeysState=true
 				end)
 				getPartsbtn_R.MouseButton1Click:Connect(function()
 					local partsFolder = workspace:FindFirstChild("Parts")
