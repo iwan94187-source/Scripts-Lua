@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local houseFolder = workspace:WaitForChild("HOUSE")
 
-print("4343")
+print("6ف4ف")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -23,6 +23,19 @@ local function getdescents(target)
 				fireclickdetector(dex)
 			end)
 			print("Clicked:", dex.Name)
+
+			task.wait(0.1) 
+		end
+	end
+end
+
+local function getDoors(doorFolder)
+	for _, dex in ipairs(doorFolder:GetDescendants()) do 
+		if dex:IsA("ProximityPrompt") then 
+			pcall(function()
+				fireproximityprompt(dex)
+			end)
+			print("Door open")
 
 			task.wait(0.1) 
 		end
@@ -376,7 +389,7 @@ local function newHub(txt)
 				getHammerPlatform.BackgroundTransparency = 1
 				getHammerPlatform.Parent = frame_1
 
-				local getHammerlbl_L = newlbl("Get Hammer", getHammerPlatform)
+				local getHammerlbl_L = newlbl("Finish the Game", getHammerPlatform)
 				local getHammerlbl_LFixed = fixedTxt(getHammerlbl_L, 0.8, 0.1)
 				getHammerlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
 				getHammerlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
@@ -474,6 +487,10 @@ local function newHub(txt)
 					while true do 
 						if #keysFolder:GetChildren() == 0 then
 							print("المجلد فارغ، تم كسر الحلقة!")
+							local doorFolder = houseFolder:FindFirstChild("Doors")
+							
+							getDoors(doorFolder)
+							
 							break
 						end
 
@@ -488,8 +505,11 @@ local function newHub(txt)
 					getKeysState=true
 				end)
 				getPartsbtn_R.MouseButton1Click:Connect(function()
-					local partsFolder = workspace:FindFirstChild("Parts")
-					if partsFolder then getdescents(partsFolder)end
+					local root = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidPartRoot")
+					local endGame = houseFolder:FindFirstChild("End")
+					if root and endGame then 
+						root.Position=endGame.Position
+					end
 				end)
 				getHammerbtn_R.MouseButton1Click:Connect(function()
 					local hammerFolder = houseFolder:FindFirstChild("Hammer")
