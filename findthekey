@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local houseFolder = workspace:WaitForChild("HOUSE")
 
-print("45re3")
+print("43ف34")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
