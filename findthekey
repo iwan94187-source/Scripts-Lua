@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local houseFolder = workspace:WaitForChild("HOUSE")
 
-print("Susseccfull")
+print("6ف4ف")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -19,17 +19,13 @@ end
 local function getdescents(target)
 	for _, dex in ipairs(target:GetDescendants()) do 
 		if dex:IsA("ClickDetector") then 
-			local success, err = pcall(function()
+			pcall(function()
 				fireclickdetector(dex)
 			end)
+			print("Clicked:", dex.Name)
 
-			if success then
-				print("Successfully Clicked:", dex:GetFullName())
-			else
-				warn("Failed to click:", dex:GetFullName(), "Error:", err)
-			end
-
-			task.wait(0.05)
+			-- إعطاء السيرفر مهلة لتفادي حظر السبام (Debounce)
+			task.wait(0.3) 
 		end
 	end
 end
