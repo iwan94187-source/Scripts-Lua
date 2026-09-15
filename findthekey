@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local houseFolder = workspace:WaitForChild("HOUSE")
 
-print("6ف4ف")
+print("45re3")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -481,20 +481,21 @@ local function newHub(txt)
 				
 				task.spawn(function()
 					local keysFolder = houseFolder:FindFirstChild("key")
-
-					if not keysFolder then return end
+					local doorFolder = houseFolder:FindFirstChild("Doors")
+					
+					if not keysFolder or not doorFolder then return end
 
 					while true do 
 						if #keysFolder:GetChildren() == 0 then
-							print("المجلد فارغ، تم كسر الحلقة!")
-							local doorFolder = houseFolder:FindFirstChild("Doors")
 							
 							getDoors(doorFolder)
-							
-							break
+							if #doorFolder:GetChildren() == 0 then
+								print("Loop break")
+								break
+							end 
 						end
 
-						if getKeysState then 
+						if getKeysState and #keysFolder:GetChildren() > 0 then 
 							getdescents(keysFolder)
 						end
 
