@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local houseFolder = workspace:WaitForChild("HOUSE")
 
-print("ؤصصص")
+print("32ref3")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -518,6 +518,7 @@ local function newHub(txt)
 						end
 						if hm and ky then 
 							getDoors(doorFolder)
+							getDoors(hammerFolder)
 							if #doorFolder:GetChildren() == 0 and not hammerFolder:FindFirstChildOfClass("UnionOperation") then 
 								break
 							end
