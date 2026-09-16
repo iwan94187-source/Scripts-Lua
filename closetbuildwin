@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local gameFolder = workspace:WaitForChild("Game")
 
-print("3eedw")
+print("3343434")
 
 local uiParent = playerGui
 if gethui then
@@ -183,6 +183,23 @@ local function newHub(txt)
 				enterHubFrame:Destroy()
 
 				task.wait(0.5)
+				
+				local helperTextLabel = Instance.new("TextLabel")
+				helperTextLabel.Size=UDim2.new(0,200,0,50)
+				helperTextLabel.Transparency=0.5
+				helperTextLabel.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+				helperTextLabel.TextColor=BrickColor.new("White")
+				helperTextLabel.TextScaled=true
+				helperTextLabel.Parent=screenGui
+
+				local function printlog(txt,set)
+					if set then 
+						helperTextLabel.TextColor=BrickColor.new("Really red")
+					else
+						helperTextLabel.TextColor=BrickColor.new("Lime green")
+					end
+					helperTextLabel.Text=txt
+				end
 
 				local mainFrame_pos = UDim2.new(0,250,0,200)
 				local mainFrame = Instance.new("Frame")
@@ -479,12 +496,15 @@ local function newHub(txt)
 				end)
 				
 				runService.Heartbeat:Connect(function()
-					-- 1. التحقق فقط مما إذا كان الموديل الحالي قد تم حذفه من الـ Workspace
+					
 					if currentPlot then
+						printlog("In Pot",false)
 						if not currentPlot.Parent or not currentPlot:IsDescendantOf(gameFolder) then
 							currentPlot = nil
 							print("تم حذف الـ Plot الحالي وتصفير المتغير!")
 						end
+					else
+						printlog("Not not Plot",true)
 					end
 
 					-- 2. البحث عن Plot جديد يدخل اللاعب في نطاقه
