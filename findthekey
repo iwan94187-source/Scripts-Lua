@@ -8,7 +8,7 @@ local stageValue = localPlayer:WaitForChild("Stage")
 local houseFolder = workspace:WaitForChild("HOUSE")
 local stageFolder = houseFolder:WaitForChild("Stage")
 
-print("ddwwss")
+print("222222")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -561,6 +561,19 @@ local function newHub(txt)
 				end)
 				if houseFolder:FindFirstChild("Stage") and houseFolder.Stage:FindFirstChild("12") then 
 					task.spawn(function()
+						local btnsFolder = houseFolder:FindFirstChild("ClickButtons") and  houseFolder.ClickButtons:FindFirstChild("Buttons")
+						while true do 
+
+							if getKeysState then 
+
+								if btnsFolder then getdescents(pipesFolder)end
+
+							end
+
+							task.wait(0.1)
+						end
+					end)
+					task.spawn(function()
 						local pipesFolder = houseFolder:FindFirstChild("Pipes")
 						while true do 
 
@@ -577,15 +590,12 @@ local function newHub(txt)
 						local itemfolder = houseFolder:FindFirstChild("Items")
 						local keysFolder = houseFolder:FindFirstChild("key")
 						local doorFolder = houseFolder:FindFirstChild("Doors")
-						local btnsFolder = houseFolder:FindFirstChild("ClickButtons") and  houseFolder.ClickButtons:FindFirstChild("Buttons")
 						
 						while true do 
 							
 							if getKeysState then 
 								getdescents(keysFolder)
 								getdescents(doorFolder)
-								if btnsFolder then getdescents(btnsFolder) end
-								if pipesFolder then getdescents(pipesFolder)end
 								if itemfolder then getdescents(itemfolder)end
 							end
 
