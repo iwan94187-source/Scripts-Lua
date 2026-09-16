@@ -8,7 +8,7 @@ local stageValue = localPlayer:WaitForChild("Stage")
 local houseFolder = workspace:WaitForChild("HOUSE")
 local stageFolder = houseFolder:WaitForChild("Stage")
 
-print("3eedw")
+print("3e")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
