@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local gameFolder = workspace:WaitForChild("Game")
 
-print("bnbnbnb")
+print("ئءئءئءئ")
 
 local uiParent = playerGui
 if gethui then
@@ -24,17 +24,25 @@ local function forceEnableArchivable(model)
 	end
 end
 
-local function makeModelGhostly(model)
-	if not model then return end
-
-	for _, descendant in ipairs(model:GetDescendants()) do
-		if descendant:IsA("BasePart") then
-			descendant.Transparency = 0.5 -- درجة الشفافية (يمكنك تعديلها من 0 إلى 1)
-			descendant.CanCollide = false  -- إلغاء التصادم الفيزياء
-			descendant.CanTouch = false    -- إلغاء التفاعل بالأحداث (Touched)
-			descendant.CanQuery = false    -- جعل الكاميرا والـ Raycasts والماوس يمرون من خلالها
-		end
+local function applyGhostProperties(descendant)
+	if descendant:IsA("BasePart") then
+		descendant.Transparency = 0.5
+		descendant.CanCollide = false
+		descendant.CanTouch = false
+		descendant.CanQuery = false
 	end
+end
+
+-- دالة تحويل الموديل كاملاً وأبنائه إلى أشباح
+local function makeModelGhostly(model)
+	for _, descendant in ipairs(model:GetDescendants()) do
+		applyGhostProperties(descendant)
+	end
+
+	-- التعامل مع الأجزاء التي قد تتزامن لاحقاً من السيرفر (Streaming)
+	model.DescendantAdded:Connect(function(descendant)
+		applyGhostProperties(descendant)
+	end)
 end
 
 local function fixedTxt(parent, siz, pos)
@@ -199,6 +207,8 @@ local function newHub(txt)
 					end
 					helperTextLabel.Text=txt
 				end
+				
+				
 
 				local mainFrame_pos = UDim2.new(0,250,0,200)
 				local mainFrame = Instance.new("Frame")
@@ -503,6 +513,38 @@ local function newHub(txt)
 						print("تم حذف النسخة المفبركة (Fake DemoBuild)")
 					end
 				end
+				
+				local function createFakeDemo(sourceModel)
+					if not sourceModel or not revealBuildState then return end
+
+					removeFakeDemoModel()
+
+					-- التأكد من تفعيل Archivable احتياطياً
+					sourceModel.Archivable = true
+					for _, desc in ipairs(sourceModel:GetDescendants()) do
+						desc.Archivable = true
+					end
+
+					-- استنساخ الموديل
+					local cloned = sourceModel:Clone()
+					if not cloned then return end
+
+					cloned.Name = "FakeDemoBuild"
+
+					-- تطبيق الخصائص الشبجية على النسخة
+					makeModelGhostly(cloned)
+
+					-- تثبيت الموقع بحسب الموديل الأصلي
+					if sourceModel.PrimaryPart and cloned.PrimaryPart then
+						cloned:SetPrimaryPartCFrame(sourceModel.PrimaryPart.CFrame)
+					else
+						cloned:PivotTo(sourceModel:GetPivot())
+					end
+
+					cloned.Parent = currentPlot
+					fakeDemoModel = cloned
+					print("تم إنشاء FakeDemoBuild بنجاح مع عدد أبناء:", #cloned:GetDescendants())
+				end
 
 				runService.Heartbeat:Connect(function()
 					if currentPlot then
@@ -521,13 +563,8 @@ local function newHub(txt)
 
 								-- إنشاء النسخة المفبركة الجديدة إذا كان الشرط مفعلاً
 								if revealBuildState then
-									forceEnableArchivable(realDemoModel)
-
-									fakeDemoModel = realDemoModel:Clone()
-									fakeDemoModel.Name = "FakeDemoBuild" -- اسم مميز لتجنب الالتباس مع الأصلي
-									makeModelGhostly(fakeDemoModel)
-									fakeDemoModel.Parent = currentPlot
-									print("تم إنشاء نسخة مفبركة جديدة ووضعها داخل الـ Plot!")
+									
+									createFakeDemo(realDemoModel)
 								end
 							elseif not foundDemo then
 								removeFakeDemoModel()
@@ -535,10 +572,7 @@ local function newHub(txt)
 
 							-- التحقق المباشر من شرط الإظهار (في حال تغير المتغير revealBuildState أثناء اللعب)
 							if revealBuildState and not fakeDemoModel then
-								fakeDemoModel = realDemoModel:Clone()
-								fakeDemoModel.Name = "FakeDemoBuild"
-								makeModelGhostly(fakeDemoModel)
-								fakeDemoModel.Parent = currentPlot
+								createFakeDemo(realDemoModel)
 							elseif not revealBuildState and fakeDemoModel then
 								removeFakeDemoModel()
 							end
