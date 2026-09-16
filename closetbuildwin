@@ -4,11 +4,10 @@ local playerGui = localPlayer:WaitForChild("PlayerGui")
 local tweenService = game:GetService("TweenService")
 local runService = game:GetService("RunService")
 
-local stageValue = localPlayer:WaitForChild("Stage")
-local houseFolder = workspace:WaitForChild("HOUSE")
-local stageFolder = houseFolder:WaitForChild("Stage")
+local gameFolder = workspace:WaitForChild("Game")
 
-print("222222")
+print("3eedw")
+
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -18,53 +17,25 @@ elseif game:GetService("CoreGui") then
 	end)
 end
 
-local function getdescents(target)
-	for _, dex in ipairs(target:GetDescendants()) do 
-		if dex:IsA("ClickDetector") then 
-			if dex.Parent.Parent:FindFirstChildOfClass("Highlight") and 
-				dex.Parent.Parent.Highlight.FillColor==Color3.fromRGB(0,255,0) then 
-				continue
-			
-			elseif dex.Parent:IsA("BasePart")and dex.Parent.Name=="button1" and dex.Parent.BrickColor==BrickColor.new("Lime green") then
-				continue
-			end
-				
-			pcall(function()
-				fireclickdetector(dex)
-			end)
-
-			task.wait(0.1) 
-		elseif dex:IsA("ProximityPrompt") and dex.Enabled then 
-			print("Firing Prompt via Dex method:", dex:GetFullName())
-
-			pcall(function()
-				-- تحديد أقصى مدة انتظار لمنع تعليق السكربت
-				local holdTime = math.min(dex.HoldDuration or 0, 2)
-
-				dex:InputHoldBegin()
-				if holdTime > 0 then
-					task.wait(holdTime + 0.02)
-				else
-					task.wait(0.02)
-				end
-				dex:InputHoldEnd()
-			end)
-
-			task.wait(0.1) 
-		end
+local function isPlayerInPlot(plot)
+	if not plot or not plot:IsA("Model") or not plot.Parent then 
+		return false 
 	end
-end
 
-local function getDoors(doorFolder)
-	for _, dex in ipairs(doorFolder:GetDescendants()) do 
-		if dex:IsA("ProximityPrompt") then 
-			pcall(function()
-				fireproximityprompt(dex)
-			end)
-
-			task.wait(0.1) 
-		end
+	local character = localPlayer.Character
+	if not character or not character:FindFirstChild("HumanoidRootPart") then 
+		return false 
 	end
+
+	local hrpPosition = character.HumanoidRootPart.Position
+	local cframe, size = plot:GetBoundingBox()
+
+	local localPos = cframe:PointToObjectSpace(hrpPosition)
+	local halfSize = size / 2
+
+	return math.abs(localPos.X) <= halfSize.X
+		and math.abs(localPos.Y) <= halfSize.Y
+		and math.abs(localPos.Z) <= halfSize.Z
 end
 
 local function fixedTxt(parent, siz, pos)
@@ -402,88 +373,35 @@ local function newHub(txt)
 				
 				listOff(frame_1)
 				listOff(frame_2)
-				
-				
-				local speedPlatform = Instance.new("Frame")
-				speedPlatform.Size = UDim2.new(1, 0, 0.125, 0)
-				speedPlatform.BackgroundTransparency = 1
-				speedPlatform.Parent = frame_2
 
-				local speedlbl_L = newlbl("WalkSpeed",speedPlatform)
-				local speedlbl_LFixed = fixedTxt(speedlbl_L, 0.8, 0.1)
-				speedlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
-				speedlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
-				speedlbl_LFixed.TextXAlignment="Left"
+				local revealBuildPlatform = Instance.new("Frame")
+				revealBuildPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				revealBuildPlatform.BackgroundTransparency = 1
+				revealBuildPlatform.Parent = frame_1
 
-				local speedBox_R = newBox("", speedPlatform)
-				local speedBox_RFixed = fixedTxt(speedBox_R, 0.8, 0.1)
-				speedBox_RFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
-				speedBox_RFixed.Position =  UDim2.new(0.05, 0, 0.15, 0)
+				local revealBuildlbl_L = newlbl("Reveal Build", revealBuildPlatform)
+				local revealBuildlbl_LFixed = fixedTxt(revealBuildlbl_L, 0.8, 0.1)
+				revealBuildlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				revealBuildlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				revealBuildlbl_LFixed.TextXAlignment = "Left"
 
-				local stagePlatform = Instance.new("Frame")
-				stagePlatform.Size = UDim2.new(1, 0, 0.125, 0)
-				stagePlatform.BackgroundTransparency = 1
-				stagePlatform.Parent = frame_1
-
-				local stagelbl_L = newlbl("Stage", stagePlatform)
-				local stagelbl_LFixed = fixedTxt(stagelbl_L, 0.8, 0.1)
-				stagelbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
-				stagelbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
-				stagelbl_LFixed.TextColor=BrickColor.new("Grey")
-				stagelbl_LFixed.TextXAlignment = "Left"
-
-				local stagebtn_R = newlbl("1", stagePlatform)
-				stagebtn_R.Position=UDim2.new(0.5)
-				local stagebtn_RFixed = fixedTxt(stagebtn_R, 0.8, 0.1)
-				stagebtn_RFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
-				stagebtn_RFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
-				stagebtn_RFixed.TextColor=BrickColor.new("Grey")
-				stagebtn_RFixed.TextXAlignment = "Left"
-
-				local getKeysPlatform = Instance.new("Frame")
-				getKeysPlatform.Size = UDim2.new(1, 0, 0.125, 0)
-				getKeysPlatform.BackgroundTransparency = 1
-				getKeysPlatform.Parent = frame_1
-
-				local getKeyslbl_L = newlbl("Auto-Farm",getKeysPlatform)
-				local getKeyslbl_LFixed = fixedTxt(getKeyslbl_L, 0.8, 0.1)
-				getKeyslbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
-				getKeyslbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
-				getKeyslbl_LFixed.TextXAlignment="Left"
-
-				local getKeysState=false
-				local getKeysbtn_R = newbtn("",getKeysPlatform)
-				local getKeysclick = newClick(getKeysbtn_R)
+				local revealBuildState = false
+				local revealBuildlbl_R = newbtn("", revealBuildPlatform)
+				local revealBuildTerm = newTerm(revealBuildlbl_R)
 
 				local switcherLine = Instance.new("Frame")
 				switcherLine.Size=UDim2.new(0.2,0,0.01,0)
 				switcherLine.Position=UDim2.new(0,0,0.19,0)
 				switcherLine.BackgroundColor=BrickColor.White()
 				switcherLine.Parent=mainFrame
-
-				speedBox_R:GetPropertyChangedSignal("Text"):Connect(function()
-					local cleanText = speedBox_R.Text:gsub("[^%d%.]", "")
-					speedBox_R.Text = cleanText
-					speedBox_RFixed.Text = cleanText
-				end)
-
-				stageValue:GetPropertyChangedSignal("Value"):Connect(function()
-					stagebtn_RFixed.Text=stageValue.Value
-				end)
+				
+				local currentPlot = nil
 
 				local function display(state)
 					frame_1.Visible,frame_2.Visible=false,false
 					state.Visible=true
 				end
 
-				runService.Heartbeat:Connect(function()
-					if tonumber(speedBox_R.Text) then 
-						local human = localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid")
-						if human then 
-							human.WalkSpeed=speedBox_R.Text
-						end
-					end
-				end)
 				mainBtn.MouseButton1Click:Connect(function()
 
 					local motionLine = tweenService:Create(switcherLine,TweenInfo.new(0.3),{Position=UDim2.new(mainBtn.Position.X.Scale,0,switcherLine.Position.Y.Scale,0)})
@@ -543,7 +461,7 @@ local function newHub(txt)
 						iconMotion:Play()
 					end)
 				end)
-
+				
 				destroyMenuBtn.MouseButton1Click:Connect(function()blackFrame.Visible=true end)
 				nobtn.MouseButton1Click:Connect(function()blackFrame.Visible=false end)
 				yesbtn.MouseButton1Click:Connect(function()
@@ -559,86 +477,40 @@ local function newHub(txt)
 						screenGui:Destroy()
 					end) 
 				end)
-				if houseFolder:FindFirstChild("Stage") and houseFolder.Stage:FindFirstChild("12") then 
-					task.spawn(function()
-						local btnsFolder = houseFolder:FindFirstChild("ClickButtons") and  houseFolder.ClickButtons:FindFirstChild("Buttons")
-						while true do 
-
-							if getKeysState then 
-
-								if btnsFolder then getdescents(pipesFolder)end
-
-							end
-
-							task.wait(0.1)
+				
+				runService.Heartbeat:Connect(function()
+					-- 1. التحقق فقط مما إذا كان الموديل الحالي قد تم حذفه من الـ Workspace
+					if currentPlot then
+						if not currentPlot.Parent or not currentPlot:IsDescendantOf(gameFolder) then
+							currentPlot = nil
+							print("تم حذف الـ Plot الحالي وتصفير المتغير!")
 						end
-					end)
-					task.spawn(function()
-						local pipesFolder = houseFolder:FindFirstChild("Pipes")
-						while true do 
+					end
 
-							if getKeysState then 
-
-								if pipesFolder then getdescents(pipesFolder)end
-
+					-- 2. البحث عن Plot جديد يدخل اللاعب في نطاقه
+					for _, child in ipairs(gameFolder:GetChildren()) do
+						if child:IsA("Model") and child.Name == "Plot" then
+							-- إذا دخلنا نطاق Plot مختلف عن الحالي، يتم تحديث المتغير والاستقرار عليه
+							if child ~= currentPlot and isPlayerInPlot(child) then
+								currentPlot = child
+								print("تم تسجيل Plot جديد والاستقرار عليه:", currentPlot:GetFullName())
+								break
 							end
-
-							task.wait(0.1)
 						end
-					end)
-					task.spawn(function()
-						local itemfolder = houseFolder:FindFirstChild("Items")
-						local keysFolder = houseFolder:FindFirstChild("key")
-						local doorFolder = houseFolder:FindFirstChild("Doors")
-						
-						while true do 
-							
-							if getKeysState then 
-								getdescents(keysFolder)
-								getdescents(doorFolder)
-								if itemfolder then getdescents(itemfolder)end
-							end
-
-							task.wait(0.1)
-						end
-					end)
-				elseif houseFolder:FindFirstChild("Stage") and houseFolder.Stage:FindFirstChild("10") or houseFolder.Stage:FindFirstChild("5") then
-					task.spawn(function()
-						local puddleFolder = houseFolder:FindFirstChild("Puddle")
-						local itemfolder = houseFolder:FindFirstChild("Items")
-						local keysFolder = houseFolder:FindFirstChild("key")
-						local hammerFolder = houseFolder:FindFirstChild("Hammer")
-						local doorFolder = houseFolder:FindFirstChild("Doors")
-						local hm,ky=false,false
-						while true do 
-							if #keysFolder:GetChildren() == 0 then
-								ky=true
-							else
-								if getKeysState then 
-									getdescents(keysFolder)
-									if itemfolder then getdescents(itemfolder) end
-								end
-							end
-
-							if getKeysState and hammerFolder then 
-								getdescents(houseFolder)
-								getDoors(hammerFolder)
-							end
-
-							if getKeysState and puddleFolder then 
-								getdescents(puddleFolder)
-							end
-
-							getDoors(doorFolder)
-
-							task.wait(0.1)
-						end
-					end)
-				end
-				getKeysbtn_R.MouseButton1Click:Connect(function()
-					getKeysState=true
+					end
 				end)
-
+				
+				revealBuildlbl_R.MouseButton1Click:Connect(function()
+					revealBuildState=not revealBuildState
+					if revealBuildState then 
+						revealBuildTerm.ImageTransparency=0
+						revealBuildTerm.BackgroundColor=BrickColor.White()
+					else
+						revealBuildTerm.ImageTransparency=1
+						revealBuildTerm.BackgroundColor3=Color3.fromRGB(86, 86, 86)
+					end
+				end)
+				
 			end)
 		end)
 	end)
