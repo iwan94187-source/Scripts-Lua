@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local gameFolder = workspace:WaitForChild("Game")
 
-print("3343434")
+print("3eedw")
 
 local uiParent = playerGui
 if gethui then
@@ -412,7 +412,8 @@ local function newHub(txt)
 				switcherLine.BackgroundColor=BrickColor.White()
 				switcherLine.Parent=mainFrame
 				
-				local currentPlot = nil
+				local currentPlot = nil 
+				local demoModel = nil    
 
 				local function display(state)
 					frame_1.Visible,frame_2.Visible=false,false
@@ -496,24 +497,47 @@ local function newHub(txt)
 				end)
 				
 				runService.Heartbeat:Connect(function()
-					
+				
 					if currentPlot then
-						printlog("In Pot",false)
 						if not currentPlot.Parent or not currentPlot:IsDescendantOf(gameFolder) then
 							currentPlot = nil
-							print("تم حذف الـ Plot الحالي وتصفير المتغير!")
+							demoModel = nil
+							print("تم حذف الـ Plot الحالي وتصفير جميع المتغيرات!")
+						else
+							local foundDemo = currentPlot:FindFirstChild("DemoBuild")
+
+							if foundDemo then
+								-- إذا ظهر DemoBuild جديد أو مختلف عن المسجل حالياً، نبدله
+								if foundDemo ~= demoModel then
+									demoModel = foundDemo
+									print("تم تسجيل/استبدال DemoModel جديد:", demoModel:GetFullName())
+								end
+							else
+								-- إذا تم حذف DemoBuild من الـ Plot، نصفر المتغير
+								if demoModel ~= nil then
+									demoModel = nil
+									print("تم إزالة DemoBuild وتصفير المتغير الخاص به.")
+								end
+							end
 						end
 					else
-						printlog("Not not Plot",true)
+						-- تصفير demoModel تلقائياً في حال عدم وجود Plot
+						demoModel = nil
 					end
 
-					-- 2. البحث عن Plot جديد يدخل اللاعب في نطاقه
+					-- 2. البحث عن Plot جديد يدخل اللاعب في نطاقه وتكون ملكيته للاعب
 					for _, child in ipairs(gameFolder:GetChildren()) do
 						if child:IsA("Model") and child.Name == "Plot" then
-							-- إذا دخلنا نطاق Plot مختلف عن الحالي، يتم تحديث المتغير والاستقرار عليه
-							if child ~= currentPlot and isPlayerInPlot(child) then
+							local ownerValue = child:FindFirstChild("Owner")
+
+							if child ~= currentPlot and ownerValue and ownerValue.Value == localPlayer then
 								currentPlot = child
 								print("تم تسجيل Plot جديد والاستقرار عليه:", currentPlot:GetFullName())
+
+								demoModel = currentPlot:FindFirstChild("DemoBuild")
+								if demoModel then
+									print("تم العثور على DemoModel في الـ Plot الجديد:", demoModel:GetFullName())
+								end
 								break
 							end
 						end
