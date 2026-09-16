@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local gameFolder = workspace:WaitForChild("Game")
 
-print("ؤؤؤؤؤ")
+print("2222")
 
 local uiParent = playerGui
 if gethui then
@@ -17,25 +17,17 @@ elseif game:GetService("CoreGui") then
 	end)
 end
 
-local function isPlayerInPlot(plot)
-	if not plot or not plot:IsA("Model") or not plot.Parent then 
-		return false 
+local function makeModelGhostly(model)
+	if not model then return end
+
+	for _, descendant in ipairs(model:GetDescendants()) do
+		if descendant:IsA("BasePart") then
+			descendant.Transparency = 0.5 -- درجة الشفافية (يمكنك تعديلها من 0 إلى 1)
+			descendant.CanCollide = false  -- إلغاء التصادم الفيزياء
+			descendant.CanTouch = false    -- إلغاء التفاعل بالأحداث (Touched)
+			descendant.CanQuery = false    -- جعل الكاميرا والـ Raycasts والماوس يمرون من خلالها
+		end
 	end
-
-	local character = localPlayer.Character
-	if not character or not character:FindFirstChild("HumanoidRootPart") then 
-		return false 
-	end
-
-	local hrpPosition = character.HumanoidRootPart.Position
-	local cframe, size = plot:GetBoundingBox()
-
-	local localPos = cframe:PointToObjectSpace(hrpPosition)
-	local halfSize = size / 2
-
-	return math.abs(localPos.X) <= halfSize.X
-		and math.abs(localPos.Y) <= halfSize.Y
-		and math.abs(localPos.Z) <= halfSize.Z
 end
 
 local function fixedTxt(parent, siz, pos)
@@ -506,48 +498,45 @@ local function newHub(txt)
 				end
 
 				runService.Heartbeat:Connect(function()
-					-- 1. التحقق من حالة currentPlot
 					if currentPlot then
 						if not currentPlot.Parent or not currentPlot:IsDescendantOf(gameFolder) then
 							currentPlot = nil
-							realDemoModel = nil
 							removeFakeDemoModel()
 							print("تم حذف الـ Plot الحالي وتصفير جميع المتغيرات!")
 						else
 							-- البحث عن الـ DemoBuild الأصلي من اللعبة داخل الـ Plot
 							local foundDemo = currentPlot:FindFirstChild("DemoBuild")
-
+							
 							-- إذا ظهر DemoBuild أصلي جديد مختلف عن الذي نعرفه
-							if foundDemo and foundDemo ~= realDemoModel then
-								realDemoModel = foundDemo
-
-								-- حذف النسخة المزيفة القديمة إن وجدت لاستبدالها
+							if foundDemo then
+								realDemoModel=foundDemo
 								removeFakeDemoModel()
 
 								-- إنشاء النسخة المفبركة الجديدة إذا كان الشرط مفعلاً
 								if revealBuildState then
-									fakeDemoModel = realDemoModel:Clone()
+									printlog("true",false)
+									fakeDemoModel = foundDemo:Clone()
 									fakeDemoModel.Name = "FakeDemoBuild" -- اسم مميز لتجنب الالتباس مع الأصلي
+									makeModelGhostly(fakeDemoModel)
 									fakeDemoModel.Parent = currentPlot
 									print("تم إنشاء نسخة مفبركة جديدة ووضعها داخل الـ Plot!")
 								end
-							elseif not foundDemo and realDemoModel then
-								-- إذا تم حذف الـ DemoBuild الأصلي من اللعبة
-								realDemoModel = nil
+							elseif not foundDemo then
 								removeFakeDemoModel()
 							end
 
 							-- التحقق المباشر من شرط الإظهار (في حال تغير المتغير revealBuildState أثناء اللعب)
-							if revealBuildState and realDemoModel and not fakeDemoModel then
+							if revealBuildState and not fakeDemoModel then
 								fakeDemoModel = realDemoModel:Clone()
 								fakeDemoModel.Name = "FakeDemoBuild"
+								makeModelGhostly(fakeDemoModel)
 								fakeDemoModel.Parent = currentPlot
 							elseif not revealBuildState and fakeDemoModel then
 								removeFakeDemoModel()
 							end
 						end
 					else
-						realDemoModel = nil
+						realDemoModel=nil
 						removeFakeDemoModel()
 					end
 
