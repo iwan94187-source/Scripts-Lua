@@ -8,7 +8,7 @@ local stageValue = localPlayer:WaitForChild("Stage")
 local houseFolder = workspace:WaitForChild("HOUSE")
 local stageFolder = houseFolder:WaitForChild("Stage")
 
-print("3e3e2")
+print("3eedw")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -610,11 +610,6 @@ local function newHub(txt)
 				end)
 
 			end)
-			getKeysbtn_R.MouseButton1Click:Connect(function()
-				getKeysState=true
-			end)
-
-		end)
 		end)
 	end)
 end
