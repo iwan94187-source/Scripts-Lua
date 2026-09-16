@@ -558,7 +558,6 @@ local function newHub(txt)
 					local keysFolder = houseFolder:FindFirstChild("key")
 					local hammerFolder = houseFolder:FindFirstChild("Hammer")
 					local doorFolder = houseFolder:FindFirstChild("Doors")
-					if not keysFolder or not hammerFolder then return end
 					local hm,ky=false,false
 					while true do 
 						if #keysFolder:GetChildren() == 0 then
