@@ -8,7 +8,7 @@ local stageValue = localPlayer:WaitForChild("Stage")
 local houseFolder = workspace:WaitForChild("HOUSE")
 local stageFolder = houseFolder:WaitForChild("Stage")
 
-print("c322")
+print("ddwwss")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -21,6 +21,14 @@ end
 local function getdescents(target)
 	for _, dex in ipairs(target:GetDescendants()) do 
 		if dex:IsA("ClickDetector") then 
+			if dex.Parent.Parent:FindFirstChildOfClass("Highlight") and 
+				dex.Parent.Parent.Highlight.FillColor==Color3.fromRGB(0,255,0) then 
+				continue
+			
+			elseif dex.Parent:IsA("BasePart")and dex.Parent.Name=="button1" and dex.Parent.BrickColor==BrickColor.new("Lime green") then
+				continue
+			end
+				
 			pcall(function()
 				fireclickdetector(dex)
 			end)
