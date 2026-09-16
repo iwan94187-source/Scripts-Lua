@@ -8,7 +8,7 @@ local stageValue = localPlayer:WaitForChild("Stage")
 local houseFolder = workspace:WaitForChild("HOUSE")
 local stageFolder = houseFolder:WaitForChild("Stage")
 
-print("3e")
+print("3e3e2")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -551,43 +551,70 @@ local function newHub(txt)
 						screenGui:Destroy()
 					end) 
 				end)
-
-				task.spawn(function()
-					local puddleFolder = houseFolder:FindFirstChild("Puddle")
-					local itemfolder = houseFolder:FindFirstChild("Items")
-					local keysFolder = houseFolder:FindFirstChild("key")
-					local hammerFolder = houseFolder:FindFirstChild("Hammer")
-					local doorFolder = houseFolder:FindFirstChild("Doors")
-					local hm,ky=false,false
-					while true do 
-						if #keysFolder:GetChildren() == 0 then
-							ky=true
-						else
+				if houseFolder:FindFirstChild("Stage") and houseFolder.Stage:FindFirstChild("12") then 
+					task.spawn(function()
+						local pipesFolder = houseFolder:FindFirstChild("Pipes")
+						local itemfolder = houseFolder:FindFirstChild("Items")
+						local keysFolder = houseFolder:FindFirstChild("key")
+						local doorFolder = houseFolder:FindFirstChild("Doors")
+						local btnsFolder = houseFolder:FindFirstChild("Buttons")
+						
+						while true do 
+							
 							if getKeysState then 
 								getdescents(keysFolder)
-								if itemfolder then getdescents(itemfolder) end
+								getdescents(doorFolder)
+								if btnsFolder then getdescents(btnsFolder) end
+								if pipesFolder then getdescents(pipesFolder)end
+								if itemfolder then getdescents(itemfolder)end
 							end
-						end
-						
-						if getKeysState and hammerFolder then 
-							getdescents(houseFolder)
-							getDoors(hammerFolder)
-						end
-						
-						if getKeysState and puddleFolder then 
-							getdescents(puddleFolder)
-						end
-						
-						getDoors(doorFolder)
 
-						task.wait(0.1)
-					end
-				end)
+							task.wait(0.1)
+						end
+					end)
+				elseif houseFolder:FindFirstChild("Stage") and houseFolder.Stage:FindFirstChild("10") or houseFolder.Stage:FindFirstChild("5") then
+					task.spawn(function()
+						local puddleFolder = houseFolder:FindFirstChild("Puddle")
+						local itemfolder = houseFolder:FindFirstChild("Items")
+						local keysFolder = houseFolder:FindFirstChild("key")
+						local hammerFolder = houseFolder:FindFirstChild("Hammer")
+						local doorFolder = houseFolder:FindFirstChild("Doors")
+						local hm,ky=false,false
+						while true do 
+							if #keysFolder:GetChildren() == 0 then
+								ky=true
+							else
+								if getKeysState then 
+									getdescents(keysFolder)
+									if itemfolder then getdescents(itemfolder) end
+								end
+							end
+
+							if getKeysState and hammerFolder then 
+								getdescents(houseFolder)
+								getDoors(hammerFolder)
+							end
+
+							if getKeysState and puddleFolder then 
+								getdescents(puddleFolder)
+							end
+
+							getDoors(doorFolder)
+
+							task.wait(0.1)
+						end
+					end)
+				end
 				getKeysbtn_R.MouseButton1Click:Connect(function()
 					getKeysState=true
 				end)
 
 			end)
+			getKeysbtn_R.MouseButton1Click:Connect(function()
+				getKeysState=true
+			end)
+
+		end)
 		end)
 	end)
 end
