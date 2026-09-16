@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local gameFolder = workspace:WaitForChild("Game")
 
-print("2222")
+print("cxcxc")
 
 local uiParent = playerGui
 if gethui then
@@ -15,6 +15,13 @@ elseif game:GetService("CoreGui") then
 	pcall(function()
 		uiParent = game:GetService("CoreGui")
 	end)
+end
+
+local function forceEnableArchivable(model)
+	model.Archivable = true
+	for _, descendant in ipairs(model:GetDescendants()) do
+		descendant.Archivable = true
+	end
 end
 
 local function makeModelGhostly(model)
@@ -175,7 +182,7 @@ local function newHub(txt)
 				enterHubFrame:Destroy()
 
 				task.wait(0.5)
-				
+
 				local helperTextLabel = Instance.new("TextLabel")
 				helperTextLabel.Size=UDim2.new(0,200,0,50)
 				helperTextLabel.Transparency=0.5
@@ -334,7 +341,7 @@ local function newHub(txt)
 				local mainBtnFixed=fixedTxt(mainBtn,0.6,0.4)
 				mainBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
 				mainBtnFixed.Position=UDim2.new(0.2,0,0.2,0)
-				
+
 				local playerBtn = Instance.new("TextButton")
 				playerBtn.Size=UDim2.new(0.2,0,1,0)
 				playerBtn.Position=UDim2.new(0.2)
@@ -345,7 +352,7 @@ local function newHub(txt)
 				local playerBtnFixed=fixedTxt(playerBtn,0.6,0.4)
 				playerBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
 				playerBtnFixed.Position=UDim2.new(0.2,0,0.2,0)
-				
+
 				local frame_1 = Instance.new("ScrollingFrame")
 				frame_1.Size = UDim2.new(1, 0, 0.8, 0)
 				frame_1.Position = UDim2.new(0, 0, 0.2, 0)
@@ -354,7 +361,7 @@ local function newHub(txt)
 				frame_1.AutomaticCanvasSize = Enum.AutomaticSize.Y -- تفعيل التوسع التلقائي عمودياً
 				frame_1.ScrollBarThickness = 6 
 				frame_1.Parent = mainFrame
-				
+
 				local frame_2 = Instance.new("ScrollingFrame")
 				frame_2.Size = UDim2.new(1, 0, 0.8, 0)
 				frame_2.Position = UDim2.new(0, 0, 0.2, 0)
@@ -363,7 +370,7 @@ local function newHub(txt)
 				frame_2.AutomaticCanvasSize = Enum.AutomaticSize.Y -- تفعيل التوسع التلقائي عمودياً
 				frame_2.ScrollBarThickness = 6 
 				frame_2.Parent = mainFrame
-				
+
 				local function listOff(parent)
 					local listLayout = Instance.new("UIListLayout")
 					listLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -379,7 +386,7 @@ local function newHub(txt)
 						parent.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
 					end)
 				end
-				
+
 				listOff(frame_1)
 				listOff(frame_2)
 
@@ -403,7 +410,7 @@ local function newHub(txt)
 				switcherLine.Position=UDim2.new(0,0,0.19,0)
 				switcherLine.BackgroundColor=BrickColor.White()
 				switcherLine.Parent=mainFrame
-				
+
 				local currentPlot = nil 
 				local realDemoModel = nil
 				local fakeDemoModel = nil  
@@ -472,7 +479,7 @@ local function newHub(txt)
 						iconMotion:Play()
 					end)
 				end)
-				
+
 				destroyMenuBtn.MouseButton1Click:Connect(function()blackFrame.Visible=true end)
 				nobtn.MouseButton1Click:Connect(function()blackFrame.Visible=false end)
 				yesbtn.MouseButton1Click:Connect(function()
@@ -488,7 +495,7 @@ local function newHub(txt)
 						screenGui:Destroy()
 					end) 
 				end)
-				
+
 				local function removeFakeDemoModel()
 					if fakeDemoModel then
 						fakeDemoModel:Destroy()
@@ -506,7 +513,7 @@ local function newHub(txt)
 						else
 							-- البحث عن الـ DemoBuild الأصلي من اللعبة داخل الـ Plot
 							local foundDemo = currentPlot:FindFirstChild("DemoBuild")
-							
+
 							-- إذا ظهر DemoBuild أصلي جديد مختلف عن الذي نعرفه
 							if foundDemo then
 								realDemoModel=foundDemo
@@ -514,8 +521,9 @@ local function newHub(txt)
 
 								-- إنشاء النسخة المفبركة الجديدة إذا كان الشرط مفعلاً
 								if revealBuildState then
-									printlog("true",false)
-									fakeDemoModel = foundDemo:Clone()
+									forceEnableArchivable(realDemoModel)
+
+									fakeDemoModel = realDemoModel:Clone()
 									fakeDemoModel.Name = "FakeDemoBuild" -- اسم مميز لتجنب الالتباس مع الأصلي
 									makeModelGhostly(fakeDemoModel)
 									fakeDemoModel.Parent = currentPlot
@@ -557,7 +565,7 @@ local function newHub(txt)
 						end
 					end
 				end)
-				
+
 				revealBuildlbl_R.MouseButton1Click:Connect(function()
 					revealBuildState=not revealBuildState
 					if revealBuildState then 
@@ -568,7 +576,7 @@ local function newHub(txt)
 						revealBuildTerm.BackgroundColor3=Color3.fromRGB(86, 86, 86)
 					end
 				end)
-				
+
 			end)
 		end)
 	end)
