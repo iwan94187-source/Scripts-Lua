@@ -6,8 +6,9 @@ local runService = game:GetService("RunService")
 
 local stageValue = localPlayer:WaitForChild("Stage")
 local houseFolder = workspace:WaitForChild("HOUSE")
+local stageFolder = houseFolder:WaitForChild("Stage")
 
-print("334")
+print("3eedw")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -356,7 +357,7 @@ local function newHub(txt)
 				local playerBtnFixed=fixedTxt(playerBtn,0.6,0.4)
 				playerBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
 				playerBtnFixed.Position=UDim2.new(0.2,0,0.2,0)
-
+				
 				local frame_1 = Instance.new("ScrollingFrame")
 				frame_1.Size = UDim2.new(1, 0, 0.8, 0)
 				frame_1.Position = UDim2.new(0, 0, 0.2, 0)
@@ -393,7 +394,8 @@ local function newHub(txt)
 				
 				listOff(frame_1)
 				listOff(frame_2)
-
+				
+				
 				local speedPlatform = Instance.new("Frame")
 				speedPlatform.Size = UDim2.new(1, 0, 0.125, 0)
 				speedPlatform.BackgroundTransparency = 1
@@ -409,7 +411,7 @@ local function newHub(txt)
 				local speedBox_RFixed = fixedTxt(speedBox_R, 0.8, 0.1)
 				speedBox_RFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
 				speedBox_RFixed.Position =  UDim2.new(0.05, 0, 0.15, 0)
-				
+
 				local stagePlatform = Instance.new("Frame")
 				stagePlatform.Size = UDim2.new(1, 0, 0.125, 0)
 				stagePlatform.BackgroundTransparency = 1
@@ -429,7 +431,7 @@ local function newHub(txt)
 				stagebtn_RFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
 				stagebtn_RFixed.TextColor=BrickColor.new("Grey")
 				stagebtn_RFixed.TextXAlignment = "Left"
-				
+
 				local getKeysPlatform = Instance.new("Frame")
 				getKeysPlatform.Size = UDim2.new(1, 0, 0.125, 0)
 				getKeysPlatform.BackgroundTransparency = 1
@@ -444,29 +446,28 @@ local function newHub(txt)
 				local getKeysState=false
 				local getKeysbtn_R = newbtn("",getKeysPlatform)
 				local getKeysclick = newClick(getKeysbtn_R)
-				
+
 				local switcherLine = Instance.new("Frame")
 				switcherLine.Size=UDim2.new(0.2,0,0.01,0)
 				switcherLine.Position=UDim2.new(0,0,0.19,0)
 				switcherLine.BackgroundColor=BrickColor.White()
 				switcherLine.Parent=mainFrame
-				
+
 				speedBox_R:GetPropertyChangedSignal("Text"):Connect(function()
 					local cleanText = speedBox_R.Text:gsub("[^%d%.]", "")
 					speedBox_R.Text = cleanText
-
 					speedBox_RFixed.Text = cleanText
 				end)
-				
+
 				stageValue:GetPropertyChangedSignal("Value"):Connect(function()
-					stagebtn_R.Text=stageValue.Value
+					stagebtn_RFixed.Text=stageValue.Value
 				end)
-				
+
 				local function display(state)
 					frame_1.Visible,frame_2.Visible=false,false
 					state.Visible=true
 				end
-				
+
 				runService.Heartbeat:Connect(function()
 					if tonumber(speedBox_R.Text) then 
 						local human = localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid")
@@ -481,7 +482,7 @@ local function newHub(txt)
 					motionLine:Play()
 					display(frame_1)
 				end)
-				
+
 				playerBtn.MouseButton1Click:Connect(function()
 
 					local motionLine = tweenService:Create(switcherLine,TweenInfo.new(0.3),{Position=UDim2.new(playerBtn.Position.X.Scale,0,switcherLine.Position.Y.Scale,0)})
@@ -552,6 +553,8 @@ local function newHub(txt)
 				end)
 
 				task.spawn(function()
+					local puddleFolder = houseFolder:FindFirstChild("Puddle")
+					local itemfolder = houseFolder:FindFirstChild("Items")
 					local keysFolder = houseFolder:FindFirstChild("key")
 					local hammerFolder = houseFolder:FindFirstChild("Hammer")
 					local doorFolder = houseFolder:FindFirstChild("Doors")
@@ -563,23 +566,20 @@ local function newHub(txt)
 						else
 							if getKeysState then 
 								getdescents(keysFolder)
-							end
-						end
-						if not hammerFolder:FindFirstChild("Hammer") then
-							hm=true
-
-						else
-							if getKeysState then 
-								getdescents(houseFolder)
+								if itemfolder then getdescents(itemfolder) end
 							end
 						end
 						
-						getDoors(doorFolder)
-						getDoors(hammerFolder)
-						if #doorFolder:GetChildren() == 0 and not hammerFolder:FindFirstChildOfClass("UnionOperation") then 
-							break
-							
+						if getKeysState and hammerFolder then 
+							getdescents(houseFolder)
+							getDoors(hammerFolder)
 						end
+						
+						if getKeysState and puddleFolder then 
+							getdescents(puddleFolder)
+						end
+						
+						getDoors(doorFolder)
 
 						task.wait(0.1)
 					end
