@@ -413,7 +413,8 @@ local function newHub(txt)
 				switcherLine.Parent=mainFrame
 				
 				local currentPlot = nil 
-				local demoModel = nil    
+				local realDemoModel = nil
+				local fakeDemoModel = nil  
 
 				local function display(state)
 					frame_1.Visible,frame_2.Visible=false,false
@@ -496,48 +497,72 @@ local function newHub(txt)
 					end) 
 				end)
 				
+				local function removeFakeDemoModel()
+					if fakeDemoModel then
+						fakeDemoModel:Destroy()
+						fakeDemoModel = nil
+						print("تم حذف النسخة المفبركة (Fake DemoBuild)")
+					end
+				end
+
 				runService.Heartbeat:Connect(function()
-				
+					-- 1. التحقق من حالة currentPlot
 					if currentPlot then
 						if not currentPlot.Parent or not currentPlot:IsDescendantOf(gameFolder) then
 							currentPlot = nil
-							demoModel = nil
+							realDemoModel = nil
+							removeFakeDemoModel()
 							print("تم حذف الـ Plot الحالي وتصفير جميع المتغيرات!")
 						else
+							-- البحث عن الـ DemoBuild الأصلي من اللعبة داخل الـ Plot
 							local foundDemo = currentPlot:FindFirstChild("DemoBuild")
 
-							if foundDemo then
-								-- إذا ظهر DemoBuild جديد أو مختلف عن المسجل حالياً، نبدله
-								if foundDemo ~= demoModel then
-									demoModel = foundDemo
-									print("تم تسجيل/استبدال DemoModel جديد:", demoModel:GetFullName())
+							-- إذا ظهر DemoBuild أصلي جديد مختلف عن الذي نعرفه
+							if foundDemo and foundDemo ~= realDemoModel then
+								realDemoModel = foundDemo
+
+								-- حذف النسخة المزيفة القديمة إن وجدت لاستبدالها
+								removeFakeDemoModel()
+
+								-- إنشاء النسخة المفبركة الجديدة إذا كان الشرط مفعلاً
+								if revealBuildState then
+									fakeDemoModel = realDemoModel:Clone()
+									fakeDemoModel.Name = "FakeDemoBuild" -- اسم مميز لتجنب الالتباس مع الأصلي
+									fakeDemoModel.Parent = currentPlot
+									print("تم إنشاء نسخة مفبركة جديدة ووضعها داخل الـ Plot!")
 								end
-							else
-								-- إذا تم حذف DemoBuild من الـ Plot، نصفر المتغير
-								if demoModel ~= nil then
-									demoModel = nil
-									print("تم إزالة DemoBuild وتصفير المتغير الخاص به.")
-								end
+							elseif not foundDemo and realDemoModel then
+								-- إذا تم حذف الـ DemoBuild الأصلي من اللعبة
+								realDemoModel = nil
+								removeFakeDemoModel()
+							end
+
+							-- التحقق المباشر من شرط الإظهار (في حال تغير المتغير revealBuildState أثناء اللعب)
+							if revealBuildState and realDemoModel and not fakeDemoModel then
+								fakeDemoModel = realDemoModel:Clone()
+								fakeDemoModel.Name = "FakeDemoBuild"
+								fakeDemoModel.Parent = currentPlot
+							elseif not revealBuildState and fakeDemoModel then
+								removeFakeDemoModel()
 							end
 						end
 					else
-						-- تصفير demoModel تلقائياً في حال عدم وجود Plot
-						demoModel = nil
+						realDemoModel = nil
+						removeFakeDemoModel()
 					end
 
-					-- 2. البحث عن Plot جديد يدخل اللاعب في نطاقه وتكون ملكيته للاعب
+					-- 2. البحث عن Plot جديد يملكه اللاعب
 					for _, child in ipairs(gameFolder:GetChildren()) do
 						if child:IsA("Model") and child.Name == "Plot" then
 							local ownerValue = child:FindFirstChild("Owner")
 
 							if child ~= currentPlot and ownerValue and ownerValue.Value == localPlayer then
+								-- تنظيف الـ Plot السابق قبل الانتقال للجديد
+								removeFakeDemoModel()
+								realDemoModel = nil
+
 								currentPlot = child
 								print("تم تسجيل Plot جديد والاستقرار عليه:", currentPlot:GetFullName())
-
-								demoModel = currentPlot:FindFirstChild("DemoBuild")
-								if demoModel then
-									print("تم العثور على DemoModel في الـ Plot الجديد:", demoModel:GetFullName())
-								end
 								break
 							end
 						end
