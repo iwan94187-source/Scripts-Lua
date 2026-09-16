@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local gameFolder = workspace:WaitForChild("Game")
 
-print("3eedw")
+print("ؤؤؤؤؤ")
 
 local uiParent = playerGui
 if gethui then
