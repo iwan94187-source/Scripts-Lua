@@ -4,9 +4,10 @@ local playerGui = localPlayer:WaitForChild("PlayerGui")
 local tweenService = game:GetService("TweenService")
 local runService = game:GetService("RunService")
 
+local stageValue = localPlayer:WaitForChild("Stage")
 local houseFolder = workspace:WaitForChild("HOUSE")
 
-print("2ww2")
+print("334")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -143,7 +144,7 @@ local function newHub(txt)
 	screenGui.Name = "Phantom Hub"
 	screenGui.ResetOnSpawn = false
 	screenGui.Parent=uiParent
-	
+
 	local enterHubFrame_pos=UDim2.new(0.75,0,0.8,0)
 	local enterHubFrame_siz = UDim2.new(0.25,0,0.15,0)
 	local enterHubFrame = Instance.new("Frame")
@@ -154,7 +155,7 @@ local function newHub(txt)
 	enterHubFrame.Name="LoadingFrame"
 	enterHubFrame.Visible=false
 	enterHubFrame.Parent=screenGui
-	
+
 	local enterHubLabel_1 = Instance.new("TextLabel")
 	enterHubLabel_1.Size=UDim2.new(1,0,0.2,0)
 	enterHubLabel_1.Position=UDim2.new(0,0,0,0)
@@ -165,8 +166,8 @@ local function newHub(txt)
 	local enterHubLabel_1Fixed = fixedTxt(enterHubLabel_1, 0.8, 0.1)
 	enterHubLabel_1Fixed.Size = UDim2.new(0.8, 0, 0.8, 0)
 	enterHubLabel_1Fixed.Position = UDim2.new(0.1, 0, 0.1, 0)
-	
-	
+
+
 	local enterHubLabel_2 = Instance.new("TextLabel")
 	enterHubLabel_2.Size=UDim2.new(1,0,0.5,0)
 	enterHubLabel_2.Position=UDim2.new(0,0,0.3,0)
@@ -177,17 +178,17 @@ local function newHub(txt)
 	local enterHubLabel_2Fixed = fixedTxt(enterHubLabel_2, 0.8, 0.1)
 	enterHubLabel_2Fixed.Size = UDim2.new(0.7, 0, 0.7, 0)
 	enterHubLabel_2Fixed.Position = UDim2.new(0.15, 0, 0.15, 0)
-	
+
 	local enterLineFrame = Instance.new("Frame")
 	enterLineFrame.Size=UDim2.new(0,0,0.1,0)
 	enterLineFrame.Position=UDim2.new(0,0,0.9,0)
 	enterLineFrame.BackgroundColor=BrickColor.White()
 	enterLineFrame.Parent=enterHubFrame
-	
+
 	enterHubFrame.Visible = true
 	local enterMotion = tweenService:Create(enterHubFrame, TweenInfo.new(0.3), {Size = enterHubFrame_siz, Position = enterHubFrame_pos})
 	enterMotion:Play()
-	
+
 	enterMotion.Completed:Connect(function()
 		local enterLineMotion = tweenService:Create(enterLineFrame, TweenInfo.new(2), {Size = UDim2.new(1, 0, enterLineFrame.Size.Y.Scale, 0)})
 		enterLineMotion:Play()
@@ -200,9 +201,9 @@ local function newHub(txt)
 			exitMotion:Play()
 			exitMotion.Completed:Connect(function()
 				enterHubFrame:Destroy()
-				
+
 				task.wait(0.5)
-				
+
 				local mainFrame_pos = UDim2.new(0,250,0,200)
 				local mainFrame = Instance.new("Frame")
 				mainFrame.Size=mainFrame_pos
@@ -344,6 +345,17 @@ local function newHub(txt)
 				local mainBtnFixed=fixedTxt(mainBtn,0.6,0.4)
 				mainBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
 				mainBtnFixed.Position=UDim2.new(0.2,0,0.2,0)
+				
+				local playerBtn = Instance.new("TextButton")
+				playerBtn.Size=UDim2.new(0.2,0,1,0)
+				playerBtn.Position=UDim2.new(0.2)
+				playerBtn.BackgroundColor3=Color3.fromRGB(32, 32, 32)
+				playerBtn.TextColor=BrickColor.new("White")
+				playerBtn.Text,mainBtn.TextScaled="Player",true
+				playerBtn.Parent=buttonsContainer
+				local playerBtnFixed=fixedTxt(playerBtn,0.6,0.4)
+				playerBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
+				playerBtnFixed.Position=UDim2.new(0.2,0,0.2,0)
 
 				local frame_1 = Instance.new("ScrollingFrame")
 				frame_1.Size = UDim2.new(1, 0, 0.8, 0)
@@ -353,33 +365,81 @@ local function newHub(txt)
 				frame_1.AutomaticCanvasSize = Enum.AutomaticSize.Y -- تفعيل التوسع التلقائي عمودياً
 				frame_1.ScrollBarThickness = 6 
 				frame_1.Parent = mainFrame
-
-				local listLayout = Instance.new("UIListLayout")
-				listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-				listLayout.Padding = UDim.new(0, 5) -- المسافة بين العناصر (5 بكسل)
-				listLayout.Parent = frame_1
-
-				local uipadding = Instance.new("UIPadding")
-				--uipadding.PaddingTop = UDim.new(0, 5)
-				--uipadding.PaddingBottom = UDim.new(0, 5)
-				uipadding.Parent = frame_1
 				
-				listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-					frame_1.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
-				end)
+				local frame_2 = Instance.new("ScrollingFrame")
+				frame_2.Size = UDim2.new(1, 0, 0.8, 0)
+				frame_2.Position = UDim2.new(0, 0, 0.2, 0)
+				frame_2.BackgroundTransparency = 1
+				frame_2.Visible = false
+				frame_2.AutomaticCanvasSize = Enum.AutomaticSize.Y -- تفعيل التوسع التلقائي عمودياً
+				frame_2.ScrollBarThickness = 6 
+				frame_2.Parent = mainFrame
+				
+				local function listOff(parent)
+					local listLayout = Instance.new("UIListLayout")
+					listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+					listLayout.Padding = UDim.new(0, 5) -- المسافة بين العناصر (5 بكسل)
+					listLayout.Parent = parent
+
+					local uipadding = Instance.new("UIPadding")
+					--uipadding.PaddingTop = UDim.new(0, 5)
+					--uipadding.PaddingBottom = UDim.new(0, 5)
+					uipadding.Parent = parent
+
+					listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+						parent.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
+					end)
+				end
+				
+				listOff(frame_1)
+				listOff(frame_2)
+
+				local speedPlatform = Instance.new("Frame")
+				speedPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				speedPlatform.BackgroundTransparency = 1
+				speedPlatform.Parent = frame_2
+
+				local speedlbl_L = newlbl("WalkSpeed",speedPlatform)
+				local speedlbl_LFixed = fixedTxt(speedlbl_L, 0.8, 0.1)
+				speedlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				speedlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				speedlbl_LFixed.TextXAlignment="Left"
+
+				local speedBox_R = newBox("", speedPlatform)
+				local speedBox_RFixed = fixedTxt(speedBox_R, 0.8, 0.1)
+				speedBox_RFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				speedBox_RFixed.Position =  UDim2.new(0.05, 0, 0.15, 0)
+				
+				local stagePlatform = Instance.new("Frame")
+				stagePlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				stagePlatform.BackgroundTransparency = 1
+				stagePlatform.Parent = frame_1
+
+				local stagelbl_L = newlbl("Stage", stagePlatform)
+				local stagelbl_LFixed = fixedTxt(stagelbl_L, 0.8, 0.1)
+				stagelbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				stagelbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				stagelbl_LFixed.TextColor=BrickColor.new("Grey")
+				stagelbl_LFixed.TextXAlignment = "Left"
+
+				local stagebtn_R = newlbl("1", stagePlatform)
+				stagebtn_R.Position=UDim2.new(0.5)
+				local stagebtn_RFixed = fixedTxt(stagebtn_R, 0.8, 0.1)
+				stagebtn_RFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				stagebtn_RFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				stagebtn_RFixed.TextColor=BrickColor.new("Grey")
+				stagebtn_RFixed.TextXAlignment = "Left"
 				
 				local getKeysPlatform = Instance.new("Frame")
 				getKeysPlatform.Size = UDim2.new(1, 0, 0.125, 0)
 				getKeysPlatform.BackgroundTransparency = 1
 				getKeysPlatform.Parent = frame_1
-				
+
 				local getKeyslbl_L = newlbl("Auto-Farm",getKeysPlatform)
 				local getKeyslbl_LFixed = fixedTxt(getKeyslbl_L, 0.8, 0.1)
 				getKeyslbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
 				getKeyslbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
 				getKeyslbl_LFixed.TextXAlignment="Left"
-				
-				
 
 				local getKeysState=false
 				local getKeysbtn_R = newbtn("",getKeysPlatform)
@@ -390,17 +450,43 @@ local function newHub(txt)
 				switcherLine.Position=UDim2.new(0,0,0.19,0)
 				switcherLine.BackgroundColor=BrickColor.White()
 				switcherLine.Parent=mainFrame
+				
+				speedBox_R:GetPropertyChangedSignal("Text"):Connect(function()
+					local cleanText = speedBox_R.Text:gsub("[^%d%.]", "")
+					speedBox_R.Text = cleanText
 
+					speedBox_RFixed.Text = cleanText
+				end)
+				
+				stageValue:GetPropertyChangedSignal("Value"):Connect(function()
+					stagebtn_R.Text=stageValue.Value
+				end)
+				
 				local function display(state)
-					frame_1.Visible=false
+					frame_1.Visible,frame_2.Visible=false,false
 					state.Visible=true
 				end
 				
+				runService.Heartbeat:Connect(function()
+					if tonumber(speedBox_R.Text) then 
+						local human = localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid")
+						if human then 
+							human.WalkSpeed=speedBox_R.Text
+						end
+					end
+				end)
 				mainBtn.MouseButton1Click:Connect(function()
 
 					local motionLine = tweenService:Create(switcherLine,TweenInfo.new(0.3),{Position=UDim2.new(mainBtn.Position.X.Scale,0,switcherLine.Position.Y.Scale,0)})
 					motionLine:Play()
 					display(frame_1)
+				end)
+				
+				playerBtn.MouseButton1Click:Connect(function()
+
+					local motionLine = tweenService:Create(switcherLine,TweenInfo.new(0.3),{Position=UDim2.new(playerBtn.Position.X.Scale,0,switcherLine.Position.Y.Scale,0)})
+					motionLine:Play()
+					display(frame_2)
 				end)
 
 				iconFrame.MouseButton1Click:Connect(function()
@@ -464,7 +550,7 @@ local function newHub(txt)
 						screenGui:Destroy()
 					end) 
 				end)
-				
+
 				task.spawn(function()
 					local keysFolder = houseFolder:FindFirstChild("key")
 					local hammerFolder = houseFolder:FindFirstChild("Hammer")
@@ -481,18 +567,18 @@ local function newHub(txt)
 						end
 						if not hammerFolder:FindFirstChild("Hammer") then
 							hm=true
-							
+
 						else
 							if getKeysState then 
 								getdescents(houseFolder)
 							end
 						end
-						if hm and ky then 
-							getDoors(doorFolder)
-							getDoors(hammerFolder)
-							if #doorFolder:GetChildren() == 0 and not hammerFolder:FindFirstChildOfClass("UnionOperation") then 
-								break
-							end
+						
+						getDoors(doorFolder)
+						getDoors(hammerFolder)
+						if #doorFolder:GetChildren() == 0 and not hammerFolder:FindFirstChildOfClass("UnionOperation") then 
+							break
+							
 						end
 
 						task.wait(0.1)
@@ -501,26 +587,7 @@ local function newHub(txt)
 				getKeysbtn_R.MouseButton1Click:Connect(function()
 					getKeysState=true
 				end)
-				getPartsbtn_R.MouseButton1Click:Connect(function()
-					local doorFolder = houseFolder:FindFirstChild("Doors")
-					local hammerFolder = houseFolder:FindFirstChild("Hammer")
-					if doorFolder and hammerFolder then 
-						for _, door in ipairs(doorFolder:GetChildren()) do 
-							door:Destroy()
-						end
-						for _, hammer in ipairs(hammerFolder:GetChildren()) do 
-							if hammer:IsA("UnionOperation") then hammer:Destroy() end
-						end
-					end
-				end)
-				getHammerbtn_R.MouseButton1Click:Connect(function()
-					local root = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
-					local endGame = houseFolder:FindFirstChild("End")
-					if root and endGame then 
-						root.Position=endGame.Position
-					end
-				end)
-				
+
 			end)
 		end)
 	end)
@@ -602,7 +669,7 @@ if existingHub then
 	replacebtn.MouseButton1Click:Connect(function()
 		existingHub:Destroy()
 		excitscreenGui:Destroy()
-		
+
 		newHub("Susseccfull Replacing!")
 	end)
 else
