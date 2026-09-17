@@ -10,7 +10,7 @@ local remotes = replicatedStorage:WaitForChild("Remotes")
 local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print("ثق32قب3")
+print("4t43r3")
 
 local uiParent = playerGui
 if gethui then
@@ -431,7 +431,20 @@ local function newHub(txt)
 				local realDemoModel = nil
 				local fakeDemoModel = nil  
 				local cachedDemoClone = nil
+				
+				-- دالة لتحديث شفافية الموديل المزيف بناءً على حالة revealBuildState
+				local function updateFakeDemoVisibility()
+					if not fakeDemoModel then return end
 
+					local targetTransparency = revealBuildState and 0.5 or 1.0
+
+					for _, descendant in ipairs(fakeDemoModel:GetDescendants()) do
+						if descendant:IsA("BasePart") then
+							descendant.Transparency = targetTransparency
+						end
+					end
+				end
+				
 				local function getMatchingColorFromInventory(partColor, usedColorsCount)
 					local inventoryFolder = localPlayer:FindFirstChild("Inventory")
 					if not inventoryFolder then return nil end
@@ -517,7 +530,7 @@ local function newHub(txt)
 								)
 
 								partsPlaced = partsPlaced + 1
-								task.wait(0.5)
+								task.wait(0.1)
 							else
 								print("لا يوجد بلوك يملك هذا اللون في الحقيبة:", tostring(partColor))
 							end
@@ -655,7 +668,7 @@ local function newHub(txt)
 				end
 
 				local function displayFakeDemo()
-					if not revealBuildState or not currentPlot or not cachedDemoClone then return end
+					if not currentPlot or not cachedDemoClone then return end
 					if fakeDemoModel and fakeDemoModel.Parent == currentPlot then return end
 
 					removeFakeDemoModel()
@@ -727,14 +740,12 @@ local function newHub(txt)
 							end
 
 							-- 3. إدارة إظهار وإخفاء المزيف بناءً على revealBuildState
-							if revealBuildState then
-								if not fakeDemoModel and cachedDemoClone then
-									displayFakeDemo()
-								end
+				
+							if not fakeDemoModel and cachedDemoClone then
+								displayFakeDemo()
+							
 							else
-								if fakeDemoModel then
-									removeFakeDemoModel()
-								end
+								updateFakeDemoVisibility()
 							end
 						end
 					else
