@@ -13,7 +13,7 @@ local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local destroyBlockEvent = remotes:WaitForChild("DestroyBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print("4ق4ق43")
+print("xzxzxzx")
 
 local uiParent = playerGui
 if gethui then
@@ -693,11 +693,10 @@ local function newHub(txt)
 					end
 				end
 				
-				-- دالة لفحص ما إذا كان الموقع المطلوب يقع في نفس جهة اللاعب بالنسبة للجدار DuesWall
 				local function isPositionOnPlayerSide(targetPosition)
 					if not currentPlot then return true end
 
-					-- البحث عن DuesWall داخل currentPlot
+					-- 1. البحث عن DuesWall داخل currentPlot
 					local duesWall = nil
 					for _, descendant in ipairs(currentPlot:GetDescendants()) do
 						if descendant.Name == "DuesWall" and descendant:IsA("BasePart") and descendant.CanCollide == true then
@@ -706,25 +705,26 @@ local function newHub(txt)
 						end
 					end
 
-					-- إذا لم يتم العثور على الجدار أو كان CanCollide غير محدد، اسمح بالمعالجة العادية
+					-- إذا لم نجد الجدار أو كان CanCollide غير محدد، اسمح بالمعالجة الطبيعية
 					if not duesWall then return true end
 
 					local character = localPlayer.Character
-					if not character then return true end
-
-					local hrp = character:FindFirstChild("HumanoidRootPart")
+					local hrp = character and character:FindFirstChild("HumanoidRootPart")
 					if not hrp then return true end
 
-					local wallX = duesWall.Position.X
-					local playerX = hrp.Position.X
-					local blockX = targetPosition.X
+					-- 2. تحويل موقع اللاعب وموقع البلوك إلى الإحداثيات المحلية للجدار
+					-- هذا يحول المحور X بالنسبة للجدار نفسه وليس العالم (World Space)
+					local wallCFrame = duesWall.CFrame
+					local playerLocalPos = wallCFrame:PointToObjectSpace(hrp.Position)
+					local blockLocalPos = wallCFrame:PointToObjectSpace(targetPosition)
 
-					-- تحديد جهة اللاعب بالنسبة للجدار (موجب إذا كان يمين/أكبر من الجدار، وسالب إذا كان يسار/أصغر)
-					local isPlayerOnPositiveSide = (playerX >= wallX)
-					local isBlockOnPositiveSide = (blockX >= wallX)
+					-- 3. تطبيق هامش بسيط (Margin) بـ 0.5 لتنبأ بالبلوكات الملتصقة تماماً بالجدار
+			
+					local isPlayerPositive = playerLocalPos.X >= 0
+					local isBlockPositive = blockLocalPos.X >= 0
 
-					
-					return isPlayerOnPositiveSide == isBlockOnPositiveSide
+					-- يجب أن يكون كلاهما في نفس الجهة (كلاهما موجبان أو كلاهما سالبان)
+					return isPlayerPositive == isBlockPositive
 				end
 				
 				local function isBlockCorrectInDemo(builtPart)
