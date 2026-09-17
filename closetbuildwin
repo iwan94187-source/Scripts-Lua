@@ -10,7 +10,7 @@ local remotes = replicatedStorage:WaitForChild("Remotes")
 local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print("لارلارلارلار")
+print("رؤرثثصص")
 
 local uiParent = playerGui
 if gethui then
@@ -459,6 +459,28 @@ local function newHub(txt)
 					return nil
 				end
 
+				local function isBlockAlreadyBuilt(fakePartPosition)
+					if not currentPlot then return false end
+
+					for _, descendant in ipairs(currentPlot:GetDescendants()) do
+						-- التحقق من الكائنات المسماة Block أو التي تحتوي على BoolValue
+						local isBlock = descendant.Name == "Block" or descendant:FindFirstChildWhichIsA("BoolValue")
+
+						if isBlock then
+							local targetPart = descendant:IsA("BasePart") and descendant or descendant:FindFirstChildWhichIsA("BasePart")
+
+							if targetPart then
+								-- فحص تقارب الموقع الفيزيائي بين البلوك الحقيقي والبارت المزيف
+								if (targetPart.Position - fakePartPosition).Magnitude < 0.1 then
+									return true -- البلوك مبني بالفعل في هذا الموقع
+								end
+							end
+						end
+					end
+
+					return false
+				end
+
 				local function executeAutoBuild()
 					if not fakeDemoModel then
 						print("لا يوجد FakeDemoBuild معروض حالياً للبناء!")
@@ -470,23 +492,20 @@ local function newHub(txt)
 					-- المرور على كافة الأجزاء داخل fakeDemoModel فقط
 					for _, descendant in ipairs(fakeDemoModel:GetDescendants()) do
 						if descendant:IsA("BasePart") then
-
-							-- 1. التأكد من أن البارت لم يتم إرساله مسبقاً في هذه الجولة (تجنب الاستهداف المكرر)
-							if descendant:GetAttribute("Placed") then
-								continue
-							end
-
 							local partPosition = descendant.Position
 							local partColor = descendant.Color
 
-							-- 2. البحث عن اللون المطابق
+							-- 1. التحقق مما إذا كان البلوك مبنياً بالفعل داخل currentPlot (يحتوي على BoolValue أو اسم Block)
+							if isBlockAlreadyBuilt(partPosition) then
+								print("تخطي: البلوك مبني بالفعل في هذا الموقع:", tostring(partPosition))
+								continue
+							end
+
+							-- 2. البحث عن اللون المطابق في الـ Inventory
 							local matchedColor = getMatchingColorFromInventory(partColor)
 
 							if matchedColor then
-								-- 3. وضع علامة على البارت المزيف لمنع استهدافه مرة أخرى نهائياً
-								descendant:SetAttribute("Placed", true)
-
-								-- 4. إرسال الحدث للسيرفر
+								-- 3. إرسال الحدث للسيرفر بالبيانات المطلوبة
 								placeBlockEvent:FireServer(
 									partPosition,
 									Enum.NormalId.Top,
@@ -494,6 +513,8 @@ local function newHub(txt)
 								)
 
 								partsPlaced = partsPlaced + 1
+
+								-- 4. مهلة زمنيّة قدرها 0.5 ثانية بين كل لبنة وأخرى للاختبار
 								task.wait(0.5)
 							else
 								print("لا يوجد بلوك يملك هذا اللون في الحقيبة:", tostring(partColor))
