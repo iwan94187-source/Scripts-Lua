@@ -8,9 +8,10 @@ local replicatedStorage = game:GetService("ReplicatedStorage")
 local gameFolder = workspace:WaitForChild("Game")
 local remotes = replicatedStorage:WaitForChild("Remotes")
 local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
+local destroyBlockEvent = remotes:WaitForChild("DestroyBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print("cxcxsw")
+print("3ث3ث3")
 
 local uiParent = playerGui
 if gethui then
@@ -58,7 +59,7 @@ local function dexStyleClone(sourceModel)
 
 	-- نسخ جميع الأبناء والأحفاد يدويًا وإعادة ضبط مواقعهم
 	for _, descendant in ipairs(sourceModel:GetDescendants()) do
-		if descendant:IsA("BasePart") then
+		if descendant:IsA("BasePart") and descendant.Name~="Center" then
 			local partClone = descendant:Clone()
 			if partClone then
 				partClone.Transparency = 0.5
@@ -538,36 +539,80 @@ local function newHub(txt)
 					end
 				end
 				
+				local function isBlockCorrectInDemo(builtPart)
+					if not fakeDemoModel then return true end -- لتجنب المسح العشوائي إذا لم يكن المخطط جاهزاً
+
+					for _, descendant in ipairs(fakeDemoModel:GetDescendants()) do
+						if descendant:IsA("BasePart") then
+							-- فحص تقارب الموقع الفيزيائي بين البلوك المبني والبارت في المخطط
+							if (descendant.Position - builtPart.Position).Magnitude < 0.1 then
+								-- إذا وجدنا بارت في نفس الموقع، نتحقق من مطابقة اللون
+								if descendant.Color == builtPart.Color then
+									return true -- البلوك صحيح في الموقع واللون
+								else
+									return false -- البلوك في الموقع الصحيح ولكن لونه خاطئ
+								end
+							end
+						end
+					end
+
+					return false -- لا يوجد أي بارت في المخطط بهذا الموقع (بلوك زائد)
+				end
+				
+				local function executeAutoDestroy()
+					if not currentPlot or not fakeDemoModel then return end
+
+					for _, descendant in ipairs(currentPlot:GetDescendants()) do
+				
+						if not autoBuildState then break end
+
+						-- التحقق من شرط الاسم وأنها قطعة وتحوي BoolValue
+						local isPlayerBlock = descendant.Name == "Block" and descendant:FindFirstChildOfClass("BoolValue")
+
+						if isPlayerBlock then
+							local targetPart = descendant:IsA("BasePart") and descendant or descendant:FindFirstChildWhichIsA("BasePart")
+
+							if targetPart then
+								-- إذا كان البلوك خاطئاً (زائد أو بلون غير صحيح)
+								if not isBlockCorrectInDemo(targetPart) then
+									-- إرسال موقع البلوك لحذفه
+									destroyBlockEvent:FireServer(targetPart.Position)
+									task.wait(0.1) -- مهلة لتجنب الضغط العالي على السيرفر
+								end
+							end
+						end
+					end
+				end
+				
 				local function executeAutoBuild()
 					if not fakeDemoModel then
-						print("لا يوجد FakeDemoBuild معروض حالياً للبناء!")
+						print("لا يوجد FakeDemoBuild معروض حالياً!")
 						return
 					end
 
-					print("بدء عملية البناء التلقائي المستمر...")
+					print("بدء عملية التنظيف والبناء التلقائي المستمر...")
 
-					-- حلقة تعمل طالما أن الزر مفعل والـ fakeDemoModel موجود
 					while autoBuildState and fakeDemoModel do
-						local partsPlacedThisLoop = 0
+						-- 1. أولاً: حذف البلوكات الزائدة أو ذات الألوان الخاطئة
+						executeAutoDestroy()
 
+						-- 2. ثانياً: بناء البلوكات الناقصة الصحيحة
 						for _, descendant in ipairs(fakeDemoModel:GetDescendants()) do
-							-- التحقق من إيقاف التفعيل بمنتصف المسح
 							if not autoBuildState then break end
 
 							if descendant:IsA("BasePart") then
 								local rawPosition = descendant.Position
 								local partColor = descendant.Color
 
-								-- 1. التحقق مما إذا كان المكان مشغولاً
+								-- إذا كان المكان ممتلئاً ببلوك مبني مسبقاً (صحيح) نتخطاه
 								if isBlockAlreadyBuilt(rawPosition) then
 									continue
 								end
 
-								-- 2. البحث عن اللون المطابق في الـ Inventory
+								-- البحث عن اللون المطابق في الـ Inventory
 								local matchedColor = getMatchingColorFromInventory(partColor)
 
 								if matchedColor then
-									-- 3. تعديل الإحداثيات
 									local blockHeight = descendant.Size.Y
 									local correctedPosition = rawPosition - Vector3.new(0, blockHeight, 0)
 
@@ -577,17 +622,15 @@ local function newHub(txt)
 										matchedColor
 									)
 
-									partsPlacedThisLoop = partsPlacedThisLoop + 1
-									task.wait(0.1) -- التأخير بين وضع كل بلوك
+									task.wait(0.1)
 								end
 							end
 						end
 
-						-- انتظام الفحص الدائم للبلوكات الناقصة كل ثانية
-						task.wait(1)
+						task.wait(0.5) -- فحص دوري كل نصف ثانية
 					end
 
-					print("تم إيقاف البناء التلقائي.")
+					print("تم إيقاف البناء والتنظيف التلقائي.")
 				end
 				
 				mainBtn.MouseButton1Click:Connect(function()
