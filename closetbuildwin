@@ -8,12 +8,12 @@ local UserInputService = game:GetService("UserInputService")
 local camera = workspace.CurrentCamera
 
 local gameFolder = workspace:WaitForChild("Game")
-local remotes = replicatedStorage:WaitForChild("Remotes")
+--[[local remotes = replicatedStorage:WaitForChild("Remotes")
 local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local destroyBlockEvent = remotes:WaitForChild("DestroyBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
-
-print("بب2423")
+]]
+print("crew")
 
 local uiParent = playerGui
 if gethui then
@@ -686,7 +686,6 @@ local function newHub(txt)
 					if not fakeDemoModel then return end
 
 					local targetTransparency = revealBuildState and 0.5 or 1.0
-					print(targetTransparency)
 					for _, descendant in ipairs(fakeDemoModel:GetDescendants()) do
 						if descendant:IsA("BasePart") then
 							descendant.Transparency = targetTransparency
