@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local gameFolder = workspace:WaitForChild("Game")
 
-print("xcxcxc")
+print("ئءصي")
 
 local uiParent = playerGui
 if gethui then
@@ -530,10 +530,24 @@ local function newHub(txt)
 							end
 							
 							if revealBuildState and not fakeDemoModel then 
-								fakeDemoModel=realDemoModel:Clone()
-								fakeDemoModel.Name="FakeDemoBuild"
-								makeModelGhostly(fakeDemoModel)
-								fakeDemoModel.Parent=currentPlot
+								fakeDemoModel = realDemoModel:Clone()
+								if fakeDemoModel then
+									fakeDemoModel.Name = "FakeDemoBuild"
+									makeModelGhostly(fakeDemoModel)
+									fakeDemoModel.Parent = currentPlot
+
+									-- في حال وصول أجزاء متأخرة من السيرفر للموديل الأصلي، ننسخها فوراً للمزيف
+									realDemoModel.ChildAdded:Connect(function(child)
+										if fakeDemoModel and revealBuildState then
+											child.Archivable = true
+											local clonedChild = child:Clone()
+											if clonedChild then
+												makeModelGhostly(clonedChild)
+												clonedChild.Parent = fakeDemoModel
+											end
+										end
+									end)
+								end
 							elseif not revealBuildState and fakeDemoModel then
 								removeFakeDemoModel()
 							end
@@ -548,7 +562,11 @@ local function newHub(txt)
 					for _, child in ipairs(gameFolder:GetChildren()) do
 						if child:IsA("Model") and child.Name == "Plot" and child~=currentPlot then
 							local ownerValue = child:FindFirstChild("Owner")
-							if ownerValue and ownerValue.Value == localPlayer then
+							local teammateValue = child:FindFirstChild("Teammate")
+							local isOwner = ownerValue and ownerValue.Value == localPlayer
+							local isTeammate = teammateValue and teammateValue.Value == localPlayer
+
+							if isOwner or isTeammate then
 								currentPlot = child
 								break
 							end
