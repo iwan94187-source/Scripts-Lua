@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local gameFolder = workspace:WaitForChild("Game")
 
-print("ءثثثق")
+print("ؤثثق4")
 
 local uiParent = playerGui
 if gethui then
@@ -424,6 +424,7 @@ local function newHub(txt)
 				local currentPlot = nil 
 				local realDemoModel = nil
 				local fakeDemoModel = nil  
+				local cachedDemoClone = nil
 
 				local function display(state)
 					frame_1.Visible,frame_2.Visible=false,false
@@ -514,104 +515,108 @@ local function newHub(txt)
 					end
 				end
 				
-				local function createFakeDemoCustom(sourceModel)
-					if not sourceModel or not revealBuildState then return end
+				local function cacheSourceModel(sourceModel)
+					if not sourceModel then return end
 
-					-- 1. تنظيف أي نسخة قديمة
-					removeFakeDemoModel()
-
-					-- 2. إنشاء الموديل الحاوي الرئيسي
-					local newFake = Instance.new("Model")
-					newFake.Name = "FakeDemoBuild"
-
-					-- 3. تفعيل Archivable على المصدر وجميع المحتويات احتياطياً
+					-- تفعيل Archivable للنسخ الكامل مع كافة الأبناء
 					sourceModel.Archivable = true
 					for _, desc in ipairs(sourceModel:GetDescendants()) do
 						desc.Archivable = true
 					end
 
-					-- 4. نسخ كل ابن/جزء يدوياً لضمان دخوله للـ Fake Model
-					for _, child in ipairs(sourceModel:GetChildren()) do
-						local clonedChild = child:Clone()
-						if clonedChild then
-							clonedChild.Parent = newFake
-						else
-							-- إذا فشل الاستنساخ المباشر للابن، نصلحه برمجياً
-							child.Archivable = true
-							local forceCloned = child:Clone()
-							if forceCloned then
-								forceCloned.Parent = newFake
-							end
+					-- استنساخ الموديل كاملاً وهو ما زال معروضاً وموجوداً في ذاكرة اللعبة
+					local rawClone = sourceModel:Clone()
+					if rawClone then
+						rawClone.Name = "FakeDemoBuild"
+						makeModelGhostly(rawClone)
+
+						-- الاحتفاظ بالنسخة الكاش بعيداً عن الـ Workspace في الذاكرة (nil Parent)
+						if cachedDemoClone then
+							cachedDemoClone:Destroy()
+						end
+						cachedDemoClone = rawClone
+						print("تم حفظ نسخة كاملة بأبنائها في الذاكرة بنجاح! عدد الأجزاء:", #cachedDemoClone:GetDescendants())
+					end
+				end
+
+				-- دالة إظهار النسخة المزيفة داخل الـ Plot
+				local function displayFakeDemo()
+					if not revealBuildState or not currentPlot then return end
+
+					-- إذا كانت النسخة معروضة بالفعل داخل الـ Plot، لا نكرر الإظهار
+					if fakeDemoModel and fakeDemoModel.Parent == currentPlot then return end
+
+					removeFakeDemoModel()
+
+					-- نعتمد على النسخة المحفوظة في الذاكرة لضمان احتواء الأبناء
+					if cachedDemoClone then
+						cachedDemoClone.Archivable = true
+						fakeDemoModel = cachedDemoClone:Clone()
+						if fakeDemoModel then
+							fakeDemoModel.Parent = currentPlot
+							print("تم إظهار الـ FakeDemoBuild مع كامل أبنائه!")
 						end
 					end
-
-					-- 5. جعل كل الأجزاء داخل الموديل الجديد شبحية (شفافة وبصرية فقط)
-					makeModelGhostly(newFake)
-
-					-- 6. محاذاة الموقع مع الموديل الأصلي
-					if sourceModel.PrimaryPart then
-						local primaryClone = newFake:FindFirstChild(sourceModel.PrimaryPart.Name)
-						if primaryClone and primaryClone:IsA("BasePart") then
-							newFake.PrimaryPart = primaryClone
-							newFake:SetPrimaryPartCFrame(sourceModel.PrimaryPart.CFrame)
-						end
-					else
-						newFake:PivotTo(sourceModel:GetPivot())
-					end
-
-					-- 7. التثبيت داخل الـ Plot
-					newFake.Parent = currentPlot
-					fakeDemoModel = newFake
-					print("تم إنشاء النسخة المزيفة ونسخ الأبناء بنجاح! عدد الأجزاء:", #fakeDemoModel:GetDescendants())
 				end
 
 				runService.Heartbeat:Connect(function()
 					-- 1. التأكد من وجود Plot مستقر
-					runService.Heartbeat:Connect(function()
-						if currentPlot then
-							if not currentPlot.Parent or not currentPlot:IsDescendantOf(gameFolder) then
-								currentPlot = nil
-								realDemoModel = nil
-								removeFakeDemoModel()
-							else
-								local foundDemo = currentPlot:FindFirstChild("DemoBuild")
-
-								-- إذا ظهر DemoBuild أصلي جديد
-								if foundDemo and foundDemo ~= realDemoModel then
-									realDemoModel = foundDemo
-									removeFakeDemoModel()
-								end
-
-								-- الإنشاء فور وجود realDemoModel وشرط revealBuildState
-								if revealBuildState and realDemoModel and not fakeDemoModel then
-									createFakeDemoCustom(realDemoModel)
-								elseif not revealBuildState and fakeDemoModel then
-									removeFakeDemoModel()
-								end
+					if currentPlot then
+						if not currentPlot.Parent or not currentPlot:IsDescendantOf(gameFolder) then
+							currentPlot = nil
+							realDemoModel = nil
+							if cachedDemoClone then
+								cachedDemoClone:Destroy()
+								cachedDemoClone = nil
 							end
-						else
 							removeFakeDemoModel()
-						end
+							print("تم مسح الـ Plot وجميع النسخ المخزنة.")
+						else
+							local foundDemo = currentPlot:FindFirstChild("DemoBuild")
+							
+							-- 2. فور ظهور DemoBuild أصلي جديد معروض من اللعبة، نقوم بأخذ نسخة منه فوراً للذاكرة
+							if foundDemo and foundDemo ~= realDemoModel then
+								removeFakeDemoModel()
+								realDemoModel = foundDemo
+								cacheSourceModel(realDemoModel)
+							end
 
-						-- البحث عن Plot يملكه اللاعب عند عدم وجود Plot محدد
-						if not currentPlot then
-							for _, child in ipairs(gameFolder:GetChildren()) do
-								if child:IsA("Model") and child.Name == "Plot" then
-									local ownerValue = child:FindFirstChild("Owner")
-									local teammateValue = child:FindFirstChild("Teammate")
-
-									local isOwner = ownerValue and ownerValue.Value == localPlayer
-									local isTeammate = teammateValue and teammateValue.Value == localPlayer
-
-									if isOwner or isTeammate then
-										currentPlot = child
-										break
-									end
+							-- 3. إدارة إظهار وإخفاء المزيف بناءً على revealBuildState
+							if revealBuildState then
+								if not fakeDemoModel and cachedDemoClone then
+									displayFakeDemo()
+								end
+							else
+								if fakeDemoModel then
+									removeFakeDemoModel()
 								end
 							end
 						end
-					end)
-					
+					else
+						if cachedDemoClone then
+							cachedDemoClone:Destroy()
+							cachedDemoClone = nil
+						end
+						removeFakeDemoModel()
+					end
+
+					-- 4. البحث عن Plot يملكه اللاعب عند عدم وجود Plot حالي
+					if not currentPlot then
+						for _, child in ipairs(gameFolder:GetChildren()) do
+							if child:IsA("Model") and child.Name == "Plot" then
+								local ownerValue = child:FindFirstChild("Owner")
+								local teammateValue = child:FindFirstChild("Teammate")
+
+								local isOwner = ownerValue and ownerValue.Value == localPlayer
+								local isTeammate = teammateValue and teammateValue.Value == localPlayer
+
+								if isOwner or isTeammate then
+									currentPlot = child
+									break
+								end
+							end
+						end
+					end
 				end)
 				
 				revealBuildlbl_R.MouseButton1Click:Connect(function()
