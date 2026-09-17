@@ -10,7 +10,7 @@ local remotes = replicatedStorage:WaitForChild("Remotes")
 local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print("zwer3")
+print("ريرييب")
 
 local uiParent = playerGui
 if gethui then
@@ -432,7 +432,7 @@ local function newHub(txt)
 				local fakeDemoModel = nil  
 				local cachedDemoClone = nil
 				
-				local function getMatchingColorFromInventory(partColor, usedColorsCount)
+				local function getMatchingColorFromInventory(partColor)
 					local inventoryFolder = localPlayer:FindFirstChild("Inventory")
 					if not inventoryFolder then return nil end
 
@@ -446,7 +446,6 @@ local function newHub(txt)
 						end
 
 						if targetColor then
-							-- فحص تقارب اللون
 							if math.abs(targetColor.R - partColor.R) < 0.01 
 								and math.abs(targetColor.G - partColor.G) < 0.01 
 								and math.abs(targetColor.B - partColor.B) < 0.01 then
@@ -462,17 +461,18 @@ local function newHub(txt)
 				local function isBlockAlreadyBuilt(fakePartPosition)
 					if not currentPlot then return false end
 
+					-- فحص كافة أجزاء currentPlot بحثاً عن أي Block موجود في نفس الموقع
 					for _, descendant in ipairs(currentPlot:GetDescendants()) do
-						-- التحقق من الكائنات المسماة Block أو التي تحتوي على BoolValue
-						local isBlock = descendant.Name == "Block" and descendant:FindFirstChildOfClass("BoolValue")
+						local isBlock = (descendant.Name == "Block") or descendant:FindFirstChildOfClass("BoolValue")
 
 						if isBlock then
 							local targetPart = descendant:IsA("BasePart") and descendant or descendant:FindFirstChildWhichIsA("BasePart")
 
 							if targetPart then
-								-- فحص تقارب الموقع الفيزيائي بين البلوك الحقيقي والبارت المزيف
-								if (targetPart.Position - fakePartPosition).Magnitude < 0.1 then
-									return true -- البلوك مبني بالفعل في هذا الموقع
+								-- رفع حد المسافة المسموحة (Magnitude) إلى 0.5 لمعالجة أي انحراف بسيط في أجزاء الفاصلة العائمة
+								local distance = (targetPart.Position - fakePartPosition).Magnitude
+								if distance < 0.5 then
+									return true
 								end
 							end
 						end
@@ -487,15 +487,23 @@ local function newHub(txt)
 						return
 					end
 
-					-- المرور على كافة الأجزاء داخل fakeDemoModel فقط
+					local partsPlaced = 0
+
 					for _, descendant in ipairs(fakeDemoModel:GetDescendants()) do
 						if descendant:IsA("BasePart") then
-							local partPosition = descendant.Position
+							-- تقريب الإحداثيات لضمان عدم وجود أرقام فاصلة عائمة عشوائية تؤثر على موقع البناء
+							local rawPosition = descendant.Position
+							local partPosition = Vector3.new(
+								math.floor(rawPosition.X * 100 + 0.5) / 100,
+								math.floor(rawPosition.Y * 100 + 0.5) / 100,
+								math.floor(rawPosition.Z * 100 + 0.5) / 100
+							)
+
 							local partColor = descendant.Color
 
-							-- 1. التحقق مما إذا كان البلوك مبنياً بالفعل داخل currentPlot (يحتوي على BoolValue أو اسم Block)
+							-- 1. التحقق من وجود بلوك حقيقي في هذا الموقع
 							if isBlockAlreadyBuilt(partPosition) then
-								print("تخطي: البلوك مبني بالفعل في هذا الموقع:", tostring(partPosition))
+								print("تخطي: الموقع يحتوي على بلوك مبني بالفعل:", tostring(partPosition))
 								continue
 							end
 
@@ -510,8 +518,7 @@ local function newHub(txt)
 									matchedColor
 								)
 
-
-								-- 4. مهلة زمنيّة قدرها 0.5 ثانية بين كل لبنة وأخرى للاختبار
+								partsPlaced = partsPlaced + 1
 								task.wait(0.5)
 							else
 								print("لا يوجد بلوك يملك هذا اللون في الحقيبة:", tostring(partColor))
