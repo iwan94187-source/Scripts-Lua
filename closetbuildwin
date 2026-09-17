@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local gameFolder = workspace:WaitForChild("Game")
 
-print("ئءئءئءئ")
+print("xcxcxc")
 
 local uiParent = playerGui
 if gethui then
@@ -513,101 +513,58 @@ local function newHub(txt)
 						print("تم حذف النسخة المفبركة (Fake DemoBuild)")
 					end
 				end
-				
-				local function createFakeDemo(sourceModel)
-					if not sourceModel or not revealBuildState then return end
-
-					removeFakeDemoModel()
-
-					-- التأكد من تفعيل Archivable احتياطياً
-					sourceModel.Archivable = true
-					for _, desc in ipairs(sourceModel:GetDescendants()) do
-						desc.Archivable = true
-					end
-
-					-- استنساخ الموديل
-					local cloned = sourceModel:Clone()
-					if not cloned then return end
-
-					cloned.Name = "FakeDemoBuild"
-
-					-- تطبيق الخصائص الشبجية على النسخة
-					makeModelGhostly(cloned)
-
-					-- تثبيت الموقع بحسب الموديل الأصلي
-					if sourceModel.PrimaryPart and cloned.PrimaryPart then
-						cloned:SetPrimaryPartCFrame(sourceModel.PrimaryPart.CFrame)
-					else
-						cloned:PivotTo(sourceModel:GetPivot())
-					end
-
-					cloned.Parent = currentPlot
-					fakeDemoModel = cloned
-					print("تم إنشاء FakeDemoBuild بنجاح مع عدد أبناء:", #cloned:GetDescendants())
-				end
 
 				runService.Heartbeat:Connect(function()
+					-- 1. التأكد من وجود Plot مستقر
 					if currentPlot then
 						if not currentPlot.Parent or not currentPlot:IsDescendantOf(gameFolder) then
-							currentPlot = nil
-							removeFakeDemoModel()
-							print("تم حذف الـ Plot الحالي وتصفير جميع المتغيرات!")
+							currentPlot=nil
+							realDemoModel = nil
 						else
-							-- البحث عن الـ DemoBuild الأصلي من اللعبة داخل الـ Plot
 							local foundDemo = currentPlot:FindFirstChild("DemoBuild")
 
-							-- إذا ظهر DemoBuild أصلي جديد مختلف عن الذي نعرفه
-							if foundDemo then
-								realDemoModel=foundDemo
-								removeFakeDemoModel()
-
-								-- إنشاء النسخة المفبركة الجديدة إذا كان الشرط مفعلاً
-								if revealBuildState then
-									
-									createFakeDemo(realDemoModel)
-								end
-							elseif not foundDemo then
+							-- إذا ظهر DemoBuild أصلي جديد
+							if foundDemo and foundDemo ~= realDemoModel then
+								realDemoModel = foundDemo
 								removeFakeDemoModel()
 							end
-
-							-- التحقق المباشر من شرط الإظهار (في حال تغير المتغير revealBuildState أثناء اللعب)
-							if revealBuildState and not fakeDemoModel then
-								createFakeDemo(realDemoModel)
+							
+							if revealBuildState and not fakeDemoModel then 
+								fakeDemoModel=realDemoModel:Clone()
+								fakeDemoModel.Name="FakeDemoBuild"
+								makeModelGhostly(fakeDemoModel)
+								fakeDemoModel.Parent=currentPlot
 							elseif not revealBuildState and fakeDemoModel then
 								removeFakeDemoModel()
 							end
+							
 						end
 					else
-						realDemoModel=nil
+						
 						removeFakeDemoModel()
+					
 					end
-
-					-- 2. البحث عن Plot جديد يملكه اللاعب
+					
 					for _, child in ipairs(gameFolder:GetChildren()) do
-						if child:IsA("Model") and child.Name == "Plot" then
+						if child:IsA("Model") and child.Name == "Plot" and child~=currentPlot then
 							local ownerValue = child:FindFirstChild("Owner")
-
-							if child ~= currentPlot and ownerValue and ownerValue.Value == localPlayer then
-								-- تنظيف الـ Plot السابق قبل الانتقال للجديد
-								removeFakeDemoModel()
-								realDemoModel = nil
-
+							if ownerValue and ownerValue.Value == localPlayer then
 								currentPlot = child
-								print("تم تسجيل Plot جديد والاستقرار عليه:", currentPlot:GetFullName())
 								break
 							end
 						end
 					end
+					
 				end)
-
+				
 				revealBuildlbl_R.MouseButton1Click:Connect(function()
 					revealBuildState=not revealBuildState
 					if revealBuildState then 
+						revealBuildTerm.BackgroundColor=BrickColor.White()	
 						revealBuildTerm.ImageTransparency=0
-						revealBuildTerm.BackgroundColor=BrickColor.White()
 					else
-						revealBuildTerm.ImageTransparency=1
 						revealBuildTerm.BackgroundColor3=Color3.fromRGB(86, 86, 86)
+						revealBuildTerm.ImageTransparency=1
 					end
 				end)
 
