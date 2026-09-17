@@ -13,7 +13,7 @@ local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local destroyBlockEvent = remotes:WaitForChild("DestroyBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print("xzxzxzx")
+print("11w1w1w")
 
 local uiParent = playerGui
 if gethui then
@@ -699,7 +699,7 @@ local function newHub(txt)
 					-- 1. البحث عن DuesWall داخل currentPlot
 					local duesWall = nil
 					for _, descendant in ipairs(currentPlot:GetDescendants()) do
-						if descendant.Name == "DuesWall" and descendant:IsA("BasePart") and descendant.CanCollide == true then
+						if descendant.Name == "DuosWall" and descendant:IsA("BasePart") and descendant.CanCollide == true then
 							duesWall = descendant
 							break
 						end
