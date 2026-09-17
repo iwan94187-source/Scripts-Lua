@@ -10,7 +10,7 @@ local remotes = replicatedStorage:WaitForChild("Remotes")
 local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print("رؤرثثصص")
+print("zwer3")
 
 local uiParent = playerGui
 if gethui then
@@ -464,7 +464,7 @@ local function newHub(txt)
 
 					for _, descendant in ipairs(currentPlot:GetDescendants()) do
 						-- التحقق من الكائنات المسماة Block أو التي تحتوي على BoolValue
-						local isBlock = descendant.Name == "Block" or descendant:FindFirstChildWhichIsA("BoolValue")
+						local isBlock = descendant.Name == "Block" and descendant:FindFirstChildOfClass("BoolValue")
 
 						if isBlock then
 							local targetPart = descendant:IsA("BasePart") and descendant or descendant:FindFirstChildWhichIsA("BasePart")
@@ -486,8 +486,6 @@ local function newHub(txt)
 						print("لا يوجد FakeDemoBuild معروض حالياً للبناء!")
 						return
 					end
-
-					local partsPlaced = 0
 
 					-- المرور على كافة الأجزاء داخل fakeDemoModel فقط
 					for _, descendant in ipairs(fakeDemoModel:GetDescendants()) do
@@ -512,7 +510,6 @@ local function newHub(txt)
 									matchedColor
 								)
 
-								partsPlaced = partsPlaced + 1
 
 								-- 4. مهلة زمنيّة قدرها 0.5 ثانية بين كل لبنة وأخرى للاختبار
 								task.wait(0.5)
