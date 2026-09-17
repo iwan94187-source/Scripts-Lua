@@ -692,7 +692,41 @@ local function newHub(txt)
 						end
 					end
 				end
+				
+				-- دالة لفحص ما إذا كان الموقع المطلوب يقع في نفس جهة اللاعب بالنسبة للجدار DuesWall
+				local function isPositionOnPlayerSide(targetPosition)
+					if not currentPlot then return true end
 
+					-- البحث عن DuesWall داخل currentPlot
+					local duesWall = nil
+					for _, descendant in ipairs(currentPlot:GetDescendants()) do
+						if descendant.Name == "DuesWall" and descendant:IsA("BasePart") and descendant.CanCollide == true then
+							duesWall = descendant
+							break
+						end
+					end
+
+					-- إذا لم يتم العثور على الجدار أو كان CanCollide غير محدد، اسمح بالمعالجة العادية
+					if not duesWall then return true end
+
+					local character = localPlayer.Character
+					if not character then return true end
+
+					local hrp = character:FindFirstChild("HumanoidRootPart")
+					if not hrp then return true end
+
+					local wallX = duesWall.Position.X
+					local playerX = hrp.Position.X
+					local blockX = targetPosition.X
+
+					-- تحديد جهة اللاعب بالنسبة للجدار (موجب إذا كان يمين/أكبر من الجدار، وسالب إذا كان يسار/أصغر)
+					local isPlayerOnPositiveSide = (playerX >= wallX)
+					local isBlockOnPositiveSide = (blockX >= wallX)
+
+					
+					return isPlayerOnPositiveSide == isBlockOnPositiveSide
+				end
+				
 				local function isBlockCorrectInDemo(builtPart)
 					if not fakeDemoModel then return true end -- لتجنب المسح العشوائي إذا لم يكن المخطط جاهزاً
 
@@ -712,26 +746,28 @@ local function newHub(txt)
 
 					return false -- لا يوجد أي بارت في المخطط بهذا الموقع (بلوك زائد)
 				end
-
+				
 				local function executeAutoDestroy()
 					if not currentPlot or not fakeDemoModel then return end
 
 					for _, descendant in ipairs(currentPlot:GetDescendants()) do
-
 						if not autoBuildState then break end
 
-						-- التحقق من شرط الاسم وأنها قطعة وتحوي BoolValue
 						local isPlayerBlock = descendant.Name == "Block" and descendant:FindFirstChildOfClass("BoolValue")
 
 						if isPlayerBlock then
 							local targetPart = descendant:IsA("BasePart") and descendant or descendant:FindFirstChildWhichIsA("BasePart")
 
 							if targetPart then
-								-- إذا كان البلوك خاطئاً (زائد أو بلون غير صحيح)
+								-- 1. تجاهل البلوك إذا كان في الجهة المقابلة للجدار بالنسبة للاعب
+								if not isPositionOnPlayerSide(targetPart.Position) then
+									continue
+								end
+
+								-- 2. التحقق مما إذا كان البلوك خاطئاً (زائد أو بلون غير صحيح)
 								if not isBlockCorrectInDemo(targetPart) then
-									-- إرسال موقع البلوك لحذفه
 									destroyBlockEvent:FireServer(targetPart.Position)
-									task.wait(0.1) -- مهلة لتجنب الضغط العالي على السيرفر
+									task.wait(0.1)
 								end
 							end
 						end
@@ -747,23 +783,27 @@ local function newHub(txt)
 					print("بدء عملية التنظيف والبناء التلقائي المستمر...")
 
 					while autoBuildState and fakeDemoModel do
-						-- 1. أولاً: حذف البلوكات الزائدة أو ذات الألوان الخاطئة
+						-- 1. أولاً: حذف البلوكات الزائدة التي تقع في جهة اللاعب فقط
 						executeAutoDestroy()
 
-						-- 2. ثانياً: بناء البلوكات الناقصة الصحيحة
+						-- 2. ثانياً: بناء البلوكات الناقصة الصحيحة في جهة اللاعب فقط
 						for _, descendant in ipairs(fakeDemoModel:GetDescendants()) do
 							if not autoBuildState then break end
 
 							if descendant:IsA("BasePart") then
 								local rawPosition = descendant.Position
+
+								-- تجاهل أي جزء في المخطط يقع خلف الجدار بالنسبة للاعب
+								if not isPositionOnPlayerSide(rawPosition) then
+									continue
+								end
+
 								local partColor = descendant.Color
 
-								-- إذا كان المكان ممتلئاً ببلوك مبني مسبقاً (صحيح) نتخطاه
 								if isBlockAlreadyBuilt(rawPosition) then
 									continue
 								end
 
-								-- البحث عن اللون المطابق في الـ Inventory
 								local matchedColor = getMatchingColorFromInventory(partColor)
 
 								if matchedColor then
