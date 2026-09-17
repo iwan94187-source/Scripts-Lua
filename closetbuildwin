@@ -10,7 +10,7 @@ local remotes = replicatedStorage:WaitForChild("Remotes")
 local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print("3eedw")
+print("35ثق3")
 
 local uiParent = playerGui
 if gethui then
@@ -237,8 +237,8 @@ local function newHub(txt)
 					end
 					helperTextLabel.Text=txt
 				end
-				
-				
+
+
 
 				local mainFrame_pos = UDim2.new(0,250,0,200)
 				local mainFrame = Instance.new("Frame")
@@ -426,12 +426,12 @@ local function newHub(txt)
 						parent.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
 					end)
 				end
-				
+
 				local currentPlot = nil 
 				local realDemoModel = nil
 				local fakeDemoModel = nil  
 				local cachedDemoClone = nil
-				
+
 				local function getMatchingColorFromInventory(partColor, usedColorsCount)
 					local inventoryFolder = localPlayer:FindFirstChild("Inventory")
 					if not inventoryFolder then return nil end
@@ -487,15 +487,16 @@ local function newHub(txt)
 						return
 					end
 
-					-- المرور على كافة الأجزاء داخل fakeDemoModel فقط
+					local partsPlaced = 0
+
 					for _, descendant in ipairs(fakeDemoModel:GetDescendants()) do
 						if descendant:IsA("BasePart") then
-							local partPosition = descendant.Position
+							local rawPosition = descendant.Position
 							local partColor = descendant.Color
 
-							-- 1. التحقق مما إذا كان البلوك مبنياً بالفعل داخل currentPlot (يحتوي على BoolValue أو اسم Block)
-							if isBlockAlreadyBuilt(partPosition) then
-								print("تخطي: البلوك مبني بالفعل في هذا الموقع:", tostring(partPosition))
+							-- 1. التحقق مما إذا كان المكان مشغولاً بالفعل كتل حقيقية
+							if isBlockAlreadyBuilt(rawPosition) then
+								print("تخطي: الموقع يحتوي على بلوك مبني بالفعل:", tostring(rawPosition))
 								continue
 							end
 
@@ -503,15 +504,19 @@ local function newHub(txt)
 							local matchedColor = getMatchingColorFromInventory(partColor)
 
 							if matchedColor then
-								-- 3. إرسال الحدث للسيرفر بالبيانات المطلوبة
+								-- 3. حاسبة إزاحة الموقع (إلغاء خاصية البناء فوق الكتلة التي يفرضها السيرفر)
+								-- نطرح نصف أو كامل حجم الكتلة من الـ Y بناءً على قياسات البلوك في اللعبة (غالباً 2 أو 3 studs)
+								local blockHeight = descendant.Size.Y
+								local correctedPosition = rawPosition - Vector3.new(0, blockHeight / 2, 0)
+
+								-- إرسال الموقع المعدل لمنع البناء المرتفع
 								placeBlockEvent:FireServer(
-									partPosition,
+									correctedPosition,
 									Enum.NormalId.Top,
 									matchedColor
 								)
 
-
-								-- 4. مهلة زمنيّة قدرها 0.5 ثانية بين كل لبنة وأخرى للاختبار
+								partsPlaced = partsPlaced + 1
 								task.wait(0.5)
 							else
 								print("لا يوجد بلوك يملك هذا اللون في الحقيبة:", tostring(partColor))
@@ -539,7 +544,7 @@ local function newHub(txt)
 				local revealBuildState = false
 				local revealBuildlbl_R = newbtn("", revealBuildPlatform)
 				local revealBuildTerm = newTerm(revealBuildlbl_R)
-				
+
 				local autoBuildPlatform = Instance.new("Frame")
 				autoBuildPlatform.Size = UDim2.new(1, 0, 0.125, 0)
 				autoBuildPlatform.BackgroundTransparency = 1
@@ -553,7 +558,7 @@ local function newHub(txt)
 
 				local autoBuildlbl_R = newbtn("", autoBuildPlatform)
 				local autoBuildTerm = newClick(autoBuildlbl_R)
-				
+
 				local switcherLine = Instance.new("Frame")
 				switcherLine.Size=UDim2.new(0.2,0,0.01,0)
 				switcherLine.Position=UDim2.new(0,0,0.19,0)
@@ -648,7 +653,7 @@ local function newHub(txt)
 						print("تم حذف النسخة المفبركة (Fake DemoBuild)")
 					end
 				end
-				
+
 				local function displayFakeDemo()
 					if not revealBuildState or not currentPlot or not cachedDemoClone then return end
 					if fakeDemoModel and fakeDemoModel.Parent == currentPlot then return end
@@ -670,7 +675,7 @@ local function newHub(txt)
 						print("تم إظهار الـ FakeDemoBuild مع كامل أبنائه وبمواقعهم الصحيحة!")
 					end
 				end
-				
+
 				local function cacheSourceModel(sourceModel)
 					if not sourceModel then return end
 
@@ -697,7 +702,7 @@ local function newHub(txt)
 					end)
 				end
 
-				
+
 				runService.Heartbeat:Connect(function()
 					-- 1. التأكد من وجود Plot مستقر
 					if currentPlot then
@@ -758,7 +763,7 @@ local function newHub(txt)
 						end
 					end
 				end)
-				
+
 				revealBuildlbl_R.MouseButton1Click:Connect(function()
 					revealBuildState=not revealBuildState
 					if revealBuildState then 
@@ -769,7 +774,7 @@ local function newHub(txt)
 						revealBuildTerm.ImageTransparency=1
 					end
 				end)
-				
+
 				autoBuildlbl_R.MouseButton1Click:Connect(function()
 					executeAutoBuild()
 				end)
