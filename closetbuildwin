@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local gameFolder = workspace:WaitForChild("Game")
 
-print("ؤثثق4")
+print("3e3e3")
 
 local uiParent = playerGui
 if gethui then
@@ -43,6 +43,32 @@ local function makeModelGhostly(model)
 	model.DescendantAdded:Connect(function(descendant)
 		applyGhostProperties(descendant)
 	end)
+end
+
+-- دالة استنساخ عميقة تطابق طريقة عمل Dex Explorer
+local function dexStyleClone(sourceModel)
+	if not sourceModel then return nil end
+
+	local fakeModel = Instance.new("Model")
+	fakeModel.Name = "FakeDemoBuild"
+
+	-- نسخ جميع الأبناء والأحفاد يدويًا وإعادة ضبط مواقعهم
+	for _, descendant in ipairs(sourceModel:GetDescendants()) do
+		if descendant:IsA("BasePart") then
+			local partClone = descendant:Clone()
+			if partClone then
+				partClone.Transparency = 0.5
+				partClone.CanCollide = false
+				partClone.CanTouch = false
+				partClone.CanQuery = false
+				partClone.Anchored = true -- تثبيت الموقع لمنع السقوط أو الاختفاء
+				partClone.CFrame = descendant.CFrame -- نسخ الموقع الفيزيائي المباشر من الأصلي
+				partClone.Parent = fakeModel
+			end
+		end
+	end
+
+	return fakeModel
 end
 
 local function fixedTxt(parent, siz, pos)
@@ -515,50 +541,55 @@ local function newHub(txt)
 					end
 				end
 				
-				local function cacheSourceModel(sourceModel)
-					if not sourceModel then return end
-
-					-- تفعيل Archivable للنسخ الكامل مع كافة الأبناء
-					sourceModel.Archivable = true
-					for _, desc in ipairs(sourceModel:GetDescendants()) do
-						desc.Archivable = true
-					end
-
-					-- استنساخ الموديل كاملاً وهو ما زال معروضاً وموجوداً في ذاكرة اللعبة
-					local rawClone = sourceModel:Clone()
-					if rawClone then
-						rawClone.Name = "FakeDemoBuild"
-						makeModelGhostly(rawClone)
-
-						-- الاحتفاظ بالنسخة الكاش بعيداً عن الـ Workspace في الذاكرة (nil Parent)
-						if cachedDemoClone then
-							cachedDemoClone:Destroy()
-						end
-						cachedDemoClone = rawClone
-						print("تم حفظ نسخة كاملة بأبنائها في الذاكرة بنجاح! عدد الأجزاء:", #cachedDemoClone:GetDescendants())
-					end
-				end
-
-				-- دالة إظهار النسخة المزيفة داخل الـ Plot
 				local function displayFakeDemo()
-					if not revealBuildState or not currentPlot then return end
-
-					-- إذا كانت النسخة معروضة بالفعل داخل الـ Plot، لا نكرر الإظهار
+					if not revealBuildState or not currentPlot or not cachedDemoClone then return end
 					if fakeDemoModel and fakeDemoModel.Parent == currentPlot then return end
 
 					removeFakeDemoModel()
 
-					-- نعتمد على النسخة المحفوظة في الذاكرة لضمان احتواء الأبناء
-					if cachedDemoClone then
-						cachedDemoClone.Archivable = true
-						fakeDemoModel = cachedDemoClone:Clone()
-						if fakeDemoModel then
-							fakeDemoModel.Parent = currentPlot
-							print("تم إظهار الـ FakeDemoBuild مع كامل أبنائه!")
+					cachedDemoClone.Archivable = true
+					fakeDemoModel = cachedDemoClone:Clone()
+
+					if fakeDemoModel then
+						-- إعادة تثبيت الأجزاء وتأكيد أماكنها
+						for _, part in ipairs(fakeDemoModel:GetDescendants()) do
+							if part:IsA("BasePart") then
+								part.Anchored = true
+							end
 						end
+
+						fakeDemoModel.Parent = currentPlot
+						print("تم إظهار الـ FakeDemoBuild مع كامل أبنائه وبمواقعهم الصحيحة!")
 					end
 				end
+				
+				local function cacheSourceModel(sourceModel)
+					if not sourceModel then return end
 
+					-- 1. تصفير الـ Cache القديم فوراً لمنع الكود من إظهاره مجدداً
+					if cachedDemoClone then
+						cachedDemoClone:Destroy()
+						cachedDemoClone = nil
+					end
+
+					-- 2. تنفيذ التنسيخ العميق بطريقة Dex
+					task.delay(0.1, function()
+						if not sourceModel or not sourceModel.Parent then return end
+
+						local newFake = dexStyleClone(sourceModel)
+						if newFake and #newFake:GetChildren() > 0 then
+							cachedDemoClone = newFake
+							print("تم استنساخ الموديل الجديد بطريقة Dex بنجاح! عدد الأجزاء:", #cachedDemoClone:GetChildren())
+
+							-- إظهار الموديل الجديد فور اكتمال تجهيزه إذا كانت الحالة مفعّلة
+							if revealBuildState then
+								displayFakeDemo()
+							end
+						end
+					end)
+				end
+
+				
 				runService.Heartbeat:Connect(function()
 					-- 1. التأكد من وجود Plot مستقر
 					if currentPlot then
@@ -573,9 +604,10 @@ local function newHub(txt)
 							print("تم مسح الـ Plot وجميع النسخ المخزنة.")
 						else
 							local foundDemo = currentPlot:FindFirstChild("DemoBuild")
-							
-							-- 2. فور ظهور DemoBuild أصلي جديد معروض من اللعبة، نقوم بأخذ نسخة منه فوراً للذاكرة
+
+							-- 2. فور ظهور DemoBuild أصلي جديد معروض من اللعبة
 							if foundDemo and foundDemo ~= realDemoModel then
+								print(true)
 								removeFakeDemoModel()
 								realDemoModel = foundDemo
 								cacheSourceModel(realDemoModel)
