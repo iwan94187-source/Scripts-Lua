@@ -13,7 +13,7 @@ local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local destroyBlockEvent = remotes:WaitForChild("DestroyBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print("35er23")
+print("بب2423")
 
 local uiParent = playerGui
 if gethui then
@@ -56,20 +56,41 @@ end
 local function dexStyleClone(sourceModel)
 	if not sourceModel then return nil end
 
+	-- 1. جمع كافة الأجزاء المطلوبة من المجسم الأصلي
+	local sourceParts = {}
+	for _, descendant in ipairs(sourceModel:GetDescendants()) do
+		if descendant:IsA("BasePart") and descendant.Name ~= "Center" then
+			table.insert(sourceParts, descendant)
+		end
+	end
+
+	-- إذا كان المجسم فارغاً لحظة الاستدعاء، ننتظر كسر ثانية لإتاحة الفرصة للتحميل
+	if #sourceParts == 0 then
+		task.wait(0.05)
+		for _, descendant in ipairs(sourceModel:GetDescendants()) do
+			if descendant:IsA("BasePart") and descendant.Name ~= "Center" then
+				table.insert(sourceParts, descendant)
+			end
+		end
+	end
+
 	local fakeModel = Instance.new("Model")
 	fakeModel.Name = "FakeDemoBuild"
 
-	-- نسخ جميع الأبناء والأحفاد يدويًا وإعادة ضبط مواقعهم
-	for _, descendant in ipairs(sourceModel:GetDescendants()) do
-		if descendant:IsA("BasePart") and descendant.Name~="Center" then
-			local partClone = descendant:Clone()
+	-- 2. تنفيذ النسخ مع التأكد من نقل كل جزء
+	for i = 1, #sourceParts do
+		local part = sourceParts[i]
+
+		-- التأكد من أن البارت ما زال موجوداً داخل اللعبة ولم يُحذف
+		if part and part.Parent then
+			local partClone = part:Clone()
 			if partClone then
 				partClone.Transparency = 0.5
 				partClone.CanCollide = false
 				partClone.CanTouch = false
 				partClone.CanQuery = false
-				partClone.Anchored = true -- تثبيت الموقع لمنع السقوط أو الاختفاء
-				partClone.CFrame = descendant.CFrame -- نسخ الموقع الفيزيائي المباشر من الأصلي
+				partClone.Anchored = true
+				partClone.CFrame = part.CFrame
 				partClone.Parent = fakeModel
 			end
 		end
@@ -991,24 +1012,41 @@ local function newHub(txt)
 				local function cacheSourceModel(sourceModel)
 					if not sourceModel then return end
 
-					-- 1. تصفير الـ Cache القديم فوراً لمنع الكود من إظهاره مجدداً
+					-- 1. تصفير الـ Cache القديم والـ fakeDemoModel الحالي فوراً
 					if cachedDemoClone then
 						cachedDemoClone:Destroy()
 						cachedDemoClone = nil
 					end
+					removeFakeDemoModel()
 
-					-- 2. تنفيذ التنسيخ العميق بطريقة Dex
+					-- 2. تنفيذ التنسيخ بعد التأكد من اكتمال تحكم السيرفر بالـ DemoBuild
 					task.delay(0.1, function()
 						if not sourceModel or not sourceModel.Parent then return end
 
-						local newFake = dexStyleClone(sourceModel)
-						if newFake and #newFake:GetChildren() > 0 then
-							cachedDemoClone = newFake
-							print("تم استنساخ الموديل الجديد بطريقة Dex بنجاح! عدد الأجزاء:", #cachedDemoClone:GetChildren())
+						-- حلقة تأكيد استقرار عدد الأجزاء لمنع النقص عند البناء الكثيف
+						local previousCount = -1
+						local currentCount = #sourceModel:GetDescendants()
+						local attempts = 0
 
+						-- الانتظار طالما أن السيرفر ما زال يضيف أجزاء جديدة للموديل الاصلي
+						while currentCount ~= previousCount and attempts < 5 do
+							previousCount = currentCount
+							task.wait(0.1) -- مهلة فحص استقرار الأجزاء
+							if sourceModel and sourceModel.Parent then
+								currentCount = #sourceModel:GetDescendants()
+							end
+							attempts = attempts + 1
+						end
 
-							displayFakeDemo()
+						-- بعد استقرار الأجزاء، نبدأ النسخ العميق
+						if sourceModel and sourceModel.Parent then
+							local newFake = dexStyleClone(sourceModel)
+							if newFake and #newFake:GetChildren() > 0 then
+								cachedDemoClone = newFake
+								print("تم استنساخ الموديل كاملاً بدون نقص! عدد الأجزاء:", #cachedDemoClone:GetChildren())
 
+								displayFakeDemo()
+							end
 						end
 					end)
 				end
