@@ -8,12 +8,12 @@ local UserInputService = game:GetService("UserInputService")
 local camera = Workspace.CurrentCamera
 
 local gameFolder = workspace:WaitForChild("Game")
-local remotes = replicatedStorage:WaitForChild("Remotes")
+--[[local remotes = replicatedStorage:WaitForChild("Remotes")
 local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local destroyBlockEvent = remotes:WaitForChild("DestroyBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
-
-print("crew")
+]]
+print("3ewe2")
 
 local uiParent = playerGui
 if gethui then
@@ -525,7 +525,26 @@ local function newHub(txt)
 				local autoBuildState=false
 				local autoBuildlbl_R = newbtn("", autoBuildPlatform)
 				local autoBuildTerm = newTerm(autoBuildlbl_R)
+				
+				local buildSpeedPlatform = Instance.new("Frame")
+				buildSpeedPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				buildSpeedPlatform.BackgroundTransparency = 1
+				buildSpeedPlatform.Parent = frame_1
 
+				local buildSpeedlbl_L = newlbl("BuildSpeed", buildSpeedPlatform)
+				local buildSpeedlbl_LFixed = fixedTxt(buildSpeedlbl_L, 0.8, 0.1)
+				buildSpeedlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				buildSpeedlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				buildSpeedlbl_LFixed.TextXAlignment = "Left"
+
+				local buildSpeedState = false
+				local buildSpeedBox_R = newBox("10", buildSpeedPlatform)
+				local buildSpeedBox_RFixed = fixedTxt(buildSpeedBox_R, 0.8, 0.1)
+				buildSpeedBox_RFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				buildSpeedBox_RFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				buildSpeedBox_RFixed.TextXAlignment = "Left"
+				buildSpeedBox_RFixed.Text="10"
+				
 				local flyPlatform = Instance.new("Frame")
 				flyPlatform.Size = UDim2.new(1, 0, 0.125, 0)
 				flyPlatform.BackgroundTransparency = 1
@@ -631,7 +650,7 @@ local function newHub(txt)
 				toggleSpeedBoxFixed.TextColor = BrickColor.Gray()
 				toggleSpeedBoxFixed.TextXAlignment = "Left"
 				toggleSpeedBoxFixed.Text="16"
-
+				
 				local switcherLine = Instance.new("Frame")
 				switcherLine.Size=UDim2.new(0.2,0,0.01,0)
 				switcherLine.Position=UDim2.new(0,0,0.19,0)
@@ -737,12 +756,15 @@ local function newHub(txt)
 										matchedColor
 									)
 
-									task.wait(0.1)
+									local rawSpeedNumber = tonumber(buildSpeedBox_RFixed.Text) or 10
+									local waitDelay = math.max(0.01, rawSpeedNumber / 100)
+
+									task.wait(waitDelay)
 								end
 							end
 						end
 
-						task.wait(0.5) -- فحص دوري كل نصف ثانية
+						task.wait(0.5)
 					end
 
 					print("تم إيقاف البناء والتنظيف التلقائي.")
@@ -1079,6 +1101,13 @@ local function newHub(txt)
 					setFlyState(false)
 					setFlyState(true)
 				end)
+				
+				buildSpeedBox_R:GetPropertyChangedSignal("Text"):Connect(function()
+					local cleanText = buildSpeedBox_R.Text:gsub("[^%d%.]", "")
+					buildSpeedBox_R.Text = cleanText
+
+					buildSpeedBox_RFixed.Text = cleanText
+				end)
 
 				runService.Heartbeat:Connect(function()
 					local human = localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid")
@@ -1094,6 +1123,7 @@ local function newHub(txt)
 						FLY_SPEED=toggleFlyBoxFixed.Text
 					end
 				end)
+				
 				revealBuildlbl_R.MouseButton1Click:Connect(function()
 					revealBuildState=not revealBuildState
 					if revealBuildState then 
