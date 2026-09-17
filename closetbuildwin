@@ -6,7 +6,7 @@ local runService = game:GetService("RunService")
 
 local gameFolder = workspace:WaitForChild("Game")
 
-print("ئءصي")
+print("ءثثثق")
 
 local uiParent = playerGui
 if gethui then
@@ -513,65 +513,104 @@ local function newHub(txt)
 						print("تم حذف النسخة المفبركة (Fake DemoBuild)")
 					end
 				end
+				
+				local function createFakeDemoCustom(sourceModel)
+					if not sourceModel or not revealBuildState then return end
+
+					-- 1. تنظيف أي نسخة قديمة
+					removeFakeDemoModel()
+
+					-- 2. إنشاء الموديل الحاوي الرئيسي
+					local newFake = Instance.new("Model")
+					newFake.Name = "FakeDemoBuild"
+
+					-- 3. تفعيل Archivable على المصدر وجميع المحتويات احتياطياً
+					sourceModel.Archivable = true
+					for _, desc in ipairs(sourceModel:GetDescendants()) do
+						desc.Archivable = true
+					end
+
+					-- 4. نسخ كل ابن/جزء يدوياً لضمان دخوله للـ Fake Model
+					for _, child in ipairs(sourceModel:GetChildren()) do
+						local clonedChild = child:Clone()
+						if clonedChild then
+							clonedChild.Parent = newFake
+						else
+							-- إذا فشل الاستنساخ المباشر للابن، نصلحه برمجياً
+							child.Archivable = true
+							local forceCloned = child:Clone()
+							if forceCloned then
+								forceCloned.Parent = newFake
+							end
+						end
+					end
+
+					-- 5. جعل كل الأجزاء داخل الموديل الجديد شبحية (شفافة وبصرية فقط)
+					makeModelGhostly(newFake)
+
+					-- 6. محاذاة الموقع مع الموديل الأصلي
+					if sourceModel.PrimaryPart then
+						local primaryClone = newFake:FindFirstChild(sourceModel.PrimaryPart.Name)
+						if primaryClone and primaryClone:IsA("BasePart") then
+							newFake.PrimaryPart = primaryClone
+							newFake:SetPrimaryPartCFrame(sourceModel.PrimaryPart.CFrame)
+						end
+					else
+						newFake:PivotTo(sourceModel:GetPivot())
+					end
+
+					-- 7. التثبيت داخل الـ Plot
+					newFake.Parent = currentPlot
+					fakeDemoModel = newFake
+					print("تم إنشاء النسخة المزيفة ونسخ الأبناء بنجاح! عدد الأجزاء:", #fakeDemoModel:GetDescendants())
+				end
 
 				runService.Heartbeat:Connect(function()
 					-- 1. التأكد من وجود Plot مستقر
-					if currentPlot then
-						if not currentPlot.Parent or not currentPlot:IsDescendantOf(gameFolder) then
-							currentPlot=nil
-							realDemoModel = nil
-						else
-							local foundDemo = currentPlot:FindFirstChild("DemoBuild")
-
-							-- إذا ظهر DemoBuild أصلي جديد
-							if foundDemo and foundDemo ~= realDemoModel then
-								realDemoModel = foundDemo
+					runService.Heartbeat:Connect(function()
+						if currentPlot then
+							if not currentPlot.Parent or not currentPlot:IsDescendantOf(gameFolder) then
+								currentPlot = nil
+								realDemoModel = nil
 								removeFakeDemoModel()
-							end
-							
-							if revealBuildState and not fakeDemoModel then 
-								fakeDemoModel = realDemoModel:Clone()
-								if fakeDemoModel then
-									fakeDemoModel.Name = "FakeDemoBuild"
-									makeModelGhostly(fakeDemoModel)
-									fakeDemoModel.Parent = currentPlot
+							else
+								local foundDemo = currentPlot:FindFirstChild("DemoBuild")
 
-									-- في حال وصول أجزاء متأخرة من السيرفر للموديل الأصلي، ننسخها فوراً للمزيف
-									realDemoModel.ChildAdded:Connect(function(child)
-										if fakeDemoModel and revealBuildState then
-											child.Archivable = true
-											local clonedChild = child:Clone()
-											if clonedChild then
-												makeModelGhostly(clonedChild)
-												clonedChild.Parent = fakeDemoModel
-											end
-										end
-									end)
+								-- إذا ظهر DemoBuild أصلي جديد
+								if foundDemo and foundDemo ~= realDemoModel then
+									realDemoModel = foundDemo
+									removeFakeDemoModel()
 								end
-							elseif not revealBuildState and fakeDemoModel then
-								removeFakeDemoModel()
-							end
-							
-						end
-					else
-						
-						removeFakeDemoModel()
-					
-					end
-					
-					for _, child in ipairs(gameFolder:GetChildren()) do
-						if child:IsA("Model") and child.Name == "Plot" and child~=currentPlot then
-							local ownerValue = child:FindFirstChild("Owner")
-							local teammateValue = child:FindFirstChild("Teammate")
-							local isOwner = ownerValue and ownerValue.Value == localPlayer
-							local isTeammate = teammateValue and teammateValue.Value == localPlayer
 
-							if isOwner or isTeammate then
-								currentPlot = child
-								break
+								-- الإنشاء فور وجود realDemoModel وشرط revealBuildState
+								if revealBuildState and realDemoModel and not fakeDemoModel then
+									createFakeDemoCustom(realDemoModel)
+								elseif not revealBuildState and fakeDemoModel then
+									removeFakeDemoModel()
+								end
+							end
+						else
+							removeFakeDemoModel()
+						end
+
+						-- البحث عن Plot يملكه اللاعب عند عدم وجود Plot محدد
+						if not currentPlot then
+							for _, child in ipairs(gameFolder:GetChildren()) do
+								if child:IsA("Model") and child.Name == "Plot" then
+									local ownerValue = child:FindFirstChild("Owner")
+									local teammateValue = child:FindFirstChild("Teammate")
+
+									local isOwner = ownerValue and ownerValue.Value == localPlayer
+									local isTeammate = teammateValue and teammateValue.Value == localPlayer
+
+									if isOwner or isTeammate then
+										currentPlot = child
+										break
+									end
+								end
 							end
 						end
-					end
+					end)
 					
 				end)
 				
