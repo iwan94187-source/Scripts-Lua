@@ -4,6 +4,8 @@ local playerGui = localPlayer:WaitForChild("PlayerGui")
 local tweenService = game:GetService("TweenService")
 local runService = game:GetService("RunService")
 local replicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local camera = Workspace.CurrentCamera
 
 local gameFolder = workspace:WaitForChild("Game")
 local remotes = replicatedStorage:WaitForChild("Remotes")
@@ -11,7 +13,7 @@ local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local destroyBlockEvent = remotes:WaitForChild("DestroyBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print("3ث3ث3")
+print("crew")
 
 local uiParent = playerGui
 if gethui then
@@ -228,7 +230,7 @@ local function newHub(txt)
 				helperTextLabel.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 				helperTextLabel.TextColor=BrickColor.new("White")
 				helperTextLabel.TextScaled=true
-				helperTextLabel.Parent=screenGui
+				helperTextLabel.Parent=nil
 
 				local function printlog(txt,set)
 					if set then 
@@ -253,7 +255,7 @@ local function newHub(txt)
 				local frameTitle = Instance.new("TextLabel")
 				frameTitle.Size=UDim2.new(1,0,0.1,0)
 				frameTitle.BackgroundColor3=Color3.fromRGB(24, 24, 24)
-				frameTitle.Text="Find the Key"
+				frameTitle.Text="Closet Build Win"
 				frameTitle.Parent=mainFrame
 				local frameTitleFixed = fixedTxt(frameTitle)
 				frameTitleFixed.Size=UDim2.new(0.6,0,0.8,0)
@@ -415,7 +417,7 @@ local function newHub(txt)
 				local function listOff(parent)
 					local listLayout = Instance.new("UIListLayout")
 					listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-					listLayout.Padding = UDim.new(0, 5) -- المسافة بين العناصر (5 بكسل)
+					--listLayout.Padding = UDim.new(0, 5) -- المسافة بين العناصر (5 بكسل)
 					listLayout.Parent = parent
 
 					local uipadding = Instance.new("UIPadding")
@@ -432,9 +434,16 @@ local function newHub(txt)
 				local realDemoModel = nil
 				local fakeDemoModel = nil  
 				local cachedDemoClone = nil
-				
+
+				local FLY_SPEED = 50 
+				local flyState = false 
+
+				local bodyVelocity = nil
+				local bodyGyro = nil
+				local renderConnection = nil
+
 				-- دالة لتحديث شفافية الموديل المزيف بناءً على حالة revealBuildState
-				
+
 				local function getMatchingColorFromInventory(partColor, usedColorsCount)
 					local inventoryFolder = localPlayer:FindFirstChild("Inventory")
 					if not inventoryFolder then return nil end
@@ -492,7 +501,7 @@ local function newHub(txt)
 				revealBuildPlatform.BackgroundTransparency = 1
 				revealBuildPlatform.Parent = frame_1
 
-				local revealBuildlbl_L = newlbl("Reveal Build", revealBuildPlatform)
+				local revealBuildlbl_L = newlbl("RevealBuild", revealBuildPlatform)
 				local revealBuildlbl_LFixed = fixedTxt(revealBuildlbl_L, 0.8, 0.1)
 				revealBuildlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
 				revealBuildlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
@@ -507,15 +516,121 @@ local function newHub(txt)
 				autoBuildPlatform.BackgroundTransparency = 1
 				autoBuildPlatform.Parent = frame_1
 
-				local autoBuildlbl_L = newlbl("Auto Build", autoBuildPlatform)
+				local autoBuildlbl_L = newlbl("AutoBuild", autoBuildPlatform)
 				local autoBuildlbl_LFixed = fixedTxt(autoBuildlbl_L, 0.8, 0.1)
 				autoBuildlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
 				autoBuildlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
 				autoBuildlbl_LFixed.TextXAlignment = "Left"
-				
+
 				local autoBuildState=false
 				local autoBuildlbl_R = newbtn("", autoBuildPlatform)
 				local autoBuildTerm = newTerm(autoBuildlbl_R)
+
+				local flyPlatform = Instance.new("Frame")
+				flyPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				flyPlatform.BackgroundTransparency = 1
+				flyPlatform.Parent = frame_2
+
+				local flylbl_L = newlbl("ToggleFly", flyPlatform)
+				local flylbl_LFixed = fixedTxt(flylbl_L, 0.8, 0.1)
+				flylbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				flylbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				flylbl_LFixed.TextXAlignment = "Left"
+
+				local flyState = false
+				local flylbl_R = newbtn("", flyPlatform)
+				local flyTerm = newTerm(flylbl_R)
+
+				local toggleFlyPlatform = Instance.new("Frame")
+				toggleFlyPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				toggleFlyPlatform.BackgroundTransparency = 1
+				toggleFlyPlatform.Parent = frame_2
+
+				local toggleFlylbl_L = newlbl("FlySpeed", toggleFlyPlatform)
+				local toggleFlylbl_LFixed = fixedTxt(toggleFlylbl_L, 0.8, 0.1)
+				toggleFlylbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				toggleFlylbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				toggleFlylbl_LFixed.TextColor=BrickColor.Gray()
+				toggleFlylbl_LFixed.TextXAlignment = "Left"
+
+				local toggleFlyBox = newBox("50",toggleFlyPlatform)
+				local toggleFlyBoxFixed = fixedTxt(toggleFlyBox, 0.8, 0.1)
+				toggleFlyBoxFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				toggleFlyBoxFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				toggleFlyBoxFixed.TextColor=BrickColor.Gray()
+				toggleFlyBoxFixed.TextXAlignment = "Left"
+				toggleFlyBoxFixed.Text="50"
+
+				local jumpPlatform = Instance.new("Frame")
+				jumpPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				jumpPlatform.BackgroundTransparency = 1
+				jumpPlatform.Parent = frame_2
+
+				local jumplbl_L = newlbl("ToggleJump", jumpPlatform)
+				local jumplbl_LFixed = fixedTxt(jumplbl_L, 0.8, 0.1)
+				jumplbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				jumplbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				jumplbl_LFixed.TextXAlignment = "Left"
+
+				local jumpState = false
+				local jumplbl_R = newbtn("", jumpPlatform)
+				local jumpTerm = newTerm(jumplbl_R)
+
+				local toggleJumpPlatform = Instance.new("Frame")
+				toggleJumpPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				toggleJumpPlatform.BackgroundTransparency = 1
+				toggleJumpPlatform.Parent = frame_2
+
+				local toggleJumplbl_L = newlbl("JumpPower", toggleJumpPlatform)
+				local toggleJumplbl_LFixed = fixedTxt(toggleJumplbl_L, 0.8, 0.1)
+				toggleJumplbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				toggleJumplbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				toggleJumplbl_LFixed.TextColor = BrickColor.Gray()
+				toggleJumplbl_LFixed.TextXAlignment = "Left"
+
+				local toggleJumpBox = newBox("55", toggleJumpPlatform)
+				toggleJumpBox.Active=false
+				local toggleJumpBoxFixed = fixedTxt(toggleJumpBox, 0.8, 0.1)
+				toggleJumpBoxFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				toggleJumpBoxFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				toggleJumpBoxFixed.TextColor = BrickColor.Gray()
+				toggleJumpBoxFixed.TextXAlignment = "Left"
+				toggleJumpBoxFixed.Text="55"
+
+				local speedPlatform = Instance.new("Frame")
+				speedPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				speedPlatform.BackgroundTransparency = 1
+				speedPlatform.Parent = frame_2
+
+				local speedlbl_L = newlbl("ToggleSpeed", speedPlatform)
+				local speedlbl_LFixed = fixedTxt(speedlbl_L, 0.8, 0.1)
+				speedlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				speedlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				speedlbl_LFixed.TextXAlignment = "Left"
+
+				local speedState = false
+				local speedlbl_R = newbtn("", speedPlatform)
+				local speedTerm = newTerm(speedlbl_R)
+
+				local toggleSpeedPlatform = Instance.new("Frame")
+				toggleSpeedPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				toggleSpeedPlatform.BackgroundTransparency = 1
+				toggleSpeedPlatform.Parent = frame_2
+
+				local toggleSpeedlbl_L = newlbl("WalkSpeed", toggleSpeedPlatform)
+				local toggleSpeedlbl_LFixed = fixedTxt(toggleSpeedlbl_L, 0.8, 0.1)
+				toggleSpeedlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				toggleSpeedlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				toggleSpeedlbl_LFixed.TextColor = BrickColor.Gray()
+				toggleSpeedlbl_LFixed.TextXAlignment = "Left"
+
+				local toggleSpeedBox = newBox("16", toggleSpeedPlatform)
+				local toggleSpeedBoxFixed = fixedTxt(toggleSpeedBox, 0.8, 0.1)
+				toggleSpeedBoxFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				toggleSpeedBoxFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				toggleSpeedBoxFixed.TextColor = BrickColor.Gray()
+				toggleSpeedBoxFixed.TextXAlignment = "Left"
+				toggleSpeedBoxFixed.Text="16"
 
 				local switcherLine = Instance.new("Frame")
 				switcherLine.Size=UDim2.new(0.2,0,0.01,0)
@@ -538,7 +653,7 @@ local function newHub(txt)
 						end
 					end
 				end
-				
+
 				local function isBlockCorrectInDemo(builtPart)
 					if not fakeDemoModel then return true end -- لتجنب المسح العشوائي إذا لم يكن المخطط جاهزاً
 
@@ -558,12 +673,12 @@ local function newHub(txt)
 
 					return false -- لا يوجد أي بارت في المخطط بهذا الموقع (بلوك زائد)
 				end
-				
+
 				local function executeAutoDestroy()
 					if not currentPlot or not fakeDemoModel then return end
 
 					for _, descendant in ipairs(currentPlot:GetDescendants()) do
-				
+
 						if not autoBuildState then break end
 
 						-- التحقق من شرط الاسم وأنها قطعة وتحوي BoolValue
@@ -583,7 +698,7 @@ local function newHub(txt)
 						end
 					end
 				end
-				
+
 				local function executeAutoBuild()
 					if not fakeDemoModel then
 						print("لا يوجد FakeDemoBuild معروض حالياً!")
@@ -632,7 +747,119 @@ local function newHub(txt)
 
 					print("تم إيقاف البناء والتنظيف التلقائي.")
 				end
-				
+
+				local function getMoveDirection(humanoid)
+					local moveDir = humanoid.MoveDirection
+
+					-- 1. فحص مفاتيح الكمبيوتر في حال عدم استخدام الجويستيك
+					if moveDir.Magnitude == 0 then
+						local forward = UserInputService:IsKeyDown(Enum.KeyCode.W) and 1 or (UserInputService:IsKeyDown(Enum.KeyCode.S) and -1 or 0)
+						local right = UserInputService:IsKeyDown(Enum.KeyCode.D) and 1 or (UserInputService:IsKeyDown(Enum.KeyCode.A) and -1 or 0)
+
+						if forward ~= 0 or right ~= 0 then
+							local camCFrame = camera.CFrame
+							moveDir = (camCFrame.LookVector * forward + camCFrame.RightVector * right)
+						end
+					else
+
+						local camCFrame = camera.CFrame
+
+						-- نأخذ متجهات الاتجاه الحقيقية للكاميرا (أمام/خلف ويمين/يسار)
+						local forwardVector = camCFrame.LookVector
+						local rightVector = camCFrame.RightVector
+
+						-- نحول MoveDirection إلى اتجاه محلي بالنسبة للشخصية ثم نربطه بالكاميرا
+						local rootPart = humanoid.Parent and humanoid.Parent:FindFirstChild("HumanoidRootPart")
+						if rootPart then
+							-- نحول متجه الحركة العالمي إلى اتجاه محلي (Local Space)
+							local localMove = rootPart.CFrame:VectorToObjectSpace(moveDir)
+
+							-- نطبق الحركة محلياً بالنسبة لاتجات الكاميرا (الأمام/الخلف يسحبك مع ميلان الكاميرا للأعلى والأسفل)
+							moveDir = (forwardVector * -localMove.Z) + (rightVector * localMove.X)
+						end
+					end
+
+					return moveDir
+				end
+
+				-- دالة لإيقاف الطيران وتنظيف الفيزياء
+				local function stopFlying()
+					if renderConnection then
+						renderConnection:Disconnect()
+						renderConnection = nil
+					end
+
+					if bodyVelocity then
+						bodyVelocity:Destroy()
+						bodyVelocity = nil
+					end
+
+					if bodyGyro then
+						bodyGyro:Destroy()
+						bodyGyro = nil
+					end
+
+					local character = localPlayer.Character
+					if character then
+						local humanoid = character:FindFirstChildOfClass("Humanoid")
+						if humanoid then
+							humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+						end
+					end
+				end
+
+				local function startFlying()
+					local character = localPlayer.Character
+					if not character then return end
+
+					local hrp = character:FindFirstChild("HumanoidRootPart")
+					local humanoid = character:FindFirstChildOfClass("Humanoid")
+					if not hrp or not humanoid then return end
+
+					-- إلغاء حالة السقوط والجاذبية على الشخصية
+					humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
+
+					-- إنشاء أجسام الفيزياء للتوجيه والسرعة
+					bodyVelocity = Instance.new("BodyVelocity")
+					bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+					bodyVelocity.Velocity = Vector3.zero
+					bodyVelocity.Parent = hrp
+
+					bodyGyro = Instance.new("BodyGyro")
+					bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+					bodyGyro.P = 9e3
+					bodyGyro.CFrame = hrp.CFrame
+					bodyGyro.Parent = hrp
+
+					-- حلقة تحديث الحركة المستمرة
+					renderConnection = runService.RenderStepped:Connect(function()
+						if not flyState or not hrp or not hrp.Parent then
+							stopFlying()
+							return
+						end
+
+						-- توجيه الجسم نحو اتجاه الكاميرا
+						bodyGyro.CFrame = camera.CFrame
+
+						-- حساب اتجاه الحركة وتطبيق السرعة
+						local moveDir = getMoveDirection(humanoid)
+						if moveDir.Magnitude > 0 then
+							bodyVelocity.Velocity = moveDir.Unit * FLY_SPEED
+						else
+							bodyVelocity.Velocity = Vector3.zero
+						end
+					end)
+				end
+
+				local function setFlyState(newState)
+					flyState = newState
+					if flyState then
+						startFlying()
+					else
+						stopFlying()
+					end
+				end
+
 				mainBtn.MouseButton1Click:Connect(function()
 
 					local motionLine = tweenService:Create(switcherLine,TweenInfo.new(0.3),{Position=UDim2.new(mainBtn.Position.X.Scale,0,switcherLine.Position.Y.Scale,0)})
@@ -757,9 +984,9 @@ local function newHub(txt)
 							cachedDemoClone = newFake
 							print("تم استنساخ الموديل الجديد بطريقة Dex بنجاح! عدد الأجزاء:", #cachedDemoClone:GetChildren())
 
-							
+
 							displayFakeDemo()
-						
+
 						end
 					end)
 				end
@@ -789,12 +1016,12 @@ local function newHub(txt)
 							end
 
 							-- 3. إدارة إظهار وإخفاء المزيف بناءً على revealBuildState
-				
+
 							if fakeDemoModel then
 								print(true)
 								updateFakeDemoVisibility()
 							elseif cachedDemoClone and not fakeDemoModel then
-							
+
 								displayFakeDemo()
 							end
 						end
@@ -825,6 +1052,48 @@ local function newHub(txt)
 					end
 				end)
 
+				toggleJumpBox:GetPropertyChangedSignal("Text"):Connect(function()
+					if not jumpState then return end
+					local cleanText = toggleJumpBox.Text:gsub("[^%d%.]", "")
+					toggleJumpBox.Text = cleanText
+
+					toggleJumpBoxFixed.Text = cleanText
+				end)
+
+				toggleSpeedBox:GetPropertyChangedSignal("Text"):Connect(function()
+					if not speedState then return end
+					local cleanText = toggleSpeedBox.Text:gsub("[^%d%.]", "")
+					toggleSpeedBox.Text = cleanText
+
+					toggleSpeedBoxFixed.Text = cleanText
+				end)
+
+				toggleFlyBox:GetPropertyChangedSignal("Text"):Connect(function()
+					if not flyState then return end
+
+					local cleanText = toggleFlyBox.Text:gsub("[^%d%.]", "")
+					toggleFlyBox.Text = cleanText
+
+					toggleFlyBoxFixed.Text = cleanText
+
+					setFlyState(false)
+					setFlyState(true)
+				end)
+
+				runService.Heartbeat:Connect(function()
+					local human = localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid")
+					if not human then return end
+					if jumpState and tonumber(toggleJumpBoxFixed.Text) then 
+						human.UseJumpPower=true
+						human.JumpPower=toggleJumpBoxFixed.Text
+					end
+					if speedState and tonumber(toggleSpeedBoxFixed.Text) then 
+						human.WalkSpeed=toggleSpeedBoxFixed.Text
+					end
+					if flyState and tonumber(toggleFlyBoxFixed.Text) then 
+						FLY_SPEED=toggleFlyBoxFixed.Text
+					end
+				end)
 				revealBuildlbl_R.MouseButton1Click:Connect(function()
 					revealBuildState=not revealBuildState
 					if revealBuildState then 
@@ -847,6 +1116,69 @@ local function newHub(txt)
 					else
 						autoBuildTerm.BackgroundColor3 = Color3.fromRGB(86, 86, 86)
 						autoBuildTerm.ImageTransparency = 1
+					end
+				end)
+
+				flylbl_R.MouseButton1Click:Connect(function()
+					flyState = not flyState
+					setFlyState(flyState)
+					if flyState then 
+						flyTerm.BackgroundColor = BrickColor.White() 
+						flyTerm.ImageTransparency = 0
+
+						toggleFlylbl_LFixed.TextColor=BrickColor.White()
+						toggleFlyBoxFixed.TextColor=BrickColor.White()
+						toggleFlyBox.Active=true
+
+					else
+						flyTerm.BackgroundColor3 = Color3.fromRGB(86, 86, 86)
+						flyTerm.ImageTransparency = 1
+
+						toggleFlylbl_LFixed.TextColor=BrickColor.Gray()
+						toggleFlyBoxFixed.TextColor=BrickColor.Gray()
+						toggleFlyBox.Active=false
+					end
+				end)
+
+				jumplbl_R.MouseButton1Click:Connect(function()
+					jumpState = not jumpState
+
+					if jumpState then 
+						jumpTerm.BackgroundColor = BrickColor.White() 
+						jumpTerm.ImageTransparency = 0
+
+						toggleJumplbl_LFixed.TextColor=BrickColor.White()
+						toggleJumpBoxFixed.TextColor=BrickColor.White()
+						toggleJumpBox.Active=true
+
+					else
+						jumpTerm.BackgroundColor3 = Color3.fromRGB(86, 86, 86)
+						jumpTerm.ImageTransparency = 1
+
+						toggleJumplbl_LFixed.TextColor=BrickColor.Gray()
+						toggleJumpBoxFixed.TextColor=BrickColor.Gray()
+						toggleJumpBox.Active=false
+					end
+				end)
+
+				speedlbl_R.MouseButton1Click:Connect(function()
+					speedState = not speedState
+
+					if speedState then 
+						speedTerm.BackgroundColor = BrickColor.White() 
+						speedTerm.ImageTransparency = 0
+
+						toggleSpeedlbl_LFixed.TextColor=BrickColor.White()
+						toggleSpeedBoxFixed.TextColor=BrickColor.White()
+						toggleSpeedBox.Active=true
+
+					else
+						speedTerm.BackgroundColor3 = Color3.fromRGB(86, 86, 86)
+						speedTerm.ImageTransparency = 1
+
+						toggleSpeedlbl_LFixed.TextColor=BrickColor.Gray()
+						toggleSpeedBoxFixed.TextColor=BrickColor.Gray()
+						toggleSpeedBox.Active=false
 					end
 				end)
 
