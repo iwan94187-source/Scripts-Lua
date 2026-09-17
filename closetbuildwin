@@ -10,7 +10,7 @@ local remotes = replicatedStorage:WaitForChild("Remotes")
 local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print("35ثق3")
+print("ثق32قب3")
 
 local uiParent = playerGui
 if gethui then
@@ -507,7 +507,7 @@ local function newHub(txt)
 								-- 3. حاسبة إزاحة الموقع (إلغاء خاصية البناء فوق الكتلة التي يفرضها السيرفر)
 								-- نطرح نصف أو كامل حجم الكتلة من الـ Y بناءً على قياسات البلوك في اللعبة (غالباً 2 أو 3 studs)
 								local blockHeight = descendant.Size.Y
-								local correctedPosition = rawPosition - Vector3.new(0, blockHeight / 2, 0)
+								local correctedPosition = rawPosition - Vector3.new(0, blockHeight, 0)
 
 								-- إرسال الموقع المعدل لمنع البناء المرتفع
 								placeBlockEvent:FireServer(
