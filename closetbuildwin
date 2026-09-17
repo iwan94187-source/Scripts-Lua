@@ -10,7 +10,7 @@ local remotes = replicatedStorage:WaitForChild("Remotes")
 local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print("4t43r3")
+print("vdvdv")
 
 local uiParent = playerGui
 if gethui then
@@ -433,17 +433,6 @@ local function newHub(txt)
 				local cachedDemoClone = nil
 				
 				-- دالة لتحديث شفافية الموديل المزيف بناءً على حالة revealBuildState
-				local function updateFakeDemoVisibility()
-					if not fakeDemoModel then return end
-
-					local targetTransparency = revealBuildState and 0.5 or 1.0
-
-					for _, descendant in ipairs(fakeDemoModel:GetDescendants()) do
-						if descendant:IsA("BasePart") then
-							descendant.Transparency = targetTransparency
-						end
-					end
-				end
 				
 				local function getMatchingColorFromInventory(partColor, usedColorsCount)
 					local inventoryFolder = localPlayer:FindFirstChild("Inventory")
@@ -582,6 +571,17 @@ local function newHub(txt)
 					frame_1.Visible,frame_2.Visible=false,false
 					state.Visible=true
 				end
+				local function updateFakeDemoVisibility()
+					if not fakeDemoModel then return end
+
+					local targetTransparency = revealBuildState and 0.5 or 1.0
+					print(targetTransparency)
+					for _, descendant in ipairs(fakeDemoModel:GetDescendants()) do
+						if descendant:IsA("BasePart") then
+							descendant.Transparency = targetTransparency
+						end
+					end
+				end
 
 				mainBtn.MouseButton1Click:Connect(function()
 
@@ -707,10 +707,9 @@ local function newHub(txt)
 							cachedDemoClone = newFake
 							print("تم استنساخ الموديل الجديد بطريقة Dex بنجاح! عدد الأجزاء:", #cachedDemoClone:GetChildren())
 
-							-- إظهار الموديل الجديد فور اكتمال تجهيزه إذا كانت الحالة مفعّلة
-							if revealBuildState then
-								displayFakeDemo()
-							end
+							
+							displayFakeDemo()
+						
 						end
 					end)
 				end
@@ -741,11 +740,12 @@ local function newHub(txt)
 
 							-- 3. إدارة إظهار وإخفاء المزيف بناءً على revealBuildState
 				
-							if not fakeDemoModel and cachedDemoClone then
-								displayFakeDemo()
-							
-							else
+							if fakeDemoModel then
+								print(true)
 								updateFakeDemoVisibility()
+							elseif cachedDemoClone and not fakeDemoModel then
+							
+								displayFakeDemo()
 							end
 						end
 					else
