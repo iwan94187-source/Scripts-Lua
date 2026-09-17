@@ -3,10 +3,14 @@ local localPlayer = players.LocalPlayer
 local playerGui = localPlayer:WaitForChild("PlayerGui")
 local tweenService = game:GetService("TweenService")
 local runService = game:GetService("RunService")
+local replicatedStorage = game:GetService("ReplicatedStorage")
 
 local gameFolder = workspace:WaitForChild("Game")
+local remotes = replicatedStorage:WaitForChild("Remotes")
+local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
+local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print("3e3e3")
+print("لارلارلارلار")
 
 local uiParent = playerGui
 if gethui then
@@ -422,6 +426,83 @@ local function newHub(txt)
 						parent.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
 					end)
 				end
+				
+				local currentPlot = nil 
+				local realDemoModel = nil
+				local fakeDemoModel = nil  
+				local cachedDemoClone = nil
+				
+				local function getMatchingColorFromInventory(partColor, usedColorsCount)
+					local inventoryFolder = localPlayer:FindFirstChild("Inventory")
+					if not inventoryFolder then return nil end
+
+					for _, item in ipairs(inventoryFolder:GetChildren()) do
+						local targetColor = nil
+
+						if item:IsA("Color3Value") then
+							targetColor = item.Value
+						elseif item:FindFirstChildWhichIsA("Color3Value") then
+							targetColor = item:FindFirstChildWhichIsA("Color3Value").Value
+						end
+
+						if targetColor then
+							-- فحص تقارب اللون
+							if math.abs(targetColor.R - partColor.R) < 0.01 
+								and math.abs(targetColor.G - partColor.G) < 0.01 
+								and math.abs(targetColor.B - partColor.B) < 0.01 then
+
+								return targetColor
+							end
+						end
+					end
+
+					return nil
+				end
+
+				local function executeAutoBuild()
+					if not fakeDemoModel then
+						print("لا يوجد FakeDemoBuild معروض حالياً للبناء!")
+						return
+					end
+
+					local partsPlaced = 0
+
+					-- المرور على كافة الأجزاء داخل fakeDemoModel فقط
+					for _, descendant in ipairs(fakeDemoModel:GetDescendants()) do
+						if descendant:IsA("BasePart") then
+
+							-- 1. التأكد من أن البارت لم يتم إرساله مسبقاً في هذه الجولة (تجنب الاستهداف المكرر)
+							if descendant:GetAttribute("Placed") then
+								continue
+							end
+
+							local partPosition = descendant.Position
+							local partColor = descendant.Color
+
+							-- 2. البحث عن اللون المطابق
+							local matchedColor = getMatchingColorFromInventory(partColor)
+
+							if matchedColor then
+								-- 3. وضع علامة على البارت المزيف لمنع استهدافه مرة أخرى نهائياً
+								descendant:SetAttribute("Placed", true)
+
+								-- 4. إرسال الحدث للسيرفر
+								placeBlockEvent:FireServer(
+									partPosition,
+									Enum.NormalId.Top,
+									matchedColor
+								)
+
+								partsPlaced = partsPlaced + 1
+								task.wait(0.5)
+							else
+								print("لا يوجد بلوك يملك هذا اللون في الحقيبة:", tostring(partColor))
+							end
+						end
+					end
+
+					print("تم إرسال أوامر البناء بنجاح! عدد البلوكات المبنية:", partsPlaced)
+				end
 
 				listOff(frame_1)
 				listOff(frame_2)
@@ -440,17 +521,26 @@ local function newHub(txt)
 				local revealBuildState = false
 				local revealBuildlbl_R = newbtn("", revealBuildPlatform)
 				local revealBuildTerm = newTerm(revealBuildlbl_R)
+				
+				local autoBuildPlatform = Instance.new("Frame")
+				autoBuildPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				autoBuildPlatform.BackgroundTransparency = 1
+				autoBuildPlatform.Parent = frame_1
 
+				local autoBuildlbl_L = newlbl("Auto Build", autoBuildPlatform)
+				local autoBuildlbl_LFixed = fixedTxt(autoBuildlbl_L, 0.8, 0.1)
+				autoBuildlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				autoBuildlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				autoBuildlbl_LFixed.TextXAlignment = "Left"
+
+				local autoBuildlbl_R = newbtn("", autoBuildPlatform)
+				local autoBuildTerm = newClick(autoBuildlbl_R)
+				
 				local switcherLine = Instance.new("Frame")
 				switcherLine.Size=UDim2.new(0.2,0,0.01,0)
 				switcherLine.Position=UDim2.new(0,0,0.19,0)
 				switcherLine.BackgroundColor=BrickColor.White()
 				switcherLine.Parent=mainFrame
-
-				local currentPlot = nil 
-				local realDemoModel = nil
-				local fakeDemoModel = nil  
-				local cachedDemoClone = nil
 
 				local function display(state)
 					frame_1.Visible,frame_2.Visible=false,false
@@ -660,6 +750,10 @@ local function newHub(txt)
 						revealBuildTerm.BackgroundColor3=Color3.fromRGB(86, 86, 86)
 						revealBuildTerm.ImageTransparency=1
 					end
+				end)
+				
+				autoBuildlbl_R.MouseButton1Click:Connect(function()
+					executeAutoBuild()
 				end)
 
 			end)
