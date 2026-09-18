@@ -13,7 +13,7 @@ local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local destroyBlockEvent = remotes:WaitForChild("DestroyBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print("11w1w1w")
+print("2sxxx")
 
 local uiParent = playerGui
 if gethui then
@@ -52,19 +52,16 @@ local function makeModelGhostly(model)
 	end)
 end
 
--- دالة استنساخ عميقة تطابق طريقة عمل Dex Explorer
 local function dexStyleClone(sourceModel)
 	if not sourceModel then return nil end
 
-	-- 1. جمع كافة الأجزاء المطلوبة من المجسم الأصلي
 	local sourceParts = {}
 	for _, descendant in ipairs(sourceModel:GetDescendants()) do
 		if descendant:IsA("BasePart") and descendant.Name ~= "Center" then
 			table.insert(sourceParts, descendant)
 		end
 	end
-
-	-- إذا كان المجسم فارغاً لحظة الاستدعاء، ننتظر كسر ثانية لإتاحة الفرصة للتحميل
+	
 	if #sourceParts == 0 then
 		task.wait(0.05)
 		for _, descendant in ipairs(sourceModel:GetDescendants()) do
@@ -97,6 +94,15 @@ local function dexStyleClone(sourceModel)
 	end
 
 	return fakeModel
+end
+
+local function formatServerTime()
+	local serverTime = workspace:GetServerTimeNow()
+
+	-- تحويل الوقت إلى جدول يحوي الساعة، الدقيقة، والثانية بتوقيت UTC
+	local timeTable = os.date("!*t", serverTime)
+
+	return string.format("%02d:%02d:%02d", timeTable.hour, timeTable.min, timeTable.sec)
 end
 
 local function fixedTxt(parent, siz, pos)
@@ -231,7 +237,7 @@ local function newHub(txt)
 	enterMotion:Play()
 
 	enterMotion.Completed:Connect(function()
-		local enterLineMotion = tweenService:Create(enterLineFrame, TweenInfo.new(2), {Size = UDim2.new(1, 0, enterLineFrame.Size.Y.Scale, 0)})
+		local enterLineMotion = tweenService:Create(enterLineFrame, TweenInfo.new(3), {Size = UDim2.new(1, 0, enterLineFrame.Size.Y.Scale, 0)})
 		enterLineMotion:Play()
 
 		enterLineMotion.Completed:Connect(function()
@@ -276,7 +282,7 @@ local function newHub(txt)
 				local frameTitle = Instance.new("TextLabel")
 				frameTitle.Size=UDim2.new(1,0,0.1,0)
 				frameTitle.BackgroundColor3=Color3.fromRGB(24, 24, 24)
-				frameTitle.Text="Closet Build Win"
+				frameTitle.Text="Closeset Build Wins!"
 				frameTitle.Parent=mainFrame
 				local frameTitleFixed = fixedTxt(frameTitle)
 				frameTitleFixed.Size=UDim2.new(0.6,0,0.8,0)
@@ -416,7 +422,18 @@ local function newHub(txt)
 				local playerBtnFixed=fixedTxt(playerBtn,0.6,0.4)
 				playerBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
 				playerBtnFixed.Position=UDim2.new(0.2,0,0.2,0)
-
+				
+				local gameInfoBtn = Instance.new("TextButton")
+				gameInfoBtn.Size = UDim2.new(0.2, 0, 1, 0)
+				gameInfoBtn.Position = UDim2.new(0.4)
+				gameInfoBtn.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+				gameInfoBtn.TextColor = BrickColor.new("White")
+				gameInfoBtn.Text, mainBtn.TextScaled = "GameInfo", true
+				gameInfoBtn.Parent = buttonsContainer
+				local gameInfoBtnFixed = fixedTxt(gameInfoBtn, 0.6, 0.4)
+				gameInfoBtnFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				gameInfoBtnFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				
 				local frame_1 = Instance.new("ScrollingFrame")
 				frame_1.Size = UDim2.new(1, 0, 0.8, 0)
 				frame_1.Position = UDim2.new(0, 0, 0.2, 0)
@@ -434,6 +451,16 @@ local function newHub(txt)
 				frame_2.AutomaticCanvasSize = Enum.AutomaticSize.Y -- تفعيل التوسع التلقائي عمودياً
 				frame_2.ScrollBarThickness = 6 
 				frame_2.Parent = mainFrame
+				
+				local frame_3 = Instance.new("ScrollingFrame")
+				frame_3.Size = UDim2.new(1, 0, 0.8, 0)
+				frame_3.Position = UDim2.new(0, 0, 0.2, 0)
+				frame_3.BackgroundTransparency = 1
+				frame_3.Visible = false
+				frame_3.AutomaticCanvasSize = Enum.AutomaticSize.Y -- تفعيل التوسع التلقائي عمودياً
+				frame_3.ScrollBarThickness = 6 
+				frame_3.Parent = mainFrame
+
 
 				local function listOff(parent)
 					local listLayout = Instance.new("UIListLayout")
@@ -463,8 +490,6 @@ local function newHub(txt)
 				local bodyGyro = nil
 				local renderConnection = nil
 
-				-- دالة لتحديث شفافية الموديل المزيف بناءً على حالة revealBuildState
-
 				local function getMatchingColorFromInventory(partColor, usedColorsCount)
 					local inventoryFolder = localPlayer:FindFirstChild("Inventory")
 					if not inventoryFolder then return nil end
@@ -479,7 +504,7 @@ local function newHub(txt)
 						end
 
 						if targetColor then
-							-- فحص تقارب اللون
+					
 							if math.abs(targetColor.R - partColor.R) < 0.01 
 								and math.abs(targetColor.G - partColor.G) < 0.01 
 								and math.abs(targetColor.B - partColor.B) < 0.01 then
@@ -503,9 +528,8 @@ local function newHub(txt)
 							local targetPart = descendant:IsA("BasePart") and descendant or descendant:FindFirstChildWhichIsA("BasePart")
 
 							if targetPart then
-								-- فحص تقارب الموقع الفيزيائي بين البلوك الحقيقي والبارت المزيف
 								if (targetPart.Position - fakePartPosition).Magnitude < 0.1 then
-									return true -- البلوك مبني بالفعل في هذا الموقع
+									return true 
 								end
 							end
 						end
@@ -516,6 +540,7 @@ local function newHub(txt)
 
 				listOff(frame_1)
 				listOff(frame_2)
+				listOff(frame_3)
 
 				local revealBuildPlatform = Instance.new("Frame")
 				revealBuildPlatform.Size = UDim2.new(1, 0, 0.125, 0)
@@ -672,6 +697,48 @@ local function newHub(txt)
 				toggleSpeedBoxFixed.TextXAlignment = "Left"
 				toggleSpeedBoxFixed.Text="16"
 				
+				local serverTimePlatform = Instance.new("Frame")
+				serverTimePlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				serverTimePlatform.BackgroundTransparency = 1
+				serverTimePlatform.Parent = frame_3
+
+				local serverTimelbl_L = newlbl("ServerTime", serverTimePlatform)
+				local serverTimelbl_LFixed = fixedTxt(serverTimelbl_L, 0.8, 0.1)
+				serverTimelbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				serverTimelbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				serverTimelbl_LFixed.TextColor = BrickColor.Gray()
+				serverTimelbl_LFixed.TextXAlignment = "Left"
+
+				local serverTimelbl_R = newlbl("00:00", serverTimePlatform)
+				serverTimelbl_R.Position=UDim2.new(0.5,0,serverTimelbl_R.Position.Y.Scale,0)
+				local serverTimelbl_RFixed = fixedTxt(serverTimelbl_R, 0.8, 0.1)
+				serverTimelbl_RFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				serverTimelbl_RFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				serverTimelbl_RFixed.TextColor = BrickColor.Gray()
+				serverTimelbl_RFixed.TextXAlignment = "Left"
+				serverTimelbl_RFixed.Text = "00:00"
+				
+				local playerCountPlatform = Instance.new("Frame")
+				playerCountPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				playerCountPlatform.BackgroundTransparency = 1
+				playerCountPlatform.Parent = frame_3
+
+				local playerCountlbl_L = newlbl("Players", playerCountPlatform)
+				local playerCountlbl_LFixed = fixedTxt(playerCountlbl_L, 0.8, 0.1)
+				playerCountlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				playerCountlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				playerCountlbl_LFixed.TextColor = BrickColor.Gray()
+				playerCountlbl_LFixed.TextXAlignment = "Left"
+
+				local playerCountlbl_R = newlbl("0/0", playerCountPlatform)
+				playerCountlbl_R.Position=UDim2.new(0.5,0,playerCountlbl_R.Position.Y.Scale,0)
+				local playerCountlbl_RFixed = fixedTxt(playerCountlbl_R, 0.8, 0.1)
+				playerCountlbl_RFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				playerCountlbl_RFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				playerCountlbl_RFixed.TextColor = BrickColor.Gray()
+				playerCountlbl_RFixed.TextXAlignment = "Left"
+				playerCountlbl_RFixed.Text = "0/0"
+				
 				local switcherLine = Instance.new("Frame")
 				switcherLine.Size=UDim2.new(0.2,0,0.01,0)
 				switcherLine.Position=UDim2.new(0,0,0.19,0)
@@ -679,9 +746,10 @@ local function newHub(txt)
 				switcherLine.Parent=mainFrame
 
 				local function display(state)
-					frame_1.Visible,frame_2.Visible=false,false
+					frame_1.Visible,frame_2.Visible,frame_3.Visible=false,false,false
 					state.Visible=true
 				end
+				
 				local function updateFakeDemoVisibility()
 					if not fakeDemoModel then return end
 
@@ -696,7 +764,6 @@ local function newHub(txt)
 				local function isPositionOnPlayerSide(targetPosition)
 					if not currentPlot then return true end
 
-					-- 1. البحث عن DuesWall داخل currentPlot
 					local duesWall = nil
 					for _, descendant in ipairs(currentPlot:GetDescendants()) do
 						if descendant.Name == "DuosWall" and descendant:IsA("BasePart") and descendant.CanCollide == true then
@@ -704,26 +771,28 @@ local function newHub(txt)
 							break
 						end
 					end
+					
+					local function formatServerTime()
+						local serverTime = workspace:GetServerTimeNow()
 
-					-- إذا لم نجد الجدار أو كان CanCollide غير محدد، اسمح بالمعالجة الطبيعية
+						local timeTable = os.date("!*t", serverTime)
+
+						return string.format("%02d:%02d:%02d", timeTable.hour, timeTable.min, timeTable.sec)
+					end
+
 					if not duesWall then return true end
 
 					local character = localPlayer.Character
 					local hrp = character and character:FindFirstChild("HumanoidRootPart")
 					if not hrp then return true end
 
-					-- 2. تحويل موقع اللاعب وموقع البلوك إلى الإحداثيات المحلية للجدار
-					-- هذا يحول المحور X بالنسبة للجدار نفسه وليس العالم (World Space)
 					local wallCFrame = duesWall.CFrame
 					local playerLocalPos = wallCFrame:PointToObjectSpace(hrp.Position)
 					local blockLocalPos = wallCFrame:PointToObjectSpace(targetPosition)
-
-					-- 3. تطبيق هامش بسيط (Margin) بـ 0.5 لتنبأ بالبلوكات الملتصقة تماماً بالجدار
 			
 					local isPlayerPositive = playerLocalPos.X >= 0
 					local isBlockPositive = blockLocalPos.X >= 0
 
-					-- يجب أن يكون كلاهما في نفس الجهة (كلاهما موجبان أو كلاهما سالبان)
 					return isPlayerPositive == isBlockPositive
 				end
 				
@@ -759,12 +828,11 @@ local function newHub(txt)
 							local targetPart = descendant:IsA("BasePart") and descendant or descendant:FindFirstChildWhichIsA("BasePart")
 
 							if targetPart then
-								-- 1. تجاهل البلوك إذا كان في الجهة المقابلة للجدار بالنسبة للاعب
+
 								if not isPositionOnPlayerSide(targetPart.Position) then
 									continue
 								end
 
-								-- 2. التحقق مما إذا كان البلوك خاطئاً (زائد أو بلون غير صحيح)
 								if not isBlockCorrectInDemo(targetPart) then
 									destroyBlockEvent:FireServer(targetPart.Position)
 									task.wait(0.1)
@@ -776,24 +844,18 @@ local function newHub(txt)
 
 				local function executeAutoBuild()
 					if not fakeDemoModel then
-						print("لا يوجد FakeDemoBuild معروض حالياً!")
 						return
 					end
 
-					print("بدء عملية التنظيف والبناء التلقائي المستمر...")
-
 					while autoBuildState and fakeDemoModel do
-						-- 1. أولاً: حذف البلوكات الزائدة التي تقع في جهة اللاعب فقط
 						executeAutoDestroy()
 
-						-- 2. ثانياً: بناء البلوكات الناقصة الصحيحة في جهة اللاعب فقط
 						for _, descendant in ipairs(fakeDemoModel:GetDescendants()) do
 							if not autoBuildState then break end
 
 							if descendant:IsA("BasePart") then
 								local rawPosition = descendant.Position
 
-								-- تجاهل أي جزء في المخطط يقع خلف الجدار بالنسبة للاعب
 								if not isPositionOnPlayerSide(rawPosition) then
 									continue
 								end
@@ -827,13 +889,11 @@ local function newHub(txt)
 						task.wait(0.5)
 					end
 
-					print("تم إيقاف البناء والتنظيف التلقائي.")
 				end
 
 				local function getMoveDirection(humanoid)
 					local moveDir = humanoid.MoveDirection
 
-					-- 1. فحص مفاتيح الكمبيوتر في حال عدم استخدام الجويستيك
 					if moveDir.Magnitude == 0 then
 						local forward = UserInputService:IsKeyDown(Enum.KeyCode.W) and 1 or (UserInputService:IsKeyDown(Enum.KeyCode.S) and -1 or 0)
 						local right = UserInputService:IsKeyDown(Enum.KeyCode.D) and 1 or (UserInputService:IsKeyDown(Enum.KeyCode.A) and -1 or 0)
@@ -846,17 +906,17 @@ local function newHub(txt)
 
 						local camCFrame = camera.CFrame
 
-						-- نأخذ متجهات الاتجاه الحقيقية للكاميرا (أمام/خلف ويمين/يسار)
+					
 						local forwardVector = camCFrame.LookVector
 						local rightVector = camCFrame.RightVector
 
-						-- نحول MoveDirection إلى اتجاه محلي بالنسبة للشخصية ثم نربطه بالكاميرا
+					
 						local rootPart = humanoid.Parent and humanoid.Parent:FindFirstChild("HumanoidRootPart")
 						if rootPart then
-							-- نحول متجه الحركة العالمي إلى اتجاه محلي (Local Space)
+						
 							local localMove = rootPart.CFrame:VectorToObjectSpace(moveDir)
 
-							-- نطبق الحركة محلياً بالنسبة لاتجات الكاميرا (الأمام/الخلف يسحبك مع ميلان الكاميرا للأعلى والأسفل)
+					
 							moveDir = (forwardVector * -localMove.Z) + (rightVector * localMove.X)
 						end
 					end
@@ -864,7 +924,7 @@ local function newHub(txt)
 					return moveDir
 				end
 
-				-- دالة لإيقاف الطيران وتنظيف الفيزياء
+				
 				local function stopFlying()
 					if renderConnection then
 						renderConnection:Disconnect()
@@ -898,10 +958,10 @@ local function newHub(txt)
 					local humanoid = character:FindFirstChildOfClass("Humanoid")
 					if not hrp or not humanoid then return end
 
-					-- إلغاء حالة السقوط والجاذبية على الشخصية
+				
 					humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
 
-					-- إنشاء أجسام الفيزياء للتوجيه والسرعة
+			
 					bodyVelocity = Instance.new("BodyVelocity")
 					bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
 					bodyVelocity.Velocity = Vector3.zero
@@ -913,17 +973,17 @@ local function newHub(txt)
 					bodyGyro.CFrame = hrp.CFrame
 					bodyGyro.Parent = hrp
 
-					-- حلقة تحديث الحركة المستمرة
+				
 					renderConnection = runService.RenderStepped:Connect(function()
 						if not flyState or not hrp or not hrp.Parent then
 							stopFlying()
 							return
 						end
 
-						-- توجيه الجسم نحو اتجاه الكاميرا
+					
 						bodyGyro.CFrame = camera.CFrame
 
-						-- حساب اتجاه الحركة وتطبيق السرعة
+					
 						local moveDir = getMoveDirection(humanoid)
 						if moveDir.Magnitude > 0 then
 							bodyVelocity.Velocity = moveDir.Unit * FLY_SPEED
@@ -954,6 +1014,13 @@ local function newHub(txt)
 					local motionLine = tweenService:Create(switcherLine,TweenInfo.new(0.3),{Position=UDim2.new(playerBtn.Position.X.Scale,0,switcherLine.Position.Y.Scale,0)})
 					motionLine:Play()
 					display(frame_2)
+				end)
+				
+				gameInfoBtn.MouseButton1Click:Connect(function()
+
+					local motionLine = tweenService:Create(switcherLine,TweenInfo.new(0.3),{Position=UDim2.new(gameInfoBtn.Position.X.Scale,0,switcherLine.Position.Y.Scale,0)})
+					motionLine:Play()
+					display(frame_3)
 				end)
 
 				iconFrame.MouseButton1Click:Connect(function()
@@ -1022,7 +1089,7 @@ local function newHub(txt)
 					if fakeDemoModel then
 						fakeDemoModel:Destroy()
 						fakeDemoModel = nil
-						print("تم حذف النسخة المفبركة (Fake DemoBuild)")
+						
 					end
 				end
 
@@ -1036,7 +1103,7 @@ local function newHub(txt)
 					fakeDemoModel = cachedDemoClone:Clone()
 
 					if fakeDemoModel then
-						-- إعادة تثبيت الأجزاء وتأكيد أماكنها
+					
 						for _, part in ipairs(fakeDemoModel:GetDescendants()) do
 							if part:IsA("BasePart") then
 								part.Anchored = true
@@ -1199,6 +1266,13 @@ local function newHub(txt)
 					if flyState and tonumber(toggleFlyBoxFixed.Text) then 
 						FLY_SPEED=toggleFlyBoxFixed.Text
 					end
+				end)
+				
+				runService.RenderStepped:Connect(function()
+					local formattedTime = formatServerTime()
+					serverTimelbl_RFixed.Text=formattedTime
+					
+					playerCountlbl_RFixed.Text= #players:GetPlayers().."/"..players.MaxPlayers
 				end)
 				
 				revealBuildlbl_R.MouseButton1Click:Connect(function()
