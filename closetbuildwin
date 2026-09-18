@@ -13,7 +13,7 @@ local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local destroyBlockEvent = remotes:WaitForChild("DestroyBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print("2sxxx")
+print(" رثررؤ")
 
 local uiParent = playerGui
 if gethui then
@@ -282,7 +282,7 @@ local function newHub(txt)
 				local frameTitle = Instance.new("TextLabel")
 				frameTitle.Size=UDim2.new(1,0,0.1,0)
 				frameTitle.BackgroundColor3=Color3.fromRGB(24, 24, 24)
-				frameTitle.Text="Closeset Build Wins!"
+				frameTitle.Text="Closet Build Win"
 				frameTitle.Parent=mainFrame
 				local frameTitleFixed = fixedTxt(frameTitle)
 				frameTitleFixed.Size=UDim2.new(0.6,0,0.8,0)
@@ -817,10 +817,13 @@ local function newHub(txt)
 				end
 				
 				local function executeAutoDestroy()
-					if not currentPlot or not fakeDemoModel then return end
+					-- التحقق من وجود الموديلات والـ Plot
+					if not currentPlot or not fakeDemoModel or not fakeDemoModel.Parent then return end
+
+					local demoTarget = fakeDemoModel
 
 					for _, descendant in ipairs(currentPlot:GetDescendants()) do
-						if not autoBuildState then break end
+						if not autoBuildState or fakeDemoModel ~= demoTarget then break end
 
 						local isPlayerBlock = descendant.Name == "Block" and descendant:FindFirstChildOfClass("BoolValue")
 
@@ -828,14 +831,19 @@ local function newHub(txt)
 							local targetPart = descendant:IsA("BasePart") and descendant or descendant:FindFirstChildWhichIsA("BasePart")
 
 							if targetPart then
-
 								if not isPositionOnPlayerSide(targetPart.Position) then
 									continue
 								end
 
-								if not isBlockCorrectInDemo(targetPart) then
+								-- إحاطة الفحص بـ pcall لتفادي توقف السكربت عند حذف البلوك
+								local isCorrect = false
+								pcall(function()
+									isCorrect = isBlockCorrectInDemo(targetPart)
+								end)
+
+								if not isCorrect then
 									destroyBlockEvent:FireServer(targetPart.Position)
-									task.wait(0.1)
+									task.wait(0.08)
 								end
 							end
 						end
@@ -843,52 +851,66 @@ local function newHub(txt)
 				end
 
 				local function executeAutoBuild()
-					if not fakeDemoModel then
-						return
-					end
+					-- التحقق الأولي
+					if not fakeDemoModel or not fakeDemoModel.Parent then return end
 
-					while autoBuildState and fakeDemoModel do
-						executeAutoDestroy()
+					while autoBuildState do
+						-- حماية الحلقة كاملة لعدم حدوث Crash
+						pcall(function()
+							-- 1. تنظيف البلوكات الخاطئة أولاً
+							executeAutoDestroy()
 
-						for _, descendant in ipairs(fakeDemoModel:GetDescendants()) do
-							if not autoBuildState then break end
+							-- 2. تثبيت مرجع الموديل لمنع الخطأ إذا تغير أثناء الحلقة
+							local currentDemo = fakeDemoModel
+							if not currentDemo or not currentDemo.Parent then return end
 
-							if descendant:IsA("BasePart") then
-								local rawPosition = descendant.Position
-
-								if not isPositionOnPlayerSide(rawPosition) then
-									continue
+							for _, descendant in ipairs(currentDemo:GetDescendants()) do
+								-- التوقف فوراً إذا التغت الميزة أو تغير الموديل
+								if not autoBuildState or fakeDemoModel ~= currentDemo or not fakeDemoModel.Parent then 
+									break 
 								end
 
-								local partColor = descendant.Color
+								if descendant:IsA("BasePart") then
+									local rawPosition = descendant.Position
 
-								if isBlockAlreadyBuilt(rawPosition) then
-									continue
-								end
+									if not isPositionOnPlayerSide(rawPosition) then
+										continue
+									end
 
-								local matchedColor = getMatchingColorFromInventory(partColor)
+									if isBlockAlreadyBuilt(rawPosition) then
+										continue
+									end
 
-								if matchedColor then
-									local blockHeight = descendant.Size.Y
-									local correctedPosition = rawPosition - Vector3.new(0, blockHeight, 0)
+									local matchedColor = getMatchingColorFromInventory(descendant.Color)
 
-									placeBlockEvent:FireServer(
-										correctedPosition,
-										Enum.NormalId.Top,
-										matchedColor
-									)
+									if matchedColor then
+										local blockHeight = descendant.Size.Y
+										local correctedPosition = rawPosition - Vector3.new(0, blockHeight, 0)
 
-									local rawSpeedNumber = tonumber(buildSpeedBox_RFixed.Text) or 10
-									local waitDelay = math.max(0.01, rawSpeedNumber / 100)
+										placeBlockEvent:FireServer(
+											correctedPosition,
+											Enum.NormalId.Top,
+											matchedColor
+										)
 
-									task.wait(waitDelay)
+										-- معادلة سرعة آمنة لمنع حظر السيرفر (Throttling)
+										local rawSpeedNumber = tonumber(buildSpeedBox_RFixed.Text) or 10
+										local waitDelay = math.max(0.05, 1 / math.max(1, rawSpeedNumber))
+
+										task.wait(waitDelay)
+									end
 								end
 							end
+						end)
+
+						-- مهلة أمان بين كل دورة بناء كاملة
+						task.wait(0.3)
+
+						-- الخروج من الحلقة إذا اصبح الموديل غير موجود
+						if not fakeDemoModel or not fakeDemoModel.Parent then
+							break
 						end
-
-						task.wait(0.5)
 					end
-
 				end
 
 				local function getMoveDirection(humanoid)
@@ -1450,5 +1472,3 @@ if existingHub then
 else
 	newHub("Susseccfull Executing!")
 end
-
-
