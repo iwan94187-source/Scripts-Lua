@@ -278,7 +278,7 @@ titlelbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
 titlelbl.TextStrokeTransparency = 0
 titlelbl.TextStrokeColor3 = blk_color
 titlelbl.TextScaled = true
-titlelbl.Text = "Created By iwangamer931"
+titlelbl.Text = "Created By @Yf4jlft"
 titlelbl.TextXAlignment = Enum.TextXAlignment.Left
 titlelbl.Parent = Mainframe
 
