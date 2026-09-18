@@ -13,7 +13,7 @@ local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local destroyBlockEvent = remotes:WaitForChild("DestroyBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print(" رثررؤ")
+print(" cxce22")
 
 local uiParent = playerGui
 if gethui then
@@ -482,6 +482,7 @@ local function newHub(txt)
 				local realDemoModel = nil
 				local fakeDemoModel = nil  
 				local cachedDemoClone = nil
+				local isProcessing = false
 
 				local FLY_SPEED = 50 
 				local flyState = false 
@@ -850,67 +851,63 @@ local function newHub(txt)
 					end
 				end
 
+				local isBuilding = false -- متغير لمنع تداخل عمليات البناء
+
 				local function executeAutoBuild()
-					-- التحقق الأولي
-					if not fakeDemoModel or not fakeDemoModel.Parent then return end
+					if isProcessing or not autoBuildState or not fakeDemoModel or not fakeDemoModel.Parent then 
+						return 
+					end
 
-					while autoBuildState do
-						-- حماية الحلقة كاملة لعدم حدوث Crash
-						pcall(function()
-							-- 1. تنظيف البلوكات الخاطئة أولاً
-							executeAutoDestroy()
+					isProcessing = true
 
-							-- 2. تثبيت مرجع الموديل لمنع الخطأ إذا تغير أثناء الحلقة
-							local currentDemo = fakeDemoModel
-							if not currentDemo or not currentDemo.Parent then return end
+					pcall(function()
+						-- 1. هدم البلوكات الخاطئة أولاً
+						executeAutoDestroy()
 
-							for _, descendant in ipairs(currentDemo:GetDescendants()) do
-								-- التوقف فوراً إذا التغت الميزة أو تغير الموديل
-								if not autoBuildState or fakeDemoModel ~= currentDemo or not fakeDemoModel.Parent then 
-									break 
+						-- 2. حفظ الموديل في متغير محلي لحمايته من خطأ nil
+						local currentDemo = fakeDemoModel
+						if not currentDemo or not currentDemo.Parent then return end
+
+						for _, descendant in ipairs(currentDemo:GetDescendants()) do
+							-- إذا أطفأ اللاعب الميزة أو تم حذف الموديل نخرج فوراً
+							if not autoBuildState or fakeDemoModel ~= currentDemo or not fakeDemoModel.Parent then 
+								break 
+							end
+
+							if descendant:IsA("BasePart") then
+								local rawPosition = descendant.Position
+
+								if not isPositionOnPlayerSide(rawPosition) then
+									continue
 								end
 
-								if descendant:IsA("BasePart") then
-									local rawPosition = descendant.Position
+								if isBlockAlreadyBuilt(rawPosition) then
+									continue
+								end
 
-									if not isPositionOnPlayerSide(rawPosition) then
-										continue
-									end
+								local matchedColor = getMatchingColorFromInventory(descendant.Color)
 
-									if isBlockAlreadyBuilt(rawPosition) then
-										continue
-									end
+								if matchedColor then
+									local blockHeight = descendant.Size.Y
+									local correctedPosition = rawPosition - Vector3.new(0, blockHeight, 0)
 
-									local matchedColor = getMatchingColorFromInventory(descendant.Color)
+									placeBlockEvent:FireServer(
+										correctedPosition,
+										Enum.NormalId.Top,
+										matchedColor
+									)
 
-									if matchedColor then
-										local blockHeight = descendant.Size.Y
-										local correctedPosition = rawPosition - Vector3.new(0, blockHeight, 0)
+									-- وقت الانتظار حسب السرعة
+									local rawSpeedNumber = tonumber(buildSpeedBox_RFixed.Text) or 10
+									local waitDelay = math.max(0.05, 1 / math.max(1, rawSpeedNumber))
 
-										placeBlockEvent:FireServer(
-											correctedPosition,
-											Enum.NormalId.Top,
-											matchedColor
-										)
-
-										-- معادلة سرعة آمنة لمنع حظر السيرفر (Throttling)
-										local rawSpeedNumber = tonumber(buildSpeedBox_RFixed.Text) or 10
-										local waitDelay = math.max(0.05, 1 / math.max(1, rawSpeedNumber))
-
-										task.wait(waitDelay)
-									end
+									task.wait(waitDelay)
 								end
 							end
-						end)
-
-						-- مهلة أمان بين كل دورة بناء كاملة
-						task.wait(0.3)
-
-						-- الخروج من الحلقة إذا اصبح الموديل غير موجود
-						if not fakeDemoModel or not fakeDemoModel.Parent then
-							break
 						end
-					end
+					end)
+
+					isProcessing = false -- السماح لـ RunService باستدعاء دورة جديدة
 				end
 
 				local function getMoveDirection(humanoid)
@@ -1295,6 +1292,13 @@ local function newHub(txt)
 					serverTimelbl_RFixed.Text=formattedTime
 					
 					playerCountlbl_RFixed.Text= #players:GetPlayers().."/"..players.MaxPlayers
+				end)
+				
+				runService.Heartbeat:Connect(function()
+
+					if autoBuildState and fakeDemoModel and not isProcessing then
+						task.spawn(executeAutoBuild)
+					end
 				end)
 				
 				revealBuildlbl_R.MouseButton1Click:Connect(function()
