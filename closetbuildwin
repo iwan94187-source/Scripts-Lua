@@ -13,8 +13,6 @@ local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local destroyBlockEvent = remotes:WaitForChild("DestroyBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print(" cxce22")
-
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -46,7 +44,6 @@ local function makeModelGhostly(model)
 		applyGhostProperties(descendant)
 	end
 
-	-- التعامل مع الأجزاء التي قد تتزامن لاحقاً من السيرفر (Streaming)
 	model.DescendantAdded:Connect(function(descendant)
 		applyGhostProperties(descendant)
 	end)
@@ -74,7 +71,6 @@ local function dexStyleClone(sourceModel)
 	local fakeModel = Instance.new("Model")
 	fakeModel.Name = "FakeDemoBuild"
 
-	-- 2. تنفيذ النسخ مع التأكد من نقل كل جزء
 	for i = 1, #sourceParts do
 		local part = sourceParts[i]
 
