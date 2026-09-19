@@ -13,7 +13,7 @@ local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local destroyBlockEvent = remotes:WaitForChild("DestroyBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print(121)
+print(929292)
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -785,12 +785,12 @@ local function newHub(txt)
 
 							-- إذا كنت المالك (Owner): يتجاهل قيم X فوق السالب (X >= 0) ويسمح فقط بالسالب (X < 0)
 							if isOwner then
-								return blockLocalPos.X >= 0
+								return blockLocalPos.X < 0
 							end
 
 							-- إذا كنت الزميل (Teammate): يتجاهل قيم X السالبة (X < 0) ويسمح بالموجب والصفر (X >= 0)
 							if isTeammate then
-								return blockLocalPos.X < 0
+								return blockLocalPos.X >= 0
 							end
 						end
 					end
