@@ -10,6 +10,7 @@ print('vrd')
 local mxx = workspace:WaitForChild("Scriptable", 5)
 local arena = mxx:WaitForChild("Arena", 5)
 
+
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -28,6 +29,7 @@ local function fixedTxt(parent, siz, pos)
 	lbl.TextColor = BrickColor.new("White")
 	lbl.TextStrokeTransparency = 0
 	lbl.TextStrokeColor3 = Color3.fromRGB(24, 24, 24)
+	lbl.FontFace=Font.fromEnum(Enum.Font.Code)
 	lbl.BackgroundTransparency = 1
 	lbl.Text = parent.Text
 	lbl.TextScaled = true
@@ -386,13 +388,13 @@ local function newHub(txt)
 				hipheightlbl_LFixed.TextXAlignment = "Left"
 
 				local hipheightState = false
-				local hipheightBox_R = newBox("2", hipheightPlatform)
+				local hipheightBox_R = newBox("15", hipheightPlatform)
 				local hipheightBox_RFixed = fixedTxt(hipheightBox_R, 0.8, 0.1)
 				hipheightBox_RFixed.TextColor=BrickColor.Gray()
 				hipheightBox_RFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
 				hipheightBox_RFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
 				hipheightBox_RFixed.TextXAlignment = "Left"
-				hipheightBox_RFixed.Text = "2"
+				hipheightBox_RFixed.Text = "15"
 				
 				local speedPlatform = Instance.new("Frame")
 				speedPlatform.Size = UDim2.new(1, 0, 0.125, 0)
@@ -422,13 +424,13 @@ local function newHub(txt)
 				toggleSpeedlbl_LFixed.TextXAlignment = "Left"
 
 				local toggleSpeedState = false
-				local toggleSpeedBox_R = newBox("16", toggleSpeedPlatform)
+				local toggleSpeedBox_R = newBox("22", toggleSpeedPlatform)
 				local toggleSpeedBox_RFixed = fixedTxt(toggleSpeedBox_R, 0.8, 0.1)
 				toggleSpeedBox_RFixed.TextColor=BrickColor.Gray()
 				toggleSpeedBox_RFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
 				toggleSpeedBox_RFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
 				toggleSpeedBox_RFixed.TextXAlignment = "Left"
-				toggleSpeedBox_RFixed.Text = "16"
+				toggleSpeedBox_RFixed.Text = "22"
 				
 				local jumpPlatform = Instance.new("Frame")
 				jumpPlatform.Size = UDim2.new(1, 0, 0.125, 0)
@@ -458,13 +460,13 @@ local function newHub(txt)
 				toggleJumplbl_LFixed.TextXAlignment = "Left"
 
 				local toggleJumpState = false
-				local toggleJumpBox_R = newBox("50", toggleJumpPlatform)
+				local toggleJumpBox_R = newBox("100", toggleJumpPlatform)
 				local toggleJumpBox_RFixed = fixedTxt(toggleJumpBox_R, 0.8, 0.1)
 				toggleJumpBox_RFixed.TextColor=BrickColor.Gray()
 				toggleJumpBox_RFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
 				toggleJumpBox_RFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
 				toggleJumpBox_RFixed.TextXAlignment = "Left"
-				toggleJumpBox_RFixed.Text = "50"
+				toggleJumpBox_RFixed.Text = "100"
 				
 				local switcherLine = Instance.new("Frame")
 				switcherLine.Size=UDim2.new(0.2,0,0.01,0)
