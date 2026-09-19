@@ -5,7 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 local tweenService = game:GetService("TweenService")
 local runService = game:GetService("RunService")
 
-print('sdsdsd')
+print('vvvvvv')
 
 local mxx = workspace:WaitForChild("Scriptable", 5)
 local arena = mxx:WaitForChild("Arena", 5)
@@ -894,6 +894,31 @@ local function newHub(txt)
 						toggleSpeedBox_R.Active=false
 					end
 				end)
+				
+				autoCatchlbl_R.MouseButton1Click:Connect(function()
+					autoCatchState = not autoCatchState
+
+					if autoCatchState then 
+						autoCatchTerm.BackgroundColor = BrickColor.White() 
+						autoCatchTerm.ImageTransparency = 0
+
+					else
+						autoCatchTerm.BackgroundColor3 = Color3.fromRGB(86, 86, 86)
+						autoCatchTerm.ImageTransparency = 1
+					end
+				end)
+				
+				aimbotlbl_R.MouseButton1Click:Connect(function()
+					aimbotState = not aimbotState
+
+					if aimbotState then 
+						aimbotTerm.BackgroundColor = BrickColor.White() 
+						aimbotTerm.ImageTransparency = 0
+					else
+						aimbotTerm.BackgroundColor3 = Color3.fromRGB(86, 86, 86)
+						aimbotTerm.ImageTransparency = 1
+					end
+				end)
 
 			end)
 		end)
@@ -982,4 +1007,6 @@ if existingHub then
 else
 	newHub("Susseccfull Executing!")
 end
+
+
 
