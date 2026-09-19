@@ -5,11 +5,10 @@ local UserInputService = game:GetService("UserInputService")
 local tweenService = game:GetService("TweenService")
 local runService = game:GetService("RunService")
 
-print('2323232')
+print('fdfdfdf')
 
 local mxx = workspace:WaitForChild("Scriptable", 5)
 local arena = mxx:WaitForChild("Arena", 5)
-
 
 local uiParent = playerGui
 if gethui then
@@ -153,6 +152,23 @@ local function newHub(txt)
 				enterHubFrame:Destroy()
 
 				task.wait(0.5)
+				
+				local helperTextLabel = Instance.new("TextLabel")
+				helperTextLabel.Size=UDim2.new(0,200,0,50)
+				helperTextLabel.Transparency=0.5
+				helperTextLabel.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+				helperTextLabel.TextColor=BrickColor.new("White")
+				helperTextLabel.TextScaled=true
+				helperTextLabel.Parent=screenGui
+
+				local function printlog(txt,set)
+					if set then 
+						helperTextLabel.TextColor=BrickColor.new("Really red")
+					else
+						helperTextLabel.TextColor=BrickColor.new("Lime green")
+					end
+					helperTextLabel.Text=txt
+				end
 
 				local mainFrame_pos = UDim2.new(0,250,0,200)
 				local mainFrame = Instance.new("Frame")
@@ -773,9 +789,12 @@ local function newHub(txt)
 						local hrp = character and character:FindFirstChild("HumanoidRootPart")
 
 						if obby and hrp then
+							printlog("touch...",false)
 							firetouchinterest(hrp, obby, 0)
 							task.wait(0.1)
 							firetouchinterest(hrp, obby, 1)
+						else
+							printlog("not touch yet",true)
 						end
 
 						task.wait(0.5)
