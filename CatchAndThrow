@@ -5,7 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 local tweenService = game:GetService("TweenService")
 local runService = game:GetService("RunService")
 
-print(3433)
+print('sdsdsd')
 
 local mxx = workspace:WaitForChild("Scriptable", 5)
 local arena = mxx:WaitForChild("Arena", 5)
@@ -842,6 +842,8 @@ local function newHub(txt)
 						hipheightBox_R.Active=true
 
 					else
+						local human = localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid")
+						if human then human.HipHeight=0 end
 						toggleHipheightTerm.BackgroundColor3 = Color3.fromRGB(86, 86, 86)
 						toggleHipheightTerm.ImageTransparency = 1
 
@@ -980,6 +982,4 @@ if existingHub then
 else
 	newHub("Susseccfull Executing!")
 end
-
-
 
