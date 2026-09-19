@@ -5,7 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 local tweenService = game:GetService("TweenService")
 local runService = game:GetService("RunService")
 
-print('vvvvvv')
+print('vrd')
 
 local mxx = workspace:WaitForChild("Scriptable", 5)
 local arena = mxx:WaitForChild("Arena", 5)
@@ -164,7 +164,7 @@ local function newHub(txt)
 				local frameTitle = Instance.new("TextLabel")
 				frameTitle.Size=UDim2.new(1,0,0.1,0)
 				frameTitle.BackgroundColor3=Color3.fromRGB(24, 24, 24)
-				frameTitle.Text="Phantom Hub"
+				frameTitle.Text="Catch and Throw"
 				frameTitle.Parent=mainFrame
 				local frameTitleFixed = fixedTxt(frameTitle)
 				frameTitleFixed.Size=UDim2.new(0.6,0,0.8,0)
@@ -677,11 +677,8 @@ local function newHub(txt)
 					local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
 					local myHumanoid = myChar and myChar:FindFirstChildOfClass("Humanoid")
 
-					-- إذا تم إيقاف القفل، نعيد الشخصية لارتفاعها الأصلي (مرة واحدة) وننتهي
-
-					-- التأكد من وجود الشخصية وصحتها
 					if myRoot and myHumanoid and myHumanoid.Health > 0 then
-						-- حفظ الارتفاع الأصلي في أول فرام عند تفعيل القفل
+
 						if not originalY then
 							originalY = myRoot.Position.Y
 						end
@@ -692,7 +689,6 @@ local function newHub(txt)
 						if rightGrip then
 							
 							bolt=true
-							-- الحالة الأولى: وجود RightGrip -> القفل ومطابقة الارتفاع مع أقرب لاعب
 							local closest = getClosestPlayer()
 
 							if closest and closest.Character then
@@ -700,14 +696,14 @@ local function newHub(txt)
 								local targetHum = targetChar:FindFirstChildOfClass("Humanoid")
 
 								if targetHum and targetHum.Health > 0 and targetChar:IsDescendantOf(workspace) then
-									local targetRoot = targetChar:FindFirstChild("HumanoidRootPart")
+									local targetTorso = targetChar:FindFirstChild("Torso")
 
-									if targetRoot then
+									if targetTorso then
 										-- 1. إنشاء موقع جديد لشخصيتك بنفس إحداثياتك (X, Z) ولكن بارتفاع الهدف (Y)
-										local myMatchedPos = Vector3.new(myRoot.Position.X, targetRoot.Position.Y, myRoot.Position.Z)
+										local myMatchedPos = Vector3.new(myRoot.Position.X, targetTorso.Position.Y, myRoot.Position.Z)
 
 										-- 2. توجيه النظر بشكل طبيعي من موقعك المرتفع نحو موقع الهدف
-										myRoot.CFrame = CFrame.lookAt(myMatchedPos, targetRoot.Position)
+										myRoot.CFrame = CFrame.lookAt(myMatchedPos, targetTorso.Position)
 									end
 								end
 							end
