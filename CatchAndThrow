@@ -1,667 +1,985 @@
-
-local Players = game:GetService("Players")
+local players = game:GetService("Players")
+local localPlayer = players.LocalPlayer
+local playerGui = localPlayer:WaitForChild("PlayerGui")
 local UserInputService = game:GetService("UserInputService")
-local LocalPlayer = Players.LocalPlayer
-local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local tweenService = game:GetService("TweenService")
 local runService = game:GetService("RunService")
+
+print(3433)
 
 local mxx = workspace:WaitForChild("Scriptable", 5)
 local arena = mxx:WaitForChild("Arena", 5)
 
--- 1. إنشاء الواجهة والخط الرئيسي (Slider Frame)
-local screenGui = Instance.new("ScreenGui", PlayerGui)
-screenGui.ResetOnSpawn = false
-
-local blk_color = Color3.fromRGB(24,24,24)
-
-local Mainframe = Instance.new("Frame")
-Mainframe.Size=UDim2.new(0,250,0,300)
-Mainframe.Position=UDim2.new(0.125,0,0,0)
-Mainframe.BackgroundColor3=Color3.fromRGB(24, 24, 24)
-Mainframe.Visible=false
-Mainframe.Active=true
-Mainframe.Draggable=true
-Mainframe.Parent=screenGui
-
-local frameTitle = Instance.new("TextLabel")
-frameTitle.Size=UDim2.new(1,0,0.1,0)
-frameTitle.Text="   Catch and Throw V5.0"
-frameTitle.TextXAlignment=Enum.TextXAlignment.Left
-frameTitle.TextColor=BrickColor.new("White")
-frameTitle.BackgroundColor3=blk_color
-frameTitle.TextSize=7
-frameTitle.Parent=Mainframe
-
-local iconFrame = Instance.new("ImageButton")
-iconFrame.Size=UDim2.new(0,40,0,40)
-iconFrame.Position=UDim2.new(0.3,0,0.3,0)
-iconFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
-iconFrame.Image = "rbxassetid://85847690672478"
-iconFrame.Active=true
-iconFrame.Draggable=true
-iconFrame.Parent=screenGui
-
-local destroyBtn = Instance.new("TextButton")
-destroyBtn.Size=UDim2.new(0,20,0,20)
-destroyBtn.Position=UDim2.new(0.915,0,0,0)
-destroyBtn.BackgroundColor3=Color3.fromRGB(255, 0, 0)
-destroyBtn.TextColor=BrickColor.new("White")
-destroyBtn.Text="x"
-destroyBtn.Parent=frameTitle
-
-local hideBtn = Instance.new("TextButton")
-hideBtn.Size=UDim2.new(0,20,0,20)
-hideBtn.Position=UDim2.new(0.82,0,0,0)
-hideBtn.BackgroundColor3=Color3.fromRGB(0, 170, 255)
-hideBtn.TextColor=BrickColor.new("White")
-hideBtn.Text="–"
-hideBtn.Parent=frameTitle
-
-iconFrame.MouseButton1Click:Connect(function()
-	iconFrame.Visible=not iconFrame.Visible
-	if iconFrame.Visible then 
-		Mainframe.Visible=false
-	else
-		Mainframe.Position=iconFrame.Position
-		Mainframe.Visible=true
-	end
-end)
-
-hideBtn.MouseButton1Click:Connect(function()
-	Mainframe.Visible=false
-	iconFrame.Position=Mainframe.Position
-	iconFrame.Visible=true
-end)
-
-destroyBtn.MouseButton1Click:Connect(function()
-	screenGui:Destroy()
-end)
-
-local function boxFrame() 
-	local frame = Instance.new("Frame")
-	frame.Size=UDim2.new(0.9, 0,0.1,0)
-	frame.Position=UDim2.new(0.1,0,0.1,0)
-	frame.BackgroundColor=BrickColor.new("Black")
-	frame.Parent=Mainframe
-	return frame
-
+local uiParent = playerGui
+if gethui then
+	uiParent = gethui()
+elseif game:GetService("CoreGui") then
+	pcall(function()
+		uiParent = game:GetService("CoreGui")
+	end)
 end
 
-local function newBtn(name,pos,parent)
+local function fixedTxt(parent, siz, pos)
+	parent.TextTransparency = 1
+
+	local lbl = Instance.new("TextLabel")
+	lbl.Size = UDim2.new(siz, 0, 0.8, 0)
+	lbl.Position = UDim2.new(pos, 0, 0.1, 0)
+	lbl.TextColor = BrickColor.new("White")
+	lbl.TextStrokeTransparency = 0
+	lbl.TextStrokeColor3 = Color3.fromRGB(24, 24, 24)
+	lbl.BackgroundTransparency = 1
+	lbl.Text = parent.Text
+	lbl.TextScaled = true
+	lbl.Parent = parent
+	return lbl
+end
+
+local function newlbl(name,parent)
+	local lbl = Instance.new("TextLabel")
+	lbl.Size=UDim2.new(0.5,0,1,0)
+	lbl.Position=UDim2.new()
+	lbl.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	lbl.BackgroundTransparency=0.5
+	lbl.BorderSizePixel=1
+	lbl.BorderColor3=Color3.fromRGB(86, 86, 86)
+	lbl.Text=name
+	lbl.Parent=parent
+	return lbl
+end
+
+local function newbtn(name,parent)
 	local btn = Instance.new("TextButton")
-	btn.Size=UDim2.new(0.9,0,0.13,0)
-	btn.Position=UDim2.new(0.05,0,pos,0)
-	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
-	btn.TextColor=BrickColor.new("White")
+	btn.Size=UDim2.new(0.5,0,1,0)
+	btn.Position=UDim2.new(0.5)
+	btn.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	btn.BackgroundTransparency=0.5
+	btn.BorderSizePixel=1
+	btn.BorderColor3=Color3.fromRGB(86, 86, 86)
 	btn.Text=name
-	btn.TextSize=7
 	btn.Parent=parent
 	return btn
 end
 
-local function newLbl(name,pos,parent)
-	local btn = Instance.new("TextLabel")
-	btn.Size=UDim2.new(0.9,0,0.13,0)
-	btn.Position=UDim2.new(0.05,0,pos,0)
-	btn.BackgroundColor3=Color3.fromRGB(36, 36, 36)
-	btn.TextColor=BrickColor.new("White")
-	btn.Text=name
-	btn.TextSize=7
-	btn.Parent=parent
-	return btn
+local function newTerm(parent)
+	local term = Instance.new("ImageLabel")
+	term.Size=UDim2.new(0,15,0,15)
+	term.Position=UDim2.new(0.05,0,0.1,0)
+	term.BackgroundColor3=Color3.fromRGB(64, 64, 64)
+	term.Image="rbxassetid://79837885108596"
+	term.ImageTransparency=1
+	term.Parent=parent
+
+	return term
 end
 
-local function newTrem(parent)
-	local trem = Instance.new("TextLabel")
-	trem.Size = UDim2.new(0,25,1,0)
-	trem.Position=UDim2.new(0.85,0,0,0)
-	trem.BackgroundTransparency=1
-	trem.Text="🔴"
-	trem.TextSize=20
-	trem.Parent=parent
-	return trem
+local function newBox(name,parent)
+	local box = Instance.new("TextBox")
+	box.Size=UDim2.new(0.5,0,1,0)
+	box.Position=UDim2.new(0.5)
+	box.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	box.BackgroundTransparency=0.5
+	box.BorderSizePixel=1
+	box.BorderColor3=Color3.fromRGB(86, 86, 86)
+	box.Text=name
+	box.Parent=parent
+	return box
+
 end
 
-local function newKnob(parent)
-	local frame = Instance.new("Frame")
-	frame.Size=UDim2.new(0,15,0,15)
-	frame.Position=UDim2.new(0,-10,0.5,-8)
-	frame.BackgroundColor3=Color3.fromRGB(255, 255, 255)
-	frame.Parent=parent
-	return frame
-end
+local function newHub(txt)
+	local screenGui = Instance.new("ScreenGui", playerGui)
+	screenGui.Name = "Phantom Hub"
+	screenGui.ResetOnSpawn = false
+	screenGui.Parent=uiParent
 
-local function newPlate(parent)
-	local frame = Instance.new("Frame")
-	frame.Size=UDim2.new(0,20,0,10)
-	frame.Position=UDim2.new(0.8,0,0.49,0)
-	frame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
-	frame.Parent=parent
-	return frame
-end
+	local enterHubFrame_pos=UDim2.new(0.75,0,0.8,0)
+	local enterHubFrame_siz = UDim2.new(0.25,0,0.15,0)
+	local enterHubFrame = Instance.new("Frame")
+	enterHubFrame.Size=UDim2.new(0,0,0.15,0)
+	enterHubFrame.Position=UDim2.new(1,0,0.8,0)
+	enterHubFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	enterHubFrame.BackgroundTransparency=0.4
+	enterHubFrame.Name="LoadingFrame"
+	enterHubFrame.Visible=false
+	enterHubFrame.Parent=screenGui
 
-local speedState = false
-local speedBtn = newBtn(" Speed Enabled",0.10,Mainframe)
-speedBtn.TextXAlignment="Left"
-local speedPlate = newPlate(speedBtn)
-local speedKnob = newKnob(speedPlate)
+	local enterHubLabel_1 = Instance.new("TextLabel")
+	enterHubLabel_1.Size=UDim2.new(1,0,0.2,0)
+	enterHubLabel_1.Position=UDim2.new(0,0,0,0)
+	enterHubLabel_1.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	enterHubLabel_1.BackgroundTransparency=0.5
+	enterHubLabel_1.Text="Phantom Hub"
+	enterHubLabel_1.Parent=enterHubFrame
+	local enterHubLabel_1Fixed = fixedTxt(enterHubLabel_1, 0.8, 0.1)
+	enterHubLabel_1Fixed.Size = UDim2.new(0.8, 0, 0.8, 0)
+	enterHubLabel_1Fixed.Position = UDim2.new(0.1, 0, 0.1, 0)
 
-local speedSlideBtn = newLbl(" Speed",0.25,Mainframe)
-speedSlideBtn.TextXAlignment="Left"
 
-local AutoCatchState = false
-local AutoCatchBtn = newBtn(" Auto Catch",0.4,Mainframe)
-AutoCatchBtn.TextXAlignment="Left"
-local AutoCatchPlate = newPlate(AutoCatchBtn)
-local AutoCatchKnob = newKnob(AutoCatchPlate)
+	local enterHubLabel_2 = Instance.new("TextLabel")
+	enterHubLabel_2.Size=UDim2.new(1,0,0.5,0)
+	enterHubLabel_2.Position=UDim2.new(0,0,0.3,0)
+	enterHubLabel_2.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	enterHubLabel_2.BackgroundTransparency=1
+	enterHubLabel_2.Text=txt
+	enterHubLabel_2.Parent=enterHubFrame
+	local enterHubLabel_2Fixed = fixedTxt(enterHubLabel_2, 0.8, 0.1)
+	enterHubLabel_2Fixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+	enterHubLabel_2Fixed.Position = UDim2.new(0.15, 0, 0.15, 0)
 
-local LockPlayerState = false
-local LockPlayerBtn = newBtn(" AimBot",0.55,Mainframe)
-LockPlayerBtn.TextXAlignment="Left"
-local LockPlayerPlate = newPlate(LockPlayerBtn)
-local LockPlayerKnob = newKnob(LockPlayerPlate)
+	local enterLineFrame = Instance.new("Frame")
+	enterLineFrame.Size=UDim2.new(0,0,0.1,0)
+	enterLineFrame.Position=UDim2.new(0,0,0.9,0)
+	enterLineFrame.BackgroundColor=BrickColor.White()
+	enterLineFrame.Parent=enterHubFrame
 
-local GetKnifeState = false
-local GetKnifeBtn = newBtn(" Get Knife",0.7,Mainframe)
-GetKnifeBtn.TextXAlignment="Left"
-local GetKnifePlate = newPlate(GetKnifeBtn)
-local GetKnifeKnob = newKnob(GetKnifePlate)
+	enterHubFrame.Visible = true
+	local enterMotion = tweenService:Create(enterHubFrame, TweenInfo.new(0.3), {Size = enterHubFrame_siz, Position = enterHubFrame_pos})
+	enterMotion:Play()
 
-local surviveState = false
-local surviveBtn = newBtn(" Survive",0.85,Mainframe)
-surviveBtn.TextXAlignment="Left"
-local survivePlate = newPlate(surviveBtn)
-local surviveKnob = newKnob(survivePlate)
+	enterMotion.Completed:Connect(function()
+		local enterLineMotion = tweenService:Create(enterLineFrame, TweenInfo.new(2), {Size = UDim2.new(1, 0, enterLineFrame.Size.Y.Scale, 0)})
+		enterLineMotion:Play()
 
-local sliderBack = Instance.new("Frame", speedSlideBtn)
-sliderBack.Size = UDim2.new(0, 140, 0, 5) -- الخط الممتد
-sliderBack.Position = UDim2.new(0.75, -100, 0.7, 0)
-sliderBack.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-sliderBack.BorderSizePixel = 0
+		enterLineMotion.Completed:Connect(function()
+			local exitMotion = tweenService:Create(enterHubFrame, TweenInfo.new(0.4), {
+				Size = UDim2.new(0, 0, enterHubFrame_siz.Y.Scale, 0),
+				Position = UDim2.new(1, 0, enterHubFrame_pos.Y.Scale, 0)
+			})
+			exitMotion:Play()
+			exitMotion.Completed:Connect(function()
+				enterHubFrame:Destroy()
 
--- 2. الزر القابل للحركة (Slider Knob)
-local knob = Instance.new("TextButton", sliderBack)
-knob.Size = UDim2.new(0, 15, 0, 15) -- الدائرة/الزر
-knob.Position = UDim2.new(0, -10, 0.5, -8) -- يبدأ من اليسار
-knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-knob.Text = ""
-knob.ZIndex=2
+				task.wait(0.5)
 
--- 3. نص لعرض القيمة الحالية
-local valueLabel = Instance.new("TextLabel", speedSlideBtn)
-valueLabel.Size = UDim2.new(1, 0, 0, 30)
-valueLabel.Position = UDim2.new(0, 30, 0, -3)
-valueLabel.BackgroundTransparency = 1
-valueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-valueLabel.TextSize = 10
-valueLabel.Text = "0"
+				local mainFrame_pos = UDim2.new(0,250,0,200)
+				local mainFrame = Instance.new("Frame")
+				mainFrame.Size=mainFrame_pos
+				mainFrame.Position=UDim2.new()
+				mainFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+				mainFrame.Active,mainFrame.Draggable=true,true
+				mainFrame.Transparency=0.25
+				mainFrame.Parent=screenGui
 
-local slideFill = Instance.new("TextLabel", sliderBack)
-slideFill.Size=UDim2.new(1,0,1,0)
-slideFill.Text=""
-slideFill.BackgroundColor=BrickColor.new("White")
+				local frameTitle = Instance.new("TextLabel")
+				frameTitle.Size=UDim2.new(1,0,0.1,0)
+				frameTitle.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+				frameTitle.Text="Phantom Hub"
+				frameTitle.Parent=mainFrame
+				local frameTitleFixed = fixedTxt(frameTitle)
+				frameTitleFixed.Size=UDim2.new(0.6,0,0.8,0)
+				frameTitleFixed.Position=UDim2.new(0.05,0,0.1,0)
+				frameTitleFixed.TextXAlignment=Enum.TextXAlignment.Left
 
-local function newUi(parent) 
-	local ui = Instance.new("UICorner")
-	ui.CornerRadius = UDim.new(0,10)
-	ui.Parent=parent
-	return ui
-end
+				local destroyMenuBtn = Instance.new("TextButton")
+				destroyMenuBtn.Size=UDim2.new(0.1,0,1,0)
+				destroyMenuBtn.Position=UDim2.new(0.9)
+				destroyMenuBtn.BackgroundColor=BrickColor.new("Really red")
+				destroyMenuBtn.Text="x"
+				destroyMenuBtn.TextColor=BrickColor.new("White")
+				destroyMenuBtn.TextScaled=true
+				destroyMenuBtn.Parent=frameTitle
+				local destroyMenuBtnFixed = fixedTxt(destroyMenuBtn, 0.8, 0.1)
+				destroyMenuBtnFixed.Size = UDim2.new(0.8, 0, 0.8, 0)
+				destroyMenuBtnFixed.Position = UDim2.new(0.1, 0, 0.1, 0)
 
-local function newCustomUi(parent, rb,lb,ru,lu) 
-	local ui = Instance.new("UICorner")
-	ui.BottomLeftRadius =UDim.new(0,lb)
-	ui.BottomRightRadius=UDim.new(0,rb)
-	ui.TopLeftRadius=UDim.new(0,lu)
-	ui.TopRightRadius=UDim.new(0,ru)
-	ui.Parent=parent
-	return ui
-end
-newUi(knob)
-newUi(sliderBack)
-newUi(slideFill)
-newUi(Mainframe)
+				local hideMenuBtn = Instance.new("TextButton")
+				hideMenuBtn.Size=UDim2.new(0.1,0,1,0)
+				hideMenuBtn.Position=UDim2.new(0.8)
+				hideMenuBtn.BackgroundColor3=Color3.fromRGB(32, 32, 32)
+				hideMenuBtn.Text="–"
+				hideMenuBtn.TextColor=BrickColor.new("White")
+				hideMenuBtn.TextScaled=true
+				hideMenuBtn.Parent=frameTitle
+				local hideMenuBtnFixed = fixedTxt(hideMenuBtn, 0.8, 0.1)
+				hideMenuBtnFixed.Size = UDim2.new(0.8, 0, 0.8, 0)
+				hideMenuBtnFixed.Position = UDim2.new(0.1, 0, 0.1, 0)
 
-newUi(speedBtn)
-newUi(speedKnob)
-newUi(speedPlate)
+				local iconFrame_pos = UDim2.new(0,40,0,40)
+				local menuAppearState = false
+				local iconFrame = Instance.new("ImageButton")
+				iconFrame.Size=UDim2.new(0,0,0,0)
+				iconFrame.Position=UDim2.new(0,0,0,0)
+				iconFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+				iconFrame.BackgroundTransparency,iconFrame.ImageTransparency=1,0.25
+				iconFrame.Image = "rbxassetid://128066585125667"
+				iconFrame.Visible=false
+				iconFrame.Active=true
+				iconFrame.Draggable=true
+				iconFrame.Parent=screenGui
 
-newUi(speedSlideBtn)
+				local blackFrame = Instance.new("Frame")
+				blackFrame.Size=UDim2.new(1,0,1,0)
+				blackFrame.Position=UDim2.new(0,0,0,0)
+				blackFrame.BackgroundColor3=Color3.fromRGB(0, 0, 0)
+				blackFrame.Transparency=0.5
+				blackFrame.Active=true
+				blackFrame.Visible=false
+				blackFrame.ZIndex=2
+				blackFrame.Parent=mainFrame
 
-newUi(AutoCatchBtn)
-newUi(AutoCatchPlate)
-newUi(AutoCatchKnob)
+				local warnFrame = Instance.new("Frame")
+				warnFrame.Size=UDim2.new(0.6,0,0.45,0)
+				warnFrame.Position=UDim2.new(0.2,0,0.3,0)
+				warnFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+				warnFrame.ZIndex=2
+				warnFrame.Parent=blackFrame
 
-newUi(LockPlayerBtn)
-newUi(LockPlayerPlate)
-newUi(LockPlayerKnob)
+				local warnTitle = Instance.new("TextLabel")
+				warnTitle.Size=UDim2.new(1,0,0.175,0)
+				warnTitle.Text="!           WERNING           !"
+				warnTitle.BackgroundColor3=Color3.fromRGB(32, 32, 32)
+				warnTitle.ZIndex=2
+				warnTitle.Parent=warnFrame
+				local warnTitleFixed = fixedTxt(warnTitle, 0.8, 0.1)
+				warnTitleFixed.Size = UDim2.new(1, 0, 0.8, 0)
+				warnTitleFixed.Position = UDim2.new(0, 0, 0.1, 0)
+				warnTitleFixed.TextColor=BrickColor.new("Really red")
+				warnTitleFixed.ZIndex = 3
 
-newUi(GetKnifeBtn)
-newUi(GetKnifePlate)
-newUi(GetKnifeKnob)
+				local warnLabel = Instance.new("TextLabel")
+				warnLabel.Size=UDim2.new(1,0,0.4,0)
+				warnLabel.Position=UDim2.new(0,0,0.25,0)
+				warnLabel.BackgroundTransparency=1
+				warnLabel.Text="This action will kill the script"
+				warnLabel.ZIndex=2
+				warnLabel.Parent=warnFrame
+				local warnLabelFixed = fixedTxt(warnLabel, 0.9, 0.05)
+				warnLabelFixed.Size = UDim2.new(0.9, 0, 0.6, 0)
+				warnLabelFixed.Position = UDim2.new(0.05, 0, 0.15, 0)
+				warnLabelFixed.TextColor3=Color3.fromRGB(255, 255, 255)
+				warnLabelFixed.ZIndex = 3
 
-newUi(surviveBtn)
-newUi(survivePlate)
-newUi(surviveKnob)
+				local yesbtn = Instance.new("TextButton")
+				yesbtn.Size=UDim2.new(0.3,0,0.2,0)
+				yesbtn.Position=UDim2.new(0.55,0,0.7,0)
+				yesbtn.BackgroundColor=BrickColor.new("Really red")
+				yesbtn.TextColor=BrickColor.White()
+				yesbtn.Text="Kill"
+				yesbtn.ZIndex=2
+				yesbtn.Parent=warnFrame
+				local yesbtnFixed = fixedTxt(yesbtn, 0.8, 0.1)
+				yesbtnFixed.Size = UDim2.new(0.8, 0, 0.8, 0)
+				yesbtnFixed.Position = UDim2.new(0.1, 0, 0.1, 0)
+				yesbtnFixed.ZIndex = 3
 
-newUi(iconFrame)
+				local nobtn = Instance.new("TextButton")
+				nobtn.Size=UDim2.new(0.3,0,0.2,0)
+				nobtn.Position=UDim2.new(0.15,0,0.7,0)
+				nobtn.BackgroundColor3=Color3.fromRGB(32, 32, 32)
+				nobtn.TextColor=BrickColor.White()
+				nobtn.Text="Cancel"
+				nobtn.ZIndex=2
+				nobtn.Parent=warnFrame
+				local nobtnFixed = fixedTxt(nobtn, 0.8, 0.1)
+				nobtnFixed.Size = UDim2.new(0.8, 0, 0.8, 0)
+				nobtnFixed.Position = UDim2.new(0.1, 0, 0.1, 0)
+				nobtnFixed.ZIndex = 3
 
-newCustomUi(frameTitle,10,10,10,10)
-newCustomUi(destroyBtn,10,10,10,10)
-newCustomUi(hideBtn,10,10,10,10)
+				local buttonsContainer = Instance.new("Frame")
+				buttonsContainer.Size=UDim2.new(1,0,0.1,0)
+				buttonsContainer.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+				buttonsContainer.BackgroundTransparency=0.5
+				buttonsContainer.Position=UDim2.new(0,0,0.1,0)
+				buttonsContainer.Parent=mainFrame
 
--- 4. منطق السحب والتمدد (Slider Logic)
-local dragging = false
+				local mainBtn = Instance.new("TextButton")
+				mainBtn.Size=UDim2.new(0.2,0,1,0)
+				mainBtn.Position=UDim2.new()
+				mainBtn.BackgroundColor3=Color3.fromRGB(32, 32, 32)
+				mainBtn.TextColor=BrickColor.new("White")
+				mainBtn.Text,mainBtn.TextScaled="Main",true
+				mainBtn.Parent=buttonsContainer
+				local mainBtnFixed=fixedTxt(mainBtn,0.6,0.4)
+				mainBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
+				mainBtnFixed.Position=UDim2.new(0.2,0,0.2,0)
+				
+				local playerBtn = Instance.new("TextButton")
+				playerBtn.Size = UDim2.new(0.2, 0, 1, 0)
+				playerBtn.Position = UDim2.new(0.2)
+				playerBtn.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+				playerBtn.TextColor = BrickColor.new("White")
+				playerBtn.Text, playerBtn.TextScaled = "Player", true
+				playerBtn.Parent = buttonsContainer
 
-local function updateSlider(input)
-	-- حساب موقع الإصبع/الموس بالنسبة لطول الخط
-	local mousePos = input.Position.X
-	local sliderPos = sliderBack.AbsolutePosition.X
-	local sliderSize = sliderBack.AbsoluteSize.X
+				local playerBtnFixed = fixedTxt(playerBtn, 0.6, 0.4)
+				playerBtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
+				playerBtnFixed.Position = UDim2.new(0.2, 0, 0.2, 0)
+				
+				local frame_1 = Instance.new("ScrollingFrame")
+				frame_1.Size = UDim2.new(1, 0, 0.8, 0)
+				frame_1.Position = UDim2.new(0, 0, 0.2, 0)
+				frame_1.BackgroundTransparency = 1
+				frame_1.Visible = true
+				frame_1.AutomaticCanvasSize = Enum.AutomaticSize.Y -- تفعيل التوسع التلقائي عمودياً
+				frame_1.ScrollBarThickness = 6 
+				frame_1.Parent = mainFrame
 
-	-- حصار القيمة بين 0 و 1 (من بداية الخط لنهايته)
-	local percentage = math.clamp((mousePos - sliderPos) / sliderSize, 0, 1)
+				local frame_2 = Instance.new("ScrollingFrame")
+				frame_2.Size=UDim2.new(1,0,0.8,0)
+				frame_2.Position=UDim2.new(0,0,0.2,0)
+				frame_2.BackgroundTransparency=1
+				frame_2.Visible=false
+				frame_2.Parent=mainFrame
+				local frame_3 = Instance.new("ScrollingFrame")
+				frame_3.Size=UDim2.new(1,0,0.8,0)
+				frame_3.Position=UDim2.new(0,0,0.2,0)
+				frame_3.BackgroundTransparency=1
+				frame_3.Visible=false
+				frame_3.Parent=mainFrame
+				
+				local autoCatchPlatform = Instance.new("Frame")
+				autoCatchPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				autoCatchPlatform.BackgroundTransparency = 1
+				autoCatchPlatform.Parent = frame_1
 
-	-- تحريك الزر بصرياً
-	knob.Position = UDim2.new(percentage, -10, 0.5, -8)
+				local autoCatchlbl_L = newlbl("AutoCatch", autoCatchPlatform)
+				local autoCatchlbl_LFixed = fixedTxt(autoCatchlbl_L, 0.8, 0.1)
+				autoCatchlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				autoCatchlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				autoCatchlbl_LFixed.TextXAlignment = "Left"
 
-	-- تحويل النسبة لقيمة (مثلاً من 1 إلى 50 استود للمسافة)
-	local value = math.floor(percentage * 50) 
-	valueLabel.Text = tostring(value)
+				local autoCatchState = false
+				local autoCatchlbl_R = newbtn("", autoCatchPlatform)
+				local autoCatchTerm = newTerm(autoCatchlbl_R)
+				
+				local aimbotPlatform = Instance.new("Frame")
+				aimbotPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				aimbotPlatform.BackgroundTransparency = 1
+				aimbotPlatform.Parent = frame_1
 
-	return value
-end
+				local aimbotlbl_L = newlbl("Aimbot", aimbotPlatform)
+				local aimbotlbl_LFixed = fixedTxt(aimbotlbl_L, 0.8, 0.1)
+				aimbotlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				aimbotlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				aimbotlbl_LFixed.TextXAlignment = "Left"
 
-local function getTargetButton()
-	local hud = PlayerGui:FindFirstChild("HUD")
-	if hud then
-		local mobileButtons = hud:FindFirstChild("MobileButtons")
-		if mobileButtons then
-			local catchFrame = mobileButtons:FindFirstChild("Catch")
-			if catchFrame then
-				return catchFrame:FindFirstChild("click")
-			end
-		end
-	end
-	return nil
-end
+				local aimbotState = false
+				local aimbotlbl_R = newbtn("", aimbotPlatform)
+				local aimbotTerm = newTerm(aimbotlbl_R)
+				
+				local toggleHipheightPlatform = Instance.new("Frame")
+				toggleHipheightPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				toggleHipheightPlatform.BackgroundTransparency = 1
+				toggleHipheightPlatform.Parent = frame_2
 
-local function getClosestPlayer()
-	local myChar = LocalPlayer.Character
-	local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
-	if not myRoot then return nil end
+				local toggleHipheightlbl_L = newlbl("ToggleHipheight", toggleHipheightPlatform)
+				local toggleHipheightlbl_LFixed = fixedTxt(toggleHipheightlbl_L, 0.8, 0.1)
+				toggleHipheightlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				toggleHipheightlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				toggleHipheightlbl_LFixed.TextXAlignment = "Left"
 
-	local closestPlayer = nil
-	local shortestDistance = math.huge
+				local toggleHipheightState = false
+				local toggleHipheightlbl_R = newbtn("", toggleHipheightPlatform)
+				local toggleHipheightTerm = newTerm(toggleHipheightlbl_R)
+				
+				local hipheightPlatform = Instance.new("Frame")
+				hipheightPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				hipheightPlatform.BackgroundTransparency = 1
+				hipheightPlatform.Parent = frame_2
 
-	for _, player in ipairs(Players:GetPlayers()) do
-		if player ~= LocalPlayer and player.Character then
-			local char = player.Character
+				local hipheightlbl_L = newlbl("Hipheight", hipheightPlatform)
+				local hipheightlbl_LFixed = fixedTxt(hipheightlbl_L, 0.8, 0.1)
+				hipheightlbl_LFixed.TextColor=BrickColor.Gray()
+				hipheightlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				hipheightlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				hipheightlbl_LFixed.TextXAlignment = "Left"
 
-			-- 1. فحص التأكد من أن الشخصية داخل الـ Workspace وليست محذوفة أو مخفية
-			if char:IsDescendantOf(workspace) then
-				local targetRoot = char:FindFirstChild("HumanoidRootPart")
-				local targetHumanoid = char:FindFirstChildOfClass("Humanoid")
-				local head = char:FindFirstChild("Head")
+				local hipheightState = false
+				local hipheightBox_R = newBox("2", hipheightPlatform)
+				local hipheightBox_RFixed = fixedTxt(hipheightBox_R, 0.8, 0.1)
+				hipheightBox_RFixed.TextColor=BrickColor.Gray()
+				hipheightBox_RFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				hipheightBox_RFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				hipheightBox_RFixed.TextXAlignment = "Left"
+				hipheightBox_RFixed.Text = "2"
+				
+				local speedPlatform = Instance.new("Frame")
+				speedPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				speedPlatform.BackgroundTransparency = 1
+				speedPlatform.Parent = frame_2
 
-				-- 2. شروط صارمة: حي + الرأس موجود + الجسد غير شفاف بالكامل (ليس جثة/لاعب وهمي)
-				if targetRoot and targetHumanoid and targetHumanoid.Health > 0 and head then
-					if targetRoot.Transparency < 1 or head.Transparency < 1 then
-						local dist = (myRoot.Position - targetRoot.Position).Magnitude
+				local speedlbl_L = newlbl("ToggleSpeed", speedPlatform)
+				local speedlbl_LFixed = fixedTxt(speedlbl_L, 0.8, 0.1)
+				speedlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				speedlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				speedlbl_LFixed.TextXAlignment = "Left"
 
-						-- 3. تحديد أقصى مسافة للقفل (مثلاً 250 استود) لمنع الالتفاف المفاجئ لزوايا بعيدة
-						if dist < shortestDistance and dist <= 250 then
-							shortestDistance = dist
-							closestPlayer = player
+				local speedState = false
+				local speedlbl_R = newbtn("", speedPlatform)
+				local speedTerm = newTerm(speedlbl_R)
+
+				local toggleSpeedPlatform = Instance.new("Frame")
+				toggleSpeedPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				toggleSpeedPlatform.BackgroundTransparency = 1
+				toggleSpeedPlatform.Parent = frame_2
+
+				local toggleSpeedlbl_L = newlbl("WalkSpeed", toggleSpeedPlatform)
+				local toggleSpeedlbl_LFixed = fixedTxt(toggleSpeedlbl_L, 0.8, 0.1)
+				toggleSpeedlbl_LFixed.TextColor=BrickColor.Gray()
+				toggleSpeedlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				toggleSpeedlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				toggleSpeedlbl_LFixed.TextXAlignment = "Left"
+
+				local toggleSpeedState = false
+				local toggleSpeedBox_R = newBox("16", toggleSpeedPlatform)
+				local toggleSpeedBox_RFixed = fixedTxt(toggleSpeedBox_R, 0.8, 0.1)
+				toggleSpeedBox_RFixed.TextColor=BrickColor.Gray()
+				toggleSpeedBox_RFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				toggleSpeedBox_RFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				toggleSpeedBox_RFixed.TextXAlignment = "Left"
+				toggleSpeedBox_RFixed.Text = "16"
+				
+				local jumpPlatform = Instance.new("Frame")
+				jumpPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				jumpPlatform.BackgroundTransparency = 1
+				jumpPlatform.Parent = frame_2
+
+				local jumplbl_L = newlbl("ToggleJump", jumpPlatform)
+				local jumplbl_LFixed = fixedTxt(jumplbl_L, 0.8, 0.1)
+				jumplbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				jumplbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				jumplbl_LFixed.TextXAlignment = "Left"
+
+				local jumpState = false
+				local jumplbl_R = newbtn("", jumpPlatform)
+				local jumpTerm = newTerm(jumplbl_R)
+
+				local toggleJumpPlatform = Instance.new("Frame")
+				toggleJumpPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				toggleJumpPlatform.BackgroundTransparency = 1
+				toggleJumpPlatform.Parent = frame_2
+
+				local toggleJumplbl_L = newlbl("JumpPower", toggleJumpPlatform)
+				local toggleJumplbl_LFixed = fixedTxt(toggleJumplbl_L, 0.8, 0.1)
+				toggleJumplbl_LFixed.TextColor=BrickColor.Gray()
+				toggleJumplbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				toggleJumplbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				toggleJumplbl_LFixed.TextXAlignment = "Left"
+
+				local toggleJumpState = false
+				local toggleJumpBox_R = newBox("50", toggleJumpPlatform)
+				local toggleJumpBox_RFixed = fixedTxt(toggleJumpBox_R, 0.8, 0.1)
+				toggleJumpBox_RFixed.TextColor=BrickColor.Gray()
+				toggleJumpBox_RFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				toggleJumpBox_RFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				toggleJumpBox_RFixed.TextXAlignment = "Left"
+				toggleJumpBox_RFixed.Text = "50"
+				
+				local switcherLine = Instance.new("Frame")
+				switcherLine.Size=UDim2.new(0.2,0,0.01,0)
+				switcherLine.Position=UDim2.new(0,0,0.19,0)
+				switcherLine.BackgroundColor=BrickColor.White()
+				switcherLine.Parent=mainFrame
+
+				local function display(state)
+					frame_1.Visible,frame_2.Visible=false,false
+					state.Visible=true
+				end
+				
+				local function listOff(parent)
+					local listLayout = Instance.new("UIListLayout")
+					listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+					--listLayout.Padding = UDim.new(0, 5) -- المسافة بين العناصر (5 بكسل)
+					listLayout.Parent = parent
+
+					local uipadding = Instance.new("UIPadding")
+					--uipadding.PaddingTop = UDim.new(0, 5)
+					--uipadding.PaddingBottom = UDim.new(0, 5)
+					uipadding.Parent = parent
+
+					listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+						parent.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
+					end)
+				end
+				
+				local function getTargetButton()
+					local hud = playerGui:FindFirstChild("HUD")
+					if hud then
+						local mobileButtons = hud:FindFirstChild("MobileButtons")
+						if mobileButtons then
+							local catchFrame = mobileButtons:FindFirstChild("Catch")
+							if catchFrame then
+								return catchFrame:FindFirstChild("click")
+							end
 						end
 					end
+					return nil
 				end
-			end
-		end
-	end
 
-	return closestPlayer
-end
+				local function getClosestPlayer()
+					local myChar = localPlayer.Character
+					local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+					if not myRoot then return nil end
 
--- 3. دالة محاكاة ضغط الزر
-local function clickButton(btn)
-	if not btn then return end
+					local closestPlayer = nil
+					local shortestDistance = math.huge
 
-	if firesignal then
-		pcall(function() firesignal(btn.MouseButton1Click) end)
-		pcall(function() firesignal(btn.MouseButton1Down) end)
-		pcall(function() firesignal(btn.Activated) end)
-		pcall(function() firesignal(btn.TouchTap) end)
-	end
+					for _, player in ipairs(players:GetPlayers()) do
+						if player ~= localPlayer and player.Character then
+							local char = player.Character
 
-	if game:GetService("VirtualInputManager") then
-		pcall(function()
-			local vim = game:GetService("VirtualInputManager")
-			local center = btn.AbsolutePosition + (btn.AbsoluteSize / 2)
-			vim:SendMouseButtonEvent(center.X, center.Y, 0, true, game, 0)
-			task.wait(0.02)
-			vim:SendMouseButtonEvent(center.X, center.Y, 0, false, game, 0)
-		end)
-	end
-end
+							-- 1. فحص التأكد من أن الشخصية داخل الـ Workspace وليست محذوفة أو مخفية
+							if char:IsDescendantOf(workspace) then
+								local targetRoot = char:FindFirstChild("HumanoidRootPart")
+								local targetHumanoid = char:FindFirstChildOfClass("Humanoid")
+								local head = char:FindFirstChild("Head")
 
--- 4. دالة البحث عن TouchPart داخل Model
-local function findTouchPart()
-	for _, child in ipairs(workspace:GetChildren()) do
-		if child:IsA("Model") and child.Name == "Model" then
-			local touchPart = child:FindFirstChild("TouchPart", true)
-			if touchPart and touchPart:IsA("BasePart") then
-				return touchPart
-			end
-		end
-	end
-	return nil
-end
+								-- 2. شروط صارمة: حي + الرأس موجود + الجسد غير شفاف بالكامل (ليس جثة/لاعب وهمي)
+								if targetRoot and targetHumanoid and targetHumanoid.Health > 0 and head then
+									if targetRoot.Transparency < 1 or head.Transparency < 1 then
+										local dist = (myRoot.Position - targetRoot.Position).Magnitude
 
-local function getActiveTouchZone()
-	local mxx = workspace:FindFirstChild("Scripttable")
-	if not mxx then return nil end
+										-- 3. تحديد أقصى مسافة للقفل (مثلاً 250 استود) لمنع الالتفاف المفاجئ لزوايا بعيدة
+										if dist < shortestDistance and dist <= 250 then
+											shortestDistance = dist
+											closestPlayer = player
+										end
+									end
+								end
+							end
+						end
+					end
 
-	local arena = mxx:FindFirstChild("Arena")
-	if not arena then return nil end
-
-	local knifeSpawner = arena:FindFirstChild("KnifeSpawner")
-	if not knifeSpawner then return nil end
-
-	local stands = knifeSpawner:FindFirstChild("Stands")
-	if not stands then return nil end
-
-	-- استخدام Loop للبحث داخل جميع الموديلات المترقمة داخل Stands
-	for _, standModel in ipairs(stands:GetChildren()) do
-		if standModel:IsA("Model") then
-			local touchZone = standModel:FindFirstChild("TouchZone")
-
-			-- الشرط: وجود TouchZone + يملك كائنات أبناء بداخله (#GetChildren > 0)
-			if touchZone and touchZone:IsA("BasePart") and #touchZone:GetChildren() > 0 then
-				return touchZone
-			end
-		end
-	end
-
-	return nil
-end
-
--- 5. حلقة المراقبة المستمرة
-local cooldown1, cooldown2 = false, false
-
--- أحداث اللمس والضغط
-knob.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		dragging = true
-	end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		dragging = false
-	end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-		updateSlider(input)
-	end
-end)
-
-runService.Heartbeat:Connect(function()
-	slideFill.Size=UDim2.new(knob.Position.X.Scale,0,1,0)
-	if speedState then 
-		local human = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-		if human and tonumber(valueLabel.Text) then 
-			human.WalkSpeed=valueLabel.Text
-		end
-	end
-end)
-
-runService.Heartbeat:Connect(function()
-	-- تنفيذ الكود فقط إذا كانت AutoCatchState متحطمة (تساوي true)
-	if not AutoCatchState then return end
-
-	local char = LocalPlayer.Character
-	local myRoot = char and char:FindFirstChild("HumanoidRootPart")
-
-	local touchPart = findTouchPart()
-
-	if touchPart then
-		local distance = (myRoot.Position - touchPart.Position).Magnitude
-		local roundedDist = math.floor(distance)
-
-		if distance <= 10 then
-
-			if not cooldown1 then
-				cooldown1 = true
-				local targetBtn = getTargetButton()
-				if targetBtn then
-					clickButton(targetBtn)
-					print("AutoCatch: تم تفعيل الزر تلقائياً!")
+					return closestPlayer
 				end
-				task.wait(0.3)
-				cooldown1 = false
-			end
-		end
-	end
-end)
 
--- دالة CFrame أفقية تماماً تلغي تأثير المحور Y
-local originalY = nil
+				-- 3. دالة محاكاة ضغط الزر
+				local function clickButton(btn)
+					if not btn then return end
 
-runService.Heartbeat:Connect(function()
-	if not LockPlayerState or cooldown2 then return end
-	local myChar = LocalPlayer.Character
-	local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
-	local myHumanoid = myChar and myChar:FindFirstChildOfClass("Humanoid")
+					if firesignal then
+						pcall(function() firesignal(btn.MouseButton1Click) end)
+						pcall(function() firesignal(btn.MouseButton1Down) end)
+						pcall(function() firesignal(btn.Activated) end)
+						pcall(function() firesignal(btn.TouchTap) end)
+					end
 
-	-- إذا تم إيقاف القفل، نعيد الشخصية لارتفاعها الأصلي (مرة واحدة) وننتهي
-
-	-- التأكد من وجود الشخصية وصحتها
-	if myRoot and myHumanoid and myHumanoid.Health > 0 then
-		-- حفظ الارتفاع الأصلي في أول فرام عند تفعيل القفل
-		if not originalY then
-			originalY = myRoot.Position.Y
-		end
-
-		local rightArm = myChar:FindFirstChild("Right Arm") or myChar:FindFirstChild("RightHand")
-		local rightGrip = rightArm and rightArm:FindFirstChild("RightGrip")
-
-		if rightGrip then
-			-- الحالة الأولى: وجود RightGrip -> القفل ومطابقة الارتفاع مع أقرب لاعب
-			local closest = getClosestPlayer()
-
-			if closest and closest.Character then
-				local targetChar = closest.Character
-				local targetHum = targetChar:FindFirstChildOfClass("Humanoid")
-
-				if targetHum and targetHum.Health > 0 and targetChar:IsDescendantOf(workspace) then
-					local targetRoot = targetChar:FindFirstChild("HumanoidRootPart")
-
-					if targetRoot then
-						-- 1. إنشاء موقع جديد لشخصيتك بنفس إحداثياتك (X, Z) ولكن بارتفاع الهدف (Y)
-						local myMatchedPos = Vector3.new(myRoot.Position.X, targetRoot.Position.Y, myRoot.Position.Z)
-
-						-- 2. توجيه النظر بشكل طبيعي من موقعك المرتفع نحو موقع الهدف
-						myRoot.CFrame = CFrame.lookAt(myMatchedPos, targetRoot.Position)
+					if game:GetService("VirtualInputManager") then
+						pcall(function()
+							local vim = game:GetService("VirtualInputManager")
+							local center = btn.AbsolutePosition + (btn.AbsoluteSize / 2)
+							vim:SendMouseButtonEvent(center.X, center.Y, 0, true, game, 0)
+							task.wait(0.02)
+							vim:SendMouseButtonEvent(center.X, center.Y, 0, false, game, 0)
+						end)
 					end
 				end
-			end
-		else
-			if originalY then
-				myRoot.CFrame = CFrame.new(myRoot.Position.X, originalY, myRoot.Position.Z) * (myRoot.CFrame - myRoot.Position)
-				originalY = nil
-			end
 
-			-- الحالة الثانية: قفل أفقي حقيقي على TouchPart دون رفع أو خفض CFrame
-			local touchPart = findTouchPart()
-
-			if touchPart and touchPart:IsA("BasePart") and touchPart:IsDescendantOf(workspace) then
-				-- حساب متجه الاتجاه الأفقي الخالص (تجاهل Y للطرفين)
-				local myPos = myRoot.Position
-				local targetPos = touchPart.Position
-				local dir = Vector3.new(targetPos.X - myPos.X, 0, targetPos.Z - myPos.Z)
-
-				-- تطبيق الدوران الأفقي فقط مع الحفاظ التام على موقعك الحالي وقوة الجاذبية
-				if dir.Magnitude > 0.001 then
-					myRoot.CFrame = CFrame.lookAt(myPos, myPos + dir)
+				-- 4. دالة البحث عن TouchPart داخل Model
+				local function findTouchPart()
+					for _, child in ipairs(workspace:GetChildren()) do
+						if child:IsA("Model") and child.Name == "Model" then
+							local touchPart = child:FindFirstChild("TouchPart", true)
+							if touchPart and touchPart:IsA("BasePart") then
+								return touchPart
+							end
+						end
+					end
+					return nil
 				end
-			end
-		end
-	end
-end)
 
-runService.Heartbeat:Connect(function()
-	if not GetKnifeState or cooldown2 then return end
+				local function getActiveTouchZone()
+					local mxx = workspace:FindFirstChild("Scripttable")
+					if not mxx then return nil end
 
-	local myChar = LocalPlayer.Character
-	local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+					local arena = mxx:FindFirstChild("Arena")
+					if not arena then return nil end
 
-	if myRoot then
-		local targetZone = getActiveTouchZone()
+					local knifeSpawner = arena:FindFirstChild("KnifeSpawner")
+					if not knifeSpawner then return nil end
 
-		if targetZone then
-			cooldown2 = true
+					local stands = knifeSpawner:FindFirstChild("Stands")
+					if not stands then return nil end
 
-			-- نقل الشخصية إلى موقع الجزء المباشر مع رفع الموقع قليلاً لتجنب السقوط داخل الأرﺽ
-			myRoot.CFrame = targetZone.CFrame + Vector3.new(0, 3, 0)
-			print("تم النقل بنجاح إلى TouchZone!")
+					-- استخدام Loop للبحث داخل جميع الموديلات المترقمة داخل Stands
+					for _, standModel in ipairs(stands:GetChildren()) do
+						if standModel:IsA("Model") then
+							local touchZone = standModel:FindFirstChild("TouchZone")
 
-			-- مهلة بسيطة (0.5 ثانية) لمنع النقل المكرر بلا توقف في نفس اللحظة
-			task.wait(0.5)
-			cooldown2 = false
-		end
-	end
-end)
+							-- الشرط: وجود TouchZone + يملك كائنات أبناء بداخله (#GetChildren > 0)
+							if touchZone and touchZone:IsA("BasePart") and #touchZone:GetChildren() > 0 then
+								return touchZone
+							end
+						end
+					end
 
-speedBtn.MouseButton1Click:Connect(function()
-	speedState=not speedState
-	if speedState then 
-		speedKnob.Position=UDim2.new(1,-10,0.5,-8)
-		speedPlate.BackgroundColor3=Color3.fromRGB(255, 255, 255)
-	else 
-		speedKnob.Position=UDim2.new(0,-10,0.5,-8)
-		speedPlate.BackgroundColor3=Color3.fromRGB(24, 24, 24)
-	end
-end)
+					return nil
+				end
+				
+				local bolt = false
+				
+				toggleJumpBox_R:GetPropertyChangedSignal("Text"):Connect(function()
+					if not jumpState or bolt then return end
+					local cleanText = toggleJumpBox_R.Text:gsub("[^%d%.]", "")
+					toggleJumpBox_R.Text = cleanText
 
-AutoCatchBtn.MouseButton1Click:Connect(function()
-	AutoCatchState=not AutoCatchState
-	if AutoCatchState then 
-		AutoCatchKnob.Position=UDim2.new(1,-10,0.5,-8)
-		AutoCatchPlate.BackgroundColor3=Color3.fromRGB(255, 255, 255)
-	else 
-		AutoCatchKnob.Position=UDim2.new(0,-10,0.5,-8)
-		AutoCatchPlate.BackgroundColor3=Color3.fromRGB(24, 24, 24)
-	end
-end)
+					toggleJumpBox_RFixed.Text = cleanText
+				end)
 
-LockPlayerBtn.MouseButton1Click:Connect(function()
-	LockPlayerState=not LockPlayerState
-	if LockPlayerState then 
-		LockPlayerKnob.Position=UDim2.new(1,-10,0.5,-8)
-		LockPlayerPlate.BackgroundColor3=Color3.fromRGB(255, 255, 255)
-	else 
-		LockPlayerKnob.Position=UDim2.new(0,-10,0.5,-8)
-		LockPlayerPlate.BackgroundColor3=Color3.fromRGB(24, 24, 24)
-	end
-end)
+				toggleSpeedBox_R:GetPropertyChangedSignal("Text"):Connect(function()
+					if not speedState or bolt then return end
+					local cleanText = toggleSpeedBox_R.Text:gsub("[^%d%.]", "")
+					toggleSpeedBox_R.Text = cleanText
 
-GetKnifeBtn.MouseButton1Click:Connect(function()
-	GetKnifeState=not GetKnifeState
-	if GetKnifeState then 
-		GetKnifeKnob.Position=UDim2.new(1,-10,0.5,-8)
-		GetKnifePlate.BackgroundColor3=Color3.fromRGB(255, 255, 255)
-	else 
-		GetKnifeKnob.Position=UDim2.new(0,-10,0.5,-8)
-		GetKnifePlate.BackgroundColor3=Color3.fromRGB(24, 24, 24)
-	end
-end)
+					toggleSpeedBox_RFixed.Text = cleanText
+				end)
 
-surviveBtn.MouseButton1Click:Connect(function()
-	surviveState=not surviveState
-	if surviveState then 
-		surviveKnob.Position=UDim2.new(1,-10,0.5,-8)
-		survivePlate.BackgroundColor3=Color3.fromRGB(255, 255, 255)
-	else 
-		surviveKnob.Position=UDim2.new(0,-10,0.5,-8)
-		survivePlate.BackgroundColor3=Color3.fromRGB(24, 24, 24)
-	end
-end)
+				hipheightBox_R:GetPropertyChangedSignal("Text"):Connect(function()
+					if not hipheightState or bolt then return end
+					print(true)
 
-local function findKnife(parent)
-	for _, desc in ipairs(parent:GetDescendants()) do
-		if desc.Name == "Knife" or desc.Name == "TouchPart" then
-			return desc
-		end
-	end
-	return nil
+					local cleanText = hipheightBox_R.Text:gsub("[^%d%.]", "")
+					hipheightBox_R.Text = cleanText
+
+					hipheightBox_RFixed.Text = cleanText
+				end)
+				
+				listOff(frame_1)
+				listOff(frame_2)
+				
+				local cooldown1, cooldown2 = false, false
+				runService.Heartbeat:Connect(function()
+					-- تنفيذ الكود فقط إذا كانت AutoCatchState متحطمة (تساوي true)
+					if not autoCatchState then return end
+
+					local char = localPlayer.Character
+					local myRoot = char and char:FindFirstChild("HumanoidRootPart")
+
+					local touchPart = findTouchPart()
+
+					if touchPart then
+						local distance = (myRoot.Position - touchPart.Position).Magnitude
+						local roundedDist = math.floor(distance)
+
+						if distance <= 10 then
+
+							if not cooldown1 then
+								cooldown1 = true
+								local targetBtn = getTargetButton()
+								if targetBtn then
+									clickButton(targetBtn)
+									print("AutoCatch: تم تفعيل الزر تلقائياً!")
+								end
+								task.wait(0.3)
+								cooldown1 = false
+							end
+						end
+					end
+				end)
+
+				-- دالة CFrame أفقية تماماً تلغي تأثير المحور Y
+				local originalY = nil
+				
+				runService.Heartbeat:Connect(function()
+					if not aimbotState or cooldown2 then return end
+					local myChar = localPlayer.Character
+					local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+					local myHumanoid = myChar and myChar:FindFirstChildOfClass("Humanoid")
+
+					-- إذا تم إيقاف القفل، نعيد الشخصية لارتفاعها الأصلي (مرة واحدة) وننتهي
+
+					-- التأكد من وجود الشخصية وصحتها
+					if myRoot and myHumanoid and myHumanoid.Health > 0 then
+						-- حفظ الارتفاع الأصلي في أول فرام عند تفعيل القفل
+						if not originalY then
+							originalY = myRoot.Position.Y
+						end
+
+						local rightArm = myChar:FindFirstChild("Right Arm") or myChar:FindFirstChild("RightHand")
+						local rightGrip = rightArm and rightArm:FindFirstChild("RightGrip")
+
+						if rightGrip then
+							
+							bolt=true
+							-- الحالة الأولى: وجود RightGrip -> القفل ومطابقة الارتفاع مع أقرب لاعب
+							local closest = getClosestPlayer()
+
+							if closest and closest.Character then
+								local targetChar = closest.Character
+								local targetHum = targetChar:FindFirstChildOfClass("Humanoid")
+
+								if targetHum and targetHum.Health > 0 and targetChar:IsDescendantOf(workspace) then
+									local targetRoot = targetChar:FindFirstChild("HumanoidRootPart")
+
+									if targetRoot then
+										-- 1. إنشاء موقع جديد لشخصيتك بنفس إحداثياتك (X, Z) ولكن بارتفاع الهدف (Y)
+										local myMatchedPos = Vector3.new(myRoot.Position.X, targetRoot.Position.Y, myRoot.Position.Z)
+
+										-- 2. توجيه النظر بشكل طبيعي من موقعك المرتفع نحو موقع الهدف
+										myRoot.CFrame = CFrame.lookAt(myMatchedPos, targetRoot.Position)
+									end
+								end
+							end
+						else
+							bolt=false
+							if originalY then
+								myRoot.CFrame = CFrame.new(myRoot.Position.X, originalY, myRoot.Position.Z) * (myRoot.CFrame - myRoot.Position)
+								originalY = nil
+							end
+
+							-- الحالة الثانية: قفل أفقي حقيقي على TouchPart دون رفع أو خفض CFrame
+							local touchPart = findTouchPart()
+
+							if touchPart and touchPart:IsA("BasePart") and touchPart:IsDescendantOf(workspace) then
+								-- حساب متجه الاتجاه الأفقي الخالص (تجاهل Y للطرفين)
+								local myPos = myRoot.Position
+								local targetPos = touchPart.Position
+								local dir = Vector3.new(targetPos.X - myPos.X, 0, targetPos.Z - myPos.Z)
+
+								-- تطبيق الدوران الأفقي فقط مع الحفاظ التام على موقعك الحالي وقوة الجاذبية
+								if dir.Magnitude > 0.001 then
+									myRoot.CFrame = CFrame.lookAt(myPos, myPos + dir)
+								end
+							end
+						end
+					end
+				end)
+				
+				runService.Heartbeat:Connect(function()
+					local human = localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid")
+					if bolt then human.HipHeight=0 end
+						
+					if not human then return end
+					if jumpState and tonumber(toggleJumpBox_RFixed.Text) then 
+						human.UseJumpPower=true
+						human.JumpPower=toggleJumpBox_RFixed.Text
+					end
+					if speedState and tonumber(toggleSpeedBox_RFixed.Text) then 
+						human.WalkSpeed=toggleSpeedBox_RFixed.Text
+					end
+					if hipheightState and tonumber(hipheightBox_RFixed.Text) then 
+						human.HipHeight=hipheightBox_RFixed.Text
+					end
+				end)
+				
+
+				mainBtn.MouseButton1Click:Connect(function()
+
+					local motionLine = tweenService:Create(switcherLine,TweenInfo.new(0.3),{Position=UDim2.new(mainBtn.Position.X.Scale,0,switcherLine.Position.Y.Scale,0)})
+					motionLine:Play()
+					display(frame_1)
+				end)
+				
+				playerBtn.MouseButton1Click:Connect(function()
+
+					local motionLine = tweenService:Create(switcherLine,TweenInfo.new(0.3),{Position=UDim2.new(playerBtn.Position.X.Scale,0,switcherLine.Position.Y.Scale,0)})
+					motionLine:Play()
+					display(frame_2)
+				end)
+
+				iconFrame.MouseButton1Click:Connect(function()
+					local oldpos = iconFrame.Position
+					local targetPos = UDim2.new(iconFrame.Position.X.Scale, iconFrame.Position.X.Offset + 20, iconFrame.Position.Y.Scale, iconFrame.Position.Y.Offset + 20)
+					local iconMotion = tweenService:Create(iconFrame,TweenInfo.new(0.3),{Size=UDim2.new(),Position=targetPos})
+					iconMotion:Play()
+					iconMotion.Completed:Connect(function()
+						iconFrame.Visible=false
+						mainFrame.Visible=true
+						mainFrame.Position=oldpos
+						local frameMotion = tweenService:Create(mainFrame,TweenInfo.new(0.4),{Size=mainFrame_pos})
+						frameMotion:Play()
+					end)
+
+				end)
+
+				hideMenuBtn.MouseButton1Click:Connect(function()
+					if blackFrame.Visible then return end
+					menuAppearState=true
+					local frameMotion = tweenService:Create(mainFrame,TweenInfo.new(0.4),{Size=UDim2.new(0,0,0,0)})
+					frameMotion:Play()
+					frameMotion.Completed:Connect(function()
+						mainFrame.Visible = false
+
+						-- 1. الموضع النهائي الذي نريد أن تستقر فيه الأيقونة (موضع القائمة)
+						local finalPos = mainFrame.Position
+
+						-- 2. حساب موضع البداية (بحيث يكون الحجم 0 في منتصف الموضع النهائي تماماً)
+						local startPos = UDim2.new(
+							finalPos.X.Scale, finalPos.X.Offset + (iconFrame_pos.X.Offset / 2),
+							finalPos.Y.Scale, finalPos.Y.Offset + (iconFrame_pos.Y.Offset / 2)
+						)
+
+						-- 3. ضبط الأيقونة على موضع البداية وحجم 0 قبل الإظهار
+						iconFrame.Size = UDim2.new(0, 0, 0, 0)
+						iconFrame.Position = startPos
+						iconFrame.Visible = true
+
+						-- 4. التكبير والانزلاق إلى الموضع النهائي المحدد بنفس الوقت ليعطي تأثير التكبير من المنتصف
+						local iconMotion = tweenService:Create(iconFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+							Size = iconFrame_pos,
+							Position = finalPos
+						})
+						iconMotion:Play()
+					end)
+				end)
+
+				destroyMenuBtn.MouseButton1Click:Connect(function()blackFrame.Visible=true end)
+				nobtn.MouseButton1Click:Connect(function()blackFrame.Visible=false end)
+				yesbtn.MouseButton1Click:Connect(function()
+					blackFrame.Visible=false
+					local targetPos = UDim2.new(mainFrame.Position.X.Scale, mainFrame.Position.X.Offset + 125, mainFrame.Position.Y.Scale, mainFrame.Position.Y.Offset + 100)
+
+					local frameMotion = tweenService:Create(mainFrame, TweenInfo.new(0.4), {
+						Size = UDim2.new(0, 0, 0, 0),
+						Position = targetPos
+					})
+					frameMotion:Play()
+					frameMotion.Completed:Connect(function()
+						screenGui:Destroy()
+					end) 
+				end)
+				
+				toggleHipheightlbl_R.MouseButton1Click:Connect(function()
+					hipheightState = not hipheightState
+					
+					if hipheightState then 
+						toggleHipheightTerm.BackgroundColor = BrickColor.White() 
+						toggleHipheightTerm.ImageTransparency = 0
+
+						hipheightlbl_LFixed.TextColor=BrickColor.White()
+						hipheightBox_RFixed.TextColor=BrickColor.White()
+						hipheightBox_R.Active=true
+
+					else
+						toggleHipheightTerm.BackgroundColor3 = Color3.fromRGB(86, 86, 86)
+						toggleHipheightTerm.ImageTransparency = 1
+
+						hipheightlbl_LFixed.TextColor=BrickColor.Gray()
+						hipheightBox_RFixed.TextColor=BrickColor.Gray()
+						hipheightBox_R.Active=false
+					end
+				end)
+
+				jumplbl_R.MouseButton1Click:Connect(function()
+					jumpState = not jumpState
+
+					if jumpState then 
+						jumpTerm.BackgroundColor = BrickColor.White() 
+						jumpTerm.ImageTransparency = 0
+
+						toggleJumplbl_LFixed.TextColor=BrickColor.White()
+						toggleJumpBox_RFixed.TextColor=BrickColor.White()
+						toggleJumpBox_R.Active=true
+
+					else
+						jumpTerm.BackgroundColor3 = Color3.fromRGB(86, 86, 86)
+						jumpTerm.ImageTransparency = 1
+
+						toggleJumplbl_LFixed.TextColor=BrickColor.Gray()
+						toggleJumpBox_RFixed.TextColor=BrickColor.Gray()
+						toggleJumpBox_R.Active=false
+					end
+				end)
+
+				speedlbl_R.MouseButton1Click:Connect(function()
+					speedState = not speedState
+
+					if speedState then 
+						speedTerm.BackgroundColor = BrickColor.White() 
+						speedTerm.ImageTransparency = 0
+
+						toggleSpeedlbl_LFixed.TextColor=BrickColor.White()
+						toggleSpeedBox_RFixed.TextColor=BrickColor.White()
+						toggleSpeedBox_R.Active=true
+
+					else
+						speedTerm.BackgroundColor3 = Color3.fromRGB(86, 86, 86)
+						speedTerm.ImageTransparency = 1
+
+						toggleSpeedlbl_LFixed.TextColor=BrickColor.Gray()
+						toggleSpeedBox_RFixed.TextColor=BrickColor.Gray()
+						toggleSpeedBox_R.Active=false
+					end
+				end)
+
+			end)
+		end)
+	end)
 end
 
-local KnifeFounded = nil
--- 2. الاتصال بالمسار والمراقبة
-runService.Heartbeat:Connect(function()
-	local knifeSpawner = arena:FindFirstChild("KnifeSpawner")
-	if not knifeSpawner then
-		KnifeFounded=nil
-		return
-	end
-
-	-- فحص أولي إذا كانت السكين موجودة مسبقاً
-	local foundKnife = findKnife(knifeSpawner)
-	if foundKnife then
-		KnifeFounded=foundKnife
-	else
-		KnifeFounded=nil
-	end
-end)
-
-runService.Heartbeat:Connect(function()
-	-- 1. التأكد من تفعيل الميزة ووجود السكين
-	if not GetKnifeState or not KnifeFounded then return end
-
-	local myChar = LocalPlayer.Character
-	local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
-	local myHumanoid = myChar and myChar:FindFirstChildOfClass("Humanoid")
-
-	-- 2. التأكد من أن الشخصية حية والسكين ما زال موجوداً في الـ Workspace
-	if myRoot and myHumanoid and myHumanoid.Health > 0 and KnifeFounded:IsDescendantOf(workspace) then
-		-- جلب موقع السكين
-		local targetCFrame = nil
-
-		if KnifeFounded:IsA("BasePart") then
-			targetCFrame = KnifeFounded.CFrame
-		elseif KnifeFounded:IsA("Model") then
-			targetCFrame = KnifeFounded:GetPivot()
-		end
-
-		-- 3. نقل الشخصية فوراً إلى موقع السكين
-		if targetCFrame then
-			myRoot.CFrame = targetCFrame
+local function ExistingUI(name)
+	for _, child in ipairs(uiParent:GetDescendants()) do
+		if child:IsA("ScreenGui") and child.Name == name then
+			return child
 		end
 	end
-end)
+end
 
-runService.Heartbeat:Connect(function()
-	local myChar = LocalPlayer.Character
-	local myHumanoid = myChar and myChar:FindFirstChildOfClass("Humanoid")
-	
-	if not surviveState then 
-		if myHumanoid then myHumanoid.HipHeight=0 end
-		return
-	end
-	
-	if myHumanoid and myHumanoid.Health > 0 then
+local existingHub = ExistingUI("Phantom Hub")
+local existingMenu = ExistingUI("ExcitScreen")
 
-		local rightArm = myChar:FindFirstChild("Right Arm") or myChar:FindFirstChild("RightHand")
-		local rightGrip = rightArm and rightArm:FindFirstChild("RightGrip")
+if not existingHub then warn("Hub not found.")
+else print("Hub found") end
+if existingHub then
+	if existingMenu or existingHub:FindFirstChild("LoadingFrame") then return end
+	local excitscreenGui = Instance.new("ScreenGui")
+	excitscreenGui.Name = "ExcitScreen"
+	excitscreenGui.ResetOnSpawn = false
+	excitscreenGui.Parent = uiParent
 
-		if not rightGrip then
-			-- الحالة الأولى: وجود RightGrip -> القفل ومطابقة الارتفاع مع أقرب لاعب
-			myHumanoid.HipHeight=10
-		else
-			myHumanoid.HipHeight=0
-		end
-	end
-end)
+	local replaceFrame = Instance.new("Frame")
+	replaceFrame.Size = UDim2.new(0.3, 0, 0.3, 0)
+	replaceFrame.Position = UDim2.new(0.35, 0, 0.35, 0)
+	replaceFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+	replaceFrame.BackgroundTransparency = 0.5
+	replaceFrame.Visible = true
+	replaceFrame.ZIndex = 2
+	replaceFrame.Parent = excitscreenGui 
+
+	local replaceLabel = Instance.new("TextLabel")
+	replaceLabel.Size = UDim2.new(1, 0, 0.4, 0)
+	replaceLabel.Position = UDim2.new(0, 0, 0.15, 0)
+	replaceLabel.BackgroundTransparency = 1
+	replaceLabel.Text = "The original UI already exists"
+	replaceLabel.ZIndex = 2
+	replaceLabel.Parent = replaceFrame
+	local replaceLabelFixed = fixedTxt(replaceLabel, 0.9, 0.05)
+	replaceLabelFixed.Size = UDim2.new(0.9, 0, 0.6, 0)
+	replaceLabelFixed.Position = UDim2.new(0.05, 0, 0.15, 0)
+	replaceLabelFixed.TextColor3 = Color3.fromRGB(255, 255, 255)
+	replaceLabelFixed.ZIndex = 3
+
+	local replacebtn = Instance.new("TextButton")
+	replacebtn.Size = UDim2.new(0.3, 0, 0.2, 0)
+	replacebtn.Position = UDim2.new(0.55, 0, 0.7, 0)
+	replacebtn.BackgroundColor = BrickColor.new("Royal purple")
+	replacebtn.TextColor = BrickColor.White()
+	replacebtn.Text = "Replace"
+	replacebtn.ZIndex = 2
+	replacebtn.Parent = replaceFrame
+	local replacebtnFixed = fixedTxt(replacebtn, 0.8, 0.1)
+	replacebtnFixed.Size = UDim2.new(0.8, 0, 0.8, 0)
+	replacebtnFixed.Position = UDim2.new(0.1, 0, 0.1, 0)
+	replacebtnFixed.ZIndex = 3
+
+	local cancelbtn = Instance.new("TextButton")
+	cancelbtn.Size = UDim2.new(0.3, 0, 0.2, 0)
+	cancelbtn.Position = UDim2.new(0.15, 0, 0.7, 0)
+	cancelbtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+	cancelbtn.TextColor = BrickColor.White()
+	cancelbtn.Text = "Cancel"
+	cancelbtn.ZIndex = 2
+	cancelbtn.Parent = replaceFrame
+	local cancelbtnFixed = fixedTxt(cancelbtn, 0.8, 0.1)
+	cancelbtnFixed.Size = UDim2.new(0.8, 0, 0.8, 0)
+	cancelbtnFixed.Position = UDim2.new(0.1, 0, 0.1, 0)
+	cancelbtnFixed.ZIndex = 3
+
+	-- زر Cancel: إغلاق التنبيه وإيقاف إنشاء الواجهة الجديدة
+	cancelbtn.MouseButton1Click:Connect(function()
+		excitscreenGui:Destroy()
+	end)
+
+	replacebtn.MouseButton1Click:Connect(function()
+		existingHub:Destroy()
+		excitscreenGui:Destroy()
+
+		newHub("Susseccfull Replacing!")
+	end)
+else
+	newHub("Susseccfull Executing!")
+end
+
+
+
