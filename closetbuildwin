@@ -1,1 +1,1502 @@
+local players = game:GetService("Players")
+local localPlayer = players.LocalPlayer
+local playerGui = localPlayer:WaitForChild("PlayerGui")
+local tweenService = game:GetService("TweenService")
+local runService = game:GetService("RunService")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local camera = workspace.CurrentCamera
 
+local gameFolder = workspace:WaitForChild("Game")
+local remotes = replicatedStorage:WaitForChild("Remotes")
+local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
+local destroyBlockEvent = remotes:WaitForChild("DestroyBlock")
+local inventoryFolder = localPlayer:WaitForChild("Inventory")
+
+local uiParent = playerGui
+if gethui then
+	uiParent = gethui()
+elseif game:GetService("CoreGui") then
+	pcall(function()
+		uiParent = game:GetService("CoreGui")
+	end)
+end
+
+local function forceEnableArchivable(model)
+	model.Archivable = true
+	for _, descendant in ipairs(model:GetDescendants()) do
+		descendant.Archivable = true
+	end
+end
+
+local function applyGhostProperties(descendant)
+	if descendant:IsA("BasePart") then
+		descendant.Transparency = 0.5
+		descendant.CanCollide = false
+		descendant.CanTouch = false
+		descendant.CanQuery = false
+	end
+end
+
+-- دالة تحويل الموديل كاملاً وأبنائه إلى أشباح
+local function makeModelGhostly(model)
+	for _, descendant in ipairs(model:GetDescendants()) do
+		applyGhostProperties(descendant)
+	end
+
+	model.DescendantAdded:Connect(function(descendant)
+		applyGhostProperties(descendant)
+	end)
+end
+
+local function dexStyleClone(sourceModel)
+	if not sourceModel then return nil end
+
+	local sourceParts = {}
+	for _, descendant in ipairs(sourceModel:GetDescendants()) do
+		if descendant:IsA("BasePart") and descendant.Name ~= "Center" then
+			table.insert(sourceParts, descendant)
+		end
+	end
+
+	if #sourceParts == 0 then
+		task.wait(0.05)
+		for _, descendant in ipairs(sourceModel:GetDescendants()) do
+			if descendant:IsA("BasePart") and descendant.Name ~= "Center" then
+				table.insert(sourceParts, descendant)
+			end
+		end
+	end
+
+	local fakeModel = Instance.new("Model")
+	fakeModel.Name = "FakeDemoBuild"
+
+	for i = 1, #sourceParts do
+		local part = sourceParts[i]
+
+		-- التأكد من أن البارت ما زال موجوداً داخل اللعبة ولم يُحذف
+		if part and part.Parent then
+			local partClone = part:Clone()
+			if partClone then
+				partClone.Transparency = 0.5
+				partClone.CanCollide = false
+				partClone.CanTouch = false
+				partClone.CanQuery = false
+				partClone.Anchored = true
+				partClone.CFrame = part.CFrame
+				partClone.Parent = fakeModel
+			end
+		end
+	end
+
+	return fakeModel
+end
+
+local function formatServerTime()
+	local serverTime = workspace:GetServerTimeNow()
+
+	-- تحويل الوقت إلى جدول يحوي الساعة، الدقيقة، والثانية بتوقيت UTC
+	local timeTable = os.date("!*t", serverTime)
+
+	return string.format("%02d:%02d:%02d", timeTable.hour, timeTable.min, timeTable.sec)
+end
+
+local function fixedTxt(parent, siz, pos)
+	parent.TextTransparency = 1
+
+	local lbl = Instance.new("TextLabel")
+	lbl.Size = UDim2.new(siz, 0, 0.8, 0)
+	lbl.Position = UDim2.new(pos, 0, 0.1, 0)
+	lbl.TextColor = BrickColor.new("White")
+	lbl.TextStrokeTransparency = 0
+	lbl.TextStrokeColor3 = Color3.fromRGB(24, 24, 24)
+	lbl.FontFace=Font.fromEnum(Enum.Font.Code)
+	lbl.BackgroundTransparency = 1
+	lbl.Text = parent.Text
+	lbl.TextScaled = true
+	lbl.Parent = parent
+	return lbl
+end
+
+local function newlbl(name,parent)
+	local lbl = Instance.new("TextLabel")
+	lbl.Size=UDim2.new(0.5,0,1,0)
+	lbl.Position=UDim2.new()
+	lbl.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	lbl.BackgroundTransparency=0.5
+	lbl.BorderSizePixel=1
+	lbl.BorderColor3=Color3.fromRGB(86, 86, 86)
+	lbl.Text=name
+	lbl.Parent=parent
+	return lbl
+end
+
+local function newbtn(name,parent)
+	local btn = Instance.new("TextButton")
+	btn.Size=UDim2.new(0.5,0,1,0)
+	btn.Position=UDim2.new(0.5)
+	btn.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	btn.BackgroundTransparency=0.5
+	btn.BorderSizePixel=1
+	btn.BorderColor3=Color3.fromRGB(86, 86, 86)
+	btn.Text=name
+	btn.Parent=parent
+	return btn
+end
+
+local function newTerm(parent)
+	local term = Instance.new("ImageLabel")
+	term.Size=UDim2.new(0,15,0,15)
+	term.Position=UDim2.new(0.05,0,0.1,0)
+	term.BackgroundColor3=Color3.fromRGB(64, 64, 64)
+	term.Image="rbxassetid://79837885108596"
+	term.ImageTransparency=1
+	term.Parent=parent
+
+	return term
+end
+
+local function newBox(name,parent)
+	local box = Instance.new("TextBox")
+	box.Size=UDim2.new(0.5,0,1,0)
+	box.Position=UDim2.new(0.5)
+	box.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	box.BackgroundTransparency=0.5
+	box.BorderSizePixel=1
+	box.BorderColor3=Color3.fromRGB(86, 86, 86)
+	box.Text=name
+	box.Parent=parent
+	return box
+
+end
+
+local function newClick(parent)
+	local click = Instance.new("ImageLabel")
+	click.Size=UDim2.new(0.2,0,0.9,0)
+	click.Position=UDim2.new(0,0,0.05,0)
+	click.BackgroundTransparency=1
+	click.Image="rbxassetid://9468220156"
+	click.Parent=parent
+
+	return click
+
+end
+
+local function newHub(txt)
+	local screenGui = Instance.new("ScreenGui", playerGui)
+	screenGui.Name = "Phantom Hub"
+	screenGui.ResetOnSpawn = false
+	screenGui.Parent=uiParent
+
+	local enterHubFrame_pos=UDim2.new(0.75,0,0.8,0)
+	local enterHubFrame_siz = UDim2.new(0.25,0,0.15,0)
+	local enterHubFrame = Instance.new("Frame")
+	enterHubFrame.Size=UDim2.new(0,0,0.15,0)
+	enterHubFrame.Position=UDim2.new(1,0,0.8,0)
+	enterHubFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	enterHubFrame.BackgroundTransparency=0.4
+	enterHubFrame.Name="LoadingFrame"
+	enterHubFrame.Visible=false
+	enterHubFrame.Parent=screenGui
+
+	local enterHubLabel_1 = Instance.new("TextLabel")
+	enterHubLabel_1.Size=UDim2.new(1,0,0.2,0)
+	enterHubLabel_1.Position=UDim2.new(0,0,0,0)
+	enterHubLabel_1.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	enterHubLabel_1.BackgroundTransparency=0.5
+	enterHubLabel_1.Text="Phantom Hub"
+	enterHubLabel_1.Parent=enterHubFrame
+	local enterHubLabel_1Fixed = fixedTxt(enterHubLabel_1, 0.8, 0.1)
+	enterHubLabel_1Fixed.Size = UDim2.new(0.8, 0, 0.8, 0)
+	enterHubLabel_1Fixed.Position = UDim2.new(0.1, 0, 0.1, 0)
+
+
+	local enterHubLabel_2 = Instance.new("TextLabel")
+	enterHubLabel_2.Size=UDim2.new(1,0,0.5,0)
+	enterHubLabel_2.Position=UDim2.new(0,0,0.3,0)
+	enterHubLabel_2.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	enterHubLabel_2.BackgroundTransparency=1
+	enterHubLabel_2.Text=txt
+	enterHubLabel_2.Parent=enterHubFrame
+	local enterHubLabel_2Fixed = fixedTxt(enterHubLabel_2, 0.8, 0.1)
+	enterHubLabel_2Fixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+	enterHubLabel_2Fixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+
+	local enterLineFrame = Instance.new("Frame")
+	enterLineFrame.Size=UDim2.new(0,0,0.1,0)
+	enterLineFrame.Position=UDim2.new(0,0,0.9,0)
+	enterLineFrame.BackgroundColor=BrickColor.White()
+	enterLineFrame.Parent=enterHubFrame
+
+	enterHubFrame.Visible = true
+	local enterMotion = tweenService:Create(enterHubFrame, TweenInfo.new(0.3), {Size = enterHubFrame_siz, Position = enterHubFrame_pos})
+	enterMotion:Play()
+
+	enterMotion.Completed:Connect(function()
+		local enterLineMotion = tweenService:Create(enterLineFrame, TweenInfo.new(3), {Size = UDim2.new(1, 0, enterLineFrame.Size.Y.Scale, 0)})
+		enterLineMotion:Play()
+
+		enterLineMotion.Completed:Connect(function()
+			local exitMotion = tweenService:Create(enterHubFrame, TweenInfo.new(0.4), {
+				Size = UDim2.new(0, 0, enterHubFrame_siz.Y.Scale, 0),
+				Position = UDim2.new(1, 0, enterHubFrame_pos.Y.Scale, 0)
+			})
+			exitMotion:Play()
+			exitMotion.Completed:Connect(function()
+				enterHubFrame:Destroy()
+
+				task.wait(0.5)
+
+				local helperTextLabel = Instance.new("TextLabel")
+				helperTextLabel.Size=UDim2.new(0,200,0,50)
+				helperTextLabel.Transparency=0.5
+				helperTextLabel.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+				helperTextLabel.TextColor=BrickColor.new("White")
+				helperTextLabel.TextScaled=true
+				helperTextLabel.Parent=nil
+
+				local function printlog(txt,set)
+					if set then 
+						helperTextLabel.TextColor=BrickColor.new("Really red")
+					else
+						helperTextLabel.TextColor=BrickColor.new("Lime green")
+					end
+					helperTextLabel.Text=txt
+				end
+
+
+
+				local mainFrame_pos = UDim2.new(0,250,0,200)
+				local mainFrame = Instance.new("Frame")
+				mainFrame.Size=mainFrame_pos
+				mainFrame.Position=UDim2.new()
+				mainFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+				mainFrame.Active,mainFrame.Draggable=true,true
+				mainFrame.Transparency=0.25
+				mainFrame.Parent=screenGui
+
+				local frameTitle = Instance.new("TextLabel")
+				frameTitle.Size=UDim2.new(1,0,0.1,0)
+				frameTitle.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+				frameTitle.Text="Closet Build Win"
+				frameTitle.Parent=mainFrame
+				local frameTitleFixed = fixedTxt(frameTitle)
+				frameTitleFixed.Size=UDim2.new(0.6,0,0.8,0)
+				frameTitleFixed.Position=UDim2.new(0.05,0,0.1,0)
+				frameTitleFixed.TextXAlignment=Enum.TextXAlignment.Left
+
+				local destroyMenuBtn = Instance.new("TextButton")
+				destroyMenuBtn.Size=UDim2.new(0.1,0,1,0)
+				destroyMenuBtn.Position=UDim2.new(0.9)
+				destroyMenuBtn.BackgroundColor=BrickColor.new("Really red")
+				destroyMenuBtn.Text="x"
+				destroyMenuBtn.TextColor=BrickColor.new("White")
+				destroyMenuBtn.TextScaled=true
+				destroyMenuBtn.Parent=frameTitle
+				local destroyMenuBtnFixed = fixedTxt(destroyMenuBtn, 0.8, 0.1)
+				destroyMenuBtnFixed.Size = UDim2.new(0.8, 0, 0.8, 0)
+				destroyMenuBtnFixed.Position = UDim2.new(0.1, 0, 0.1, 0)
+
+				local hideMenuBtn = Instance.new("TextButton")
+				hideMenuBtn.Size=UDim2.new(0.1,0,1,0)
+				hideMenuBtn.Position=UDim2.new(0.8)
+				hideMenuBtn.BackgroundColor3=Color3.fromRGB(32, 32, 32)
+				hideMenuBtn.Text="–"
+				hideMenuBtn.TextColor=BrickColor.new("White")
+				hideMenuBtn.TextScaled=true
+				hideMenuBtn.Parent=frameTitle
+				local hideMenuBtnFixed = fixedTxt(hideMenuBtn, 0.8, 0.1)
+				hideMenuBtnFixed.Size = UDim2.new(0.8, 0, 0.8, 0)
+				hideMenuBtnFixed.Position = UDim2.new(0.1, 0, 0.1, 0)
+
+				local iconFrame_pos = UDim2.new(0,40,0,40)
+				local menuAppearState = false
+				local iconFrame = Instance.new("ImageButton")
+				iconFrame.Size=UDim2.new(0,0,0,0)
+				iconFrame.Position=UDim2.new(0,0,0,0)
+				iconFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+				iconFrame.BackgroundTransparency,iconFrame.ImageTransparency=1,0.25
+				iconFrame.Image = "rbxassetid://128066585125667"
+				iconFrame.Visible=false
+				iconFrame.Active=true
+				iconFrame.Draggable=true
+				iconFrame.Parent=screenGui
+
+				local blackFrame = Instance.new("Frame")
+				blackFrame.Size=UDim2.new(1,0,1,0)
+				blackFrame.Position=UDim2.new(0,0,0,0)
+				blackFrame.BackgroundColor3=Color3.fromRGB(0, 0, 0)
+				blackFrame.Transparency=0.5
+				blackFrame.Active=true
+				blackFrame.Visible=false
+				blackFrame.ZIndex=2
+				blackFrame.Parent=mainFrame
+
+				local warnFrame = Instance.new("Frame")
+				warnFrame.Size=UDim2.new(0.6,0,0.45,0)
+				warnFrame.Position=UDim2.new(0.2,0,0.3,0)
+				warnFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+				warnFrame.ZIndex=2
+				warnFrame.Parent=blackFrame
+
+				local warnTitle = Instance.new("TextLabel")
+				warnTitle.Size=UDim2.new(1,0,0.175,0)
+				warnTitle.Text="!           WERNING           !"
+				warnTitle.BackgroundColor3=Color3.fromRGB(32, 32, 32)
+				warnTitle.ZIndex=2
+				warnTitle.Parent=warnFrame
+				local warnTitleFixed = fixedTxt(warnTitle, 0.8, 0.1)
+				warnTitleFixed.Size = UDim2.new(1, 0, 0.8, 0)
+				warnTitleFixed.Position = UDim2.new(0, 0, 0.1, 0)
+				warnTitleFixed.TextColor=BrickColor.new("Really red")
+				warnTitleFixed.ZIndex = 3
+
+				local warnLabel = Instance.new("TextLabel")
+				warnLabel.Size=UDim2.new(1,0,0.4,0)
+				warnLabel.Position=UDim2.new(0,0,0.25,0)
+				warnLabel.BackgroundTransparency=1
+				warnLabel.Text="This action will kill the script"
+				warnLabel.ZIndex=2
+				warnLabel.Parent=warnFrame
+				local warnLabelFixed = fixedTxt(warnLabel, 0.9, 0.05)
+				warnLabelFixed.Size = UDim2.new(0.9, 0, 0.6, 0)
+				warnLabelFixed.Position = UDim2.new(0.05, 0, 0.15, 0)
+				warnLabelFixed.TextColor3=Color3.fromRGB(255, 255, 255)
+				warnLabelFixed.ZIndex = 3
+
+				local yesbtn = Instance.new("TextButton")
+				yesbtn.Size=UDim2.new(0.3,0,0.2,0)
+				yesbtn.Position=UDim2.new(0.55,0,0.7,0)
+				yesbtn.BackgroundColor=BrickColor.new("Really red")
+				yesbtn.TextColor=BrickColor.White()
+				yesbtn.Text="Kill"
+				yesbtn.ZIndex=2
+				yesbtn.Parent=warnFrame
+				local yesbtnFixed = fixedTxt(yesbtn, 0.8, 0.1)
+				yesbtnFixed.Size = UDim2.new(0.8, 0, 0.8, 0)
+				yesbtnFixed.Position = UDim2.new(0.1, 0, 0.1, 0)
+				yesbtnFixed.ZIndex = 3
+
+				local nobtn = Instance.new("TextButton")
+				nobtn.Size=UDim2.new(0.3,0,0.2,0)
+				nobtn.Position=UDim2.new(0.15,0,0.7,0)
+				nobtn.BackgroundColor3=Color3.fromRGB(32, 32, 32)
+				nobtn.TextColor=BrickColor.White()
+				nobtn.Text="Cancel"
+				nobtn.ZIndex=2
+				nobtn.Parent=warnFrame
+				local nobtnFixed = fixedTxt(nobtn, 0.8, 0.1)
+				nobtnFixed.Size = UDim2.new(0.8, 0, 0.8, 0)
+				nobtnFixed.Position = UDim2.new(0.1, 0, 0.1, 0)
+				nobtnFixed.ZIndex = 3
+
+				local buttonsContainer = Instance.new("Frame")
+				buttonsContainer.Size=UDim2.new(1,0,0.1,0)
+				buttonsContainer.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+				buttonsContainer.BackgroundTransparency=0.5
+				buttonsContainer.Position=UDim2.new(0,0,0.1,0)
+				buttonsContainer.Parent=mainFrame
+
+				local mainBtn = Instance.new("TextButton")
+				mainBtn.Size=UDim2.new(0.2,0,1,0)
+				mainBtn.Position=UDim2.new()
+				mainBtn.BackgroundColor3=Color3.fromRGB(32, 32, 32)
+				mainBtn.TextColor=BrickColor.new("White")
+				mainBtn.Text,mainBtn.TextScaled="Main",true
+				mainBtn.Parent=buttonsContainer
+				local mainBtnFixed=fixedTxt(mainBtn,0.6,0.4)
+				mainBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
+				mainBtnFixed.Position=UDim2.new(0.2,0,0.2,0)
+
+				local playerBtn = Instance.new("TextButton")
+				playerBtn.Size=UDim2.new(0.2,0,1,0)
+				playerBtn.Position=UDim2.new(0.2)
+				playerBtn.BackgroundColor3=Color3.fromRGB(32, 32, 32)
+				playerBtn.TextColor=BrickColor.new("White")
+				playerBtn.Text,mainBtn.TextScaled="Player",true
+				playerBtn.Parent=buttonsContainer
+				local playerBtnFixed=fixedTxt(playerBtn,0.6,0.4)
+				playerBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
+				playerBtnFixed.Position=UDim2.new(0.2,0,0.2,0)
+
+				local gameInfoBtn = Instance.new("TextButton")
+				gameInfoBtn.Size = UDim2.new(0.2, 0, 1, 0)
+				gameInfoBtn.Position = UDim2.new(0.4)
+				gameInfoBtn.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+				gameInfoBtn.TextColor = BrickColor.new("White")
+				gameInfoBtn.Text, mainBtn.TextScaled = "GameInfo", true
+				gameInfoBtn.Parent = buttonsContainer
+				local gameInfoBtnFixed = fixedTxt(gameInfoBtn, 0.6, 0.4)
+				gameInfoBtnFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				gameInfoBtnFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+
+				local frame_1 = Instance.new("ScrollingFrame")
+				frame_1.Size = UDim2.new(1, 0, 0.8, 0)
+				frame_1.Position = UDim2.new(0, 0, 0.2, 0)
+				frame_1.BackgroundTransparency = 1
+				frame_1.Visible = true
+				frame_1.AutomaticCanvasSize = Enum.AutomaticSize.Y -- تفعيل التوسع التلقائي عمودياً
+				frame_1.ScrollBarThickness = 6 
+				frame_1.Parent = mainFrame
+
+				local frame_2 = Instance.new("ScrollingFrame")
+				frame_2.Size = UDim2.new(1, 0, 0.8, 0)
+				frame_2.Position = UDim2.new(0, 0, 0.2, 0)
+				frame_2.BackgroundTransparency = 1
+				frame_2.Visible = false
+				frame_2.AutomaticCanvasSize = Enum.AutomaticSize.Y -- تفعيل التوسع التلقائي عمودياً
+				frame_2.ScrollBarThickness = 6 
+				frame_2.Parent = mainFrame
+
+				local frame_3 = Instance.new("ScrollingFrame")
+				frame_3.Size = UDim2.new(1, 0, 0.8, 0)
+				frame_3.Position = UDim2.new(0, 0, 0.2, 0)
+				frame_3.BackgroundTransparency = 1
+				frame_3.Visible = false
+				frame_3.AutomaticCanvasSize = Enum.AutomaticSize.Y -- تفعيل التوسع التلقائي عمودياً
+				frame_3.ScrollBarThickness = 6 
+				frame_3.Parent = mainFrame
+
+
+				local function listOff(parent)
+					local listLayout = Instance.new("UIListLayout")
+					listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+					--listLayout.Padding = UDim.new(0, 5) -- المسافة بين العناصر (5 بكسل)
+					listLayout.Parent = parent
+
+					local uipadding = Instance.new("UIPadding")
+					--uipadding.PaddingTop = UDim.new(0, 5)
+					--uipadding.PaddingBottom = UDim.new(0, 5)
+					uipadding.Parent = parent
+
+					listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+						parent.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
+					end)
+				end
+
+				local currentPlot = nil 
+				local realDemoModel = nil
+				local fakeDemoModel = nil  
+				local cachedDemoClone = nil
+				local isProcessing = false
+
+				local FLY_SPEED = 50 
+				local flyState = false 
+
+				local bodyVelocity = nil
+				local bodyGyro = nil
+				local renderConnection = nil
+
+				local function getMatchingColorFromInventory(partColor, usedColorsCount)
+					local inventoryFolder = localPlayer:FindFirstChild("Inventory")
+					if not inventoryFolder then return nil end
+
+					for _, item in ipairs(inventoryFolder:GetChildren()) do
+						local targetColor = nil
+
+						if item:IsA("Color3Value") then
+							targetColor = item.Value
+						elseif item:FindFirstChildWhichIsA("Color3Value") then
+							targetColor = item:FindFirstChildWhichIsA("Color3Value").Value
+						end
+
+						if targetColor then
+
+							if math.abs(targetColor.R - partColor.R) < 0.01 
+								and math.abs(targetColor.G - partColor.G) < 0.01 
+								and math.abs(targetColor.B - partColor.B) < 0.01 then
+
+								return targetColor
+							end
+						end
+					end
+
+					return nil
+				end
+
+				local function isBlockAlreadyBuilt(fakePartPosition)
+					if not currentPlot then return false end
+
+					for _, descendant in ipairs(currentPlot:GetDescendants()) do
+						-- التحقق من الكائنات المسماة Block أو التي تحتوي على BoolValue
+						local isBlock = descendant.Name == "Block" and descendant:FindFirstChildOfClass("BoolValue")
+
+						if isBlock then
+							local targetPart = descendant:IsA("BasePart") and descendant or descendant:FindFirstChildWhichIsA("BasePart")
+
+							if targetPart then
+								if (targetPart.Position - fakePartPosition).Magnitude < 0.1 then
+									return true 
+								end
+							end
+						end
+					end
+
+					return false
+				end
+
+				listOff(frame_1)
+				listOff(frame_2)
+				listOff(frame_3)
+
+				local revealBuildPlatform = Instance.new("Frame")
+				revealBuildPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				revealBuildPlatform.BackgroundTransparency = 1
+				revealBuildPlatform.Parent = frame_1
+
+				local revealBuildlbl_L = newlbl("RevealBuild", revealBuildPlatform)
+				local revealBuildlbl_LFixed = fixedTxt(revealBuildlbl_L, 0.8, 0.1)
+				revealBuildlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				revealBuildlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				revealBuildlbl_LFixed.TextXAlignment = "Left"
+
+				local revealBuildState = false
+				local revealBuildlbl_R = newbtn("", revealBuildPlatform)
+				local revealBuildTerm = newTerm(revealBuildlbl_R)
+
+				local autoBuildPlatform = Instance.new("Frame")
+				autoBuildPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				autoBuildPlatform.BackgroundTransparency = 1
+				autoBuildPlatform.Parent = frame_1
+
+				local autoBuildlbl_L = newlbl("AutoBuild", autoBuildPlatform)
+				local autoBuildlbl_LFixed = fixedTxt(autoBuildlbl_L, 0.8, 0.1)
+				autoBuildlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				autoBuildlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				autoBuildlbl_LFixed.TextXAlignment = "Left"
+
+				local autoBuildState=false
+				local autoBuildlbl_R = newbtn("", autoBuildPlatform)
+				local autoBuildTerm = newTerm(autoBuildlbl_R)
+
+				local buildSpeedPlatform = Instance.new("Frame")
+				buildSpeedPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				buildSpeedPlatform.BackgroundTransparency = 1
+				buildSpeedPlatform.Parent = frame_1
+
+				local buildSpeedlbl_L = newlbl("BuildSpeed", buildSpeedPlatform)
+				local buildSpeedlbl_LFixed = fixedTxt(buildSpeedlbl_L, 0.8, 0.1)
+				buildSpeedlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				buildSpeedlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				buildSpeedlbl_LFixed.TextXAlignment = "Left"
+
+				local buildSpeedState = false
+				local buildSpeedBox_R = newBox("10", buildSpeedPlatform)
+				local buildSpeedBox_RFixed = fixedTxt(buildSpeedBox_R, 0.8, 0.1)
+				buildSpeedBox_RFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				buildSpeedBox_RFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				buildSpeedBox_RFixed.TextXAlignment = "Left"
+				buildSpeedBox_RFixed.Text="10"
+
+				local flyPlatform = Instance.new("Frame")
+				flyPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				flyPlatform.BackgroundTransparency = 1
+				flyPlatform.Parent = frame_2
+
+				local flylbl_L = newlbl("ToggleFly", flyPlatform)
+				local flylbl_LFixed = fixedTxt(flylbl_L, 0.8, 0.1)
+				flylbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				flylbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				flylbl_LFixed.TextXAlignment = "Left"
+
+				local flyState = false
+				local flylbl_R = newbtn("", flyPlatform)
+				local flyTerm = newTerm(flylbl_R)
+
+				local toggleFlyPlatform = Instance.new("Frame")
+				toggleFlyPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				toggleFlyPlatform.BackgroundTransparency = 1
+				toggleFlyPlatform.Parent = frame_2
+
+				local toggleFlylbl_L = newlbl("FlySpeed", toggleFlyPlatform)
+				local toggleFlylbl_LFixed = fixedTxt(toggleFlylbl_L, 0.8, 0.1)
+				toggleFlylbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				toggleFlylbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				toggleFlylbl_LFixed.TextColor=BrickColor.Gray()
+				toggleFlylbl_LFixed.TextXAlignment = "Left"
+
+				local toggleFlyBox = newBox("50",toggleFlyPlatform)
+				local toggleFlyBoxFixed = fixedTxt(toggleFlyBox, 0.8, 0.1)
+				toggleFlyBoxFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				toggleFlyBoxFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				toggleFlyBoxFixed.TextColor=BrickColor.Gray()
+				toggleFlyBoxFixed.TextXAlignment = "Left"
+				toggleFlyBoxFixed.Text="50"
+
+				local jumpPlatform = Instance.new("Frame")
+				jumpPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				jumpPlatform.BackgroundTransparency = 1
+				jumpPlatform.Parent = frame_2
+
+				local jumplbl_L = newlbl("ToggleJump", jumpPlatform)
+				local jumplbl_LFixed = fixedTxt(jumplbl_L, 0.8, 0.1)
+				jumplbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				jumplbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				jumplbl_LFixed.TextXAlignment = "Left"
+
+				local jumpState = false
+				local jumplbl_R = newbtn("", jumpPlatform)
+				local jumpTerm = newTerm(jumplbl_R)
+
+				local toggleJumpPlatform = Instance.new("Frame")
+				toggleJumpPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				toggleJumpPlatform.BackgroundTransparency = 1
+				toggleJumpPlatform.Parent = frame_2
+
+				local toggleJumplbl_L = newlbl("JumpPower", toggleJumpPlatform)
+				local toggleJumplbl_LFixed = fixedTxt(toggleJumplbl_L, 0.8, 0.1)
+				toggleJumplbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				toggleJumplbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				toggleJumplbl_LFixed.TextColor = BrickColor.Gray()
+				toggleJumplbl_LFixed.TextXAlignment = "Left"
+
+				local toggleJumpBox = newBox("55", toggleJumpPlatform)
+				toggleJumpBox.Active=false
+				local toggleJumpBoxFixed = fixedTxt(toggleJumpBox, 0.8, 0.1)
+				toggleJumpBoxFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				toggleJumpBoxFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				toggleJumpBoxFixed.TextColor = BrickColor.Gray()
+				toggleJumpBoxFixed.TextXAlignment = "Left"
+				toggleJumpBoxFixed.Text="55"
+
+				local speedPlatform = Instance.new("Frame")
+				speedPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				speedPlatform.BackgroundTransparency = 1
+				speedPlatform.Parent = frame_2
+
+				local speedlbl_L = newlbl("ToggleSpeed", speedPlatform)
+				local speedlbl_LFixed = fixedTxt(speedlbl_L, 0.8, 0.1)
+				speedlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				speedlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				speedlbl_LFixed.TextXAlignment = "Left"
+
+				local speedState = false
+				local speedlbl_R = newbtn("", speedPlatform)
+				local speedTerm = newTerm(speedlbl_R)
+
+				local toggleSpeedPlatform = Instance.new("Frame")
+				toggleSpeedPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				toggleSpeedPlatform.BackgroundTransparency = 1
+				toggleSpeedPlatform.Parent = frame_2
+
+				local toggleSpeedlbl_L = newlbl("WalkSpeed", toggleSpeedPlatform)
+				local toggleSpeedlbl_LFixed = fixedTxt(toggleSpeedlbl_L, 0.8, 0.1)
+				toggleSpeedlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				toggleSpeedlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				toggleSpeedlbl_LFixed.TextColor = BrickColor.Gray()
+				toggleSpeedlbl_LFixed.TextXAlignment = "Left"
+
+				local toggleSpeedBox = newBox("16", toggleSpeedPlatform)
+				local toggleSpeedBoxFixed = fixedTxt(toggleSpeedBox, 0.8, 0.1)
+				toggleSpeedBoxFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				toggleSpeedBoxFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				toggleSpeedBoxFixed.TextColor = BrickColor.Gray()
+				toggleSpeedBoxFixed.TextXAlignment = "Left"
+				toggleSpeedBoxFixed.Text="16"
+
+				local serverTimePlatform = Instance.new("Frame")
+				serverTimePlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				serverTimePlatform.BackgroundTransparency = 1
+				serverTimePlatform.Parent = frame_3
+
+				local serverTimelbl_L = newlbl("ServerTime", serverTimePlatform)
+				local serverTimelbl_LFixed = fixedTxt(serverTimelbl_L, 0.8, 0.1)
+				serverTimelbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				serverTimelbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				serverTimelbl_LFixed.TextColor = BrickColor.Gray()
+				serverTimelbl_LFixed.TextXAlignment = "Left"
+
+				local serverTimelbl_R = newlbl("00:00", serverTimePlatform)
+				serverTimelbl_R.Position=UDim2.new(0.5,0,serverTimelbl_R.Position.Y.Scale,0)
+				local serverTimelbl_RFixed = fixedTxt(serverTimelbl_R, 0.8, 0.1)
+				serverTimelbl_RFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				serverTimelbl_RFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				serverTimelbl_RFixed.TextColor = BrickColor.Gray()
+				serverTimelbl_RFixed.TextXAlignment = "Left"
+				serverTimelbl_RFixed.Text = "00:00"
+
+				local playerCountPlatform = Instance.new("Frame")
+				playerCountPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				playerCountPlatform.BackgroundTransparency = 1
+				playerCountPlatform.Parent = frame_3
+
+				local playerCountlbl_L = newlbl("Players", playerCountPlatform)
+				local playerCountlbl_LFixed = fixedTxt(playerCountlbl_L, 0.8, 0.1)
+				playerCountlbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				playerCountlbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				playerCountlbl_LFixed.TextColor = BrickColor.Gray()
+				playerCountlbl_LFixed.TextXAlignment = "Left"
+
+				local playerCountlbl_R = newlbl("0/0", playerCountPlatform)
+				playerCountlbl_R.Position=UDim2.new(0.5,0,playerCountlbl_R.Position.Y.Scale,0)
+				local playerCountlbl_RFixed = fixedTxt(playerCountlbl_R, 0.8, 0.1)
+				playerCountlbl_RFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				playerCountlbl_RFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				playerCountlbl_RFixed.TextColor = BrickColor.Gray()
+				playerCountlbl_RFixed.TextXAlignment = "Left"
+				playerCountlbl_RFixed.Text = "0/0"
+
+				local switcherLine = Instance.new("Frame")
+				switcherLine.Size=UDim2.new(0.2,0,0.01,0)
+				switcherLine.Position=UDim2.new(0,0,0.19,0)
+				switcherLine.BackgroundColor=BrickColor.White()
+				switcherLine.Parent=mainFrame
+
+				local function display(state)
+					frame_1.Visible,frame_2.Visible,frame_3.Visible=false,false,false
+					state.Visible=true
+				end
+
+				local function updateFakeDemoVisibility()
+					if not fakeDemoModel then return end
+
+					local targetTransparency = revealBuildState and 0.5 or 1.0
+					for _, descendant in ipairs(fakeDemoModel:GetDescendants()) do
+						if descendant:IsA("BasePart") then
+							descendant.Transparency = targetTransparency
+						end
+					end
+				end
+
+				local function isPositionOnPlayerSide(targetPosition)
+					if not currentPlot then return true end
+
+					-- 1. التحقق الأول من وجود الكائن MixedPlot فقط
+					local mixedPlot = currentPlot:FindFirstChild("MixedPlot")
+
+					if mixedPlot then
+						local ownerValue = currentPlot:FindFirstChild("Owner")
+						local teammateValue = currentPlot:FindFirstChild("Teammate")
+
+						local isOwner = ownerValue and ownerValue.Value == localPlayer
+						local isTeammate = teammateValue and teammateValue.Value == localPlayer
+
+						local duesWall = nil
+						for _, descendant in ipairs(currentPlot:GetDescendants()) do
+							if descendant.Name == "DuosWall" and descendant:IsA("BasePart") and descendant.CanCollide == true then
+								duesWall = descendant
+								break
+							end
+						end
+
+						if duesWall then
+							local blockLocalPos = duesWall.CFrame:PointToObjectSpace(targetPosition)
+
+							-- إذا كنت المالك (Owner): يتجاهل قيم X فوق السالب (X >= 0) ويسمح فقط بالسالب (X < 0)
+							if isOwner then
+								return blockLocalPos.X < 0
+							end
+
+							-- إذا كنت الزميل (Teammate): يتجاهل قيم X السالبة (X < 0) ويسمح بالموجب والصفر (X >= 0)
+							if isTeammate then
+								return blockLocalPos.X >= 0
+							end
+						end
+					end
+
+					-- 2. النمط الطبيعي (في حال عدم وجود MixedPlot): التحقق بناءً على الجدار وموقع شخصية اللاعب
+					local duesWall = nil
+					for _, descendant in ipairs(currentPlot:GetDescendants()) do
+						if descendant.Name == "DuosWall" and descendant:IsA("BasePart") and descendant.CanCollide == true then
+							duesWall = descendant
+							break
+						end
+					end
+
+					if not duesWall then return true end
+
+					local character = localPlayer.Character
+					local hrp = character and character:FindFirstChild("HumanoidRootPart")
+					if not hrp then return true end
+
+					local wallCFrame = duesWall.CFrame
+					local playerLocalPos = wallCFrame:PointToObjectSpace(hrp.Position)
+					local blockLocalPos = wallCFrame:PointToObjectSpace(targetPosition)
+
+					local isPlayerPositive = playerLocalPos.X >= 0
+					local isBlockPositive = blockLocalPos.X >= 0
+
+					return isPlayerPositive == isBlockPositive
+				end
+
+				local function isBlockCorrectInDemo(builtPart)
+					if not fakeDemoModel then return true end -- لتجنب المسح العشوائي إذا لم يكن المخطط جاهزاً
+
+					for _, descendant in ipairs(fakeDemoModel:GetDescendants()) do
+						if descendant:IsA("BasePart") then
+							-- فحص تقارب الموقع الفيزيائي بين البلوك المبني والبارت في المخطط
+							if (descendant.Position - builtPart.Position).Magnitude < 0.1 then
+								-- إذا وجدنا بارت في نفس الموقع، نتحقق من مطابقة اللون
+								if descendant.Color == builtPart.Color then
+									return true -- البلوك صحيح في الموقع واللون
+								else
+									return false -- البلوك في الموقع الصحيح ولكن لونه خاطئ
+								end
+							end
+						end
+					end
+
+					return false -- لا يوجد أي بارت في المخطط بهذا الموقع (بلوك زائد)
+				end
+
+				local function executeAutoDestroy()
+					-- التحقق من وجود الموديلات والـ Plot
+					if not currentPlot or not fakeDemoModel or not fakeDemoModel.Parent then return end
+
+					local demoTarget = fakeDemoModel
+
+					for _, descendant in ipairs(currentPlot:GetDescendants()) do
+						if not autoBuildState or fakeDemoModel ~= demoTarget then break end
+
+						local isPlayerBlock = descendant.Name == "Block" and descendant:FindFirstChildOfClass("BoolValue")
+
+						if isPlayerBlock then
+							local targetPart = descendant:IsA("BasePart") and descendant or descendant:FindFirstChildWhichIsA("BasePart")
+
+							if targetPart then
+								if not isPositionOnPlayerSide(targetPart.Position) then
+									continue
+								end
+
+								-- إحاطة الفحص بـ pcall لتفادي توقف السكربت عند حذف البلوك
+								local isCorrect = false
+								pcall(function()
+									isCorrect = isBlockCorrectInDemo(targetPart)
+								end)
+
+								if not isCorrect then
+									destroyBlockEvent:FireServer(targetPart.Position)
+									task.wait(0.08)
+								end
+							end
+						end
+					end
+				end
+
+				local currentBuildSpeed = 10 
+				local isProcessing = false
+				
+				local function executeAutoBuild()
+					if isProcessing or not autoBuildState or not fakeDemoModel or not fakeDemoModel.Parent then 
+						return 
+					end
+
+					isProcessing = true
+
+					pcall(function()
+						-- 1. هدم البلوكات الخاطئة أولاً
+						executeAutoDestroy()
+
+						-- 2. حفظ الموديل في متغير محلي لحمايته من خطأ nil
+						local currentDemo = fakeDemoModel
+						if not currentDemo or not currentDemo.Parent then return end
+
+						for _, descendant in ipairs(currentDemo:GetDescendants()) do
+							-- إذا أطفأ اللاعب الميزة أو تم حذف الموديل نخرج فوراً
+							if not autoBuildState or fakeDemoModel ~= currentDemo or not fakeDemoModel.Parent then 
+								break 
+							end
+
+							if descendant:IsA("BasePart") then
+								local rawPosition = descendant.Position
+
+								if not isPositionOnPlayerSide(rawPosition) then
+									continue
+								end
+
+								if isBlockAlreadyBuilt(rawPosition) then
+									continue
+								end
+
+								local matchedColor = getMatchingColorFromInventory(descendant.Color)
+
+								if matchedColor then
+									local blockHeight = descendant.Size.Y
+									local correctedPosition = rawPosition - Vector3.new(0, blockHeight, 0)
+
+									placeBlockEvent:FireServer(
+										correctedPosition,
+										Enum.NormalId.Top,
+										matchedColor
+									)
+
+									local waitDelay = math.max(0.016, currentBuildSpeed / 100)
+									printlog(waitDelay,false)
+									task.wait(waitDelay)
+								end
+							end
+						end
+					end)
+
+					isProcessing = false -- السماح لـ RunService باستدعاء دورة جديدة
+				end
+
+				local function getMoveDirection(humanoid)
+					local moveDir = humanoid.MoveDirection
+
+					if moveDir.Magnitude == 0 then
+						local forward = UserInputService:IsKeyDown(Enum.KeyCode.W) and 1 or (UserInputService:IsKeyDown(Enum.KeyCode.S) and -1 or 0)
+						local right = UserInputService:IsKeyDown(Enum.KeyCode.D) and 1 or (UserInputService:IsKeyDown(Enum.KeyCode.A) and -1 or 0)
+
+						if forward ~= 0 or right ~= 0 then
+							local camCFrame = camera.CFrame
+							moveDir = (camCFrame.LookVector * forward + camCFrame.RightVector * right)
+						end
+					else
+
+						local camCFrame = camera.CFrame
+
+
+						local forwardVector = camCFrame.LookVector
+						local rightVector = camCFrame.RightVector
+
+
+						local rootPart = humanoid.Parent and humanoid.Parent:FindFirstChild("HumanoidRootPart")
+						if rootPart then
+
+							local localMove = rootPart.CFrame:VectorToObjectSpace(moveDir)
+
+
+							moveDir = (forwardVector * -localMove.Z) + (rightVector * localMove.X)
+						end
+					end
+
+					return moveDir
+				end
+
+
+				local function stopFlying()
+					if renderConnection then
+						renderConnection:Disconnect()
+						renderConnection = nil
+					end
+
+					if bodyVelocity then
+						bodyVelocity:Destroy()
+						bodyVelocity = nil
+					end
+
+					if bodyGyro then
+						bodyGyro:Destroy()
+						bodyGyro = nil
+					end
+
+					local character = localPlayer.Character
+					if character then
+						local humanoid = character:FindFirstChildOfClass("Humanoid")
+						if humanoid then
+							humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+						end
+					end
+				end
+
+				local function startFlying()
+					local character = localPlayer.Character
+					if not character then return end
+
+					local hrp = character:FindFirstChild("HumanoidRootPart")
+					local humanoid = character:FindFirstChildOfClass("Humanoid")
+					if not hrp or not humanoid then return end
+
+
+					humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
+
+
+					bodyVelocity = Instance.new("BodyVelocity")
+					bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+					bodyVelocity.Velocity = Vector3.zero
+					bodyVelocity.Parent = hrp
+
+					bodyGyro = Instance.new("BodyGyro")
+					bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+					bodyGyro.P = 9e3
+					bodyGyro.CFrame = hrp.CFrame
+					bodyGyro.Parent = hrp
+
+
+					renderConnection = runService.RenderStepped:Connect(function()
+						if not flyState or not hrp or not hrp.Parent then
+							stopFlying()
+							return
+						end
+
+
+						bodyGyro.CFrame = camera.CFrame
+
+
+						local moveDir = getMoveDirection(humanoid)
+						if moveDir.Magnitude > 0 then
+							bodyVelocity.Velocity = moveDir.Unit * FLY_SPEED
+						else
+							bodyVelocity.Velocity = Vector3.zero
+						end
+					end)
+				end
+
+				local function setFlyState(newState)
+					flyState = newState
+					if flyState then
+						startFlying()
+					else
+						stopFlying()
+					end
+				end
+
+				mainBtn.MouseButton1Click:Connect(function()
+
+					local motionLine = tweenService:Create(switcherLine,TweenInfo.new(0.3),{Position=UDim2.new(mainBtn.Position.X.Scale,0,switcherLine.Position.Y.Scale,0)})
+					motionLine:Play()
+					display(frame_1)
+				end)
+
+				playerBtn.MouseButton1Click:Connect(function()
+
+					local motionLine = tweenService:Create(switcherLine,TweenInfo.new(0.3),{Position=UDim2.new(playerBtn.Position.X.Scale,0,switcherLine.Position.Y.Scale,0)})
+					motionLine:Play()
+					display(frame_2)
+				end)
+
+				gameInfoBtn.MouseButton1Click:Connect(function()
+
+					local motionLine = tweenService:Create(switcherLine,TweenInfo.new(0.3),{Position=UDim2.new(gameInfoBtn.Position.X.Scale,0,switcherLine.Position.Y.Scale,0)})
+					motionLine:Play()
+					display(frame_3)
+				end)
+
+				iconFrame.MouseButton1Click:Connect(function()
+					local oldpos = iconFrame.Position
+					local targetPos = UDim2.new(iconFrame.Position.X.Scale, iconFrame.Position.X.Offset + 20, iconFrame.Position.Y.Scale, iconFrame.Position.Y.Offset + 20)
+					local iconMotion = tweenService:Create(iconFrame,TweenInfo.new(0.3),{Size=UDim2.new(),Position=targetPos})
+					iconMotion:Play()
+					iconMotion.Completed:Connect(function()
+						iconFrame.Visible=false
+						mainFrame.Visible=true
+						mainFrame.Position=oldpos
+						local frameMotion = tweenService:Create(mainFrame,TweenInfo.new(0.4),{Size=mainFrame_pos})
+						frameMotion:Play()
+					end)
+
+				end)
+
+				hideMenuBtn.MouseButton1Click:Connect(function()
+					if blackFrame.Visible then return end
+					menuAppearState=true
+					local frameMotion = tweenService:Create(mainFrame,TweenInfo.new(0.4),{Size=UDim2.new(0,0,0,0)})
+					frameMotion:Play()
+					frameMotion.Completed:Connect(function()
+						mainFrame.Visible = false
+
+						-- 1. الموضع النهائي الذي نريد أن تستقر فيه الأيقونة (موضع القائمة)
+						local finalPos = mainFrame.Position
+
+						-- 2. حساب موضع البداية (بحيث يكون الحجم 0 في منتصف الموضع النهائي تماماً)
+						local startPos = UDim2.new(
+							finalPos.X.Scale, finalPos.X.Offset + (iconFrame_pos.X.Offset / 2),
+							finalPos.Y.Scale, finalPos.Y.Offset + (iconFrame_pos.Y.Offset / 2)
+						)
+
+						-- 3. ضبط الأيقونة على موضع البداية وحجم 0 قبل الإظهار
+						iconFrame.Size = UDim2.new(0, 0, 0, 0)
+						iconFrame.Position = startPos
+						iconFrame.Visible = true
+
+						-- 4. التكبير والانزلاق إلى الموضع النهائي المحدد بنفس الوقت ليعطي تأثير التكبير من المنتصف
+						local iconMotion = tweenService:Create(iconFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+							Size = iconFrame_pos,
+							Position = finalPos
+						})
+						iconMotion:Play()
+					end)
+				end)
+
+				destroyMenuBtn.MouseButton1Click:Connect(function()blackFrame.Visible=true end)
+				nobtn.MouseButton1Click:Connect(function()blackFrame.Visible=false end)
+				yesbtn.MouseButton1Click:Connect(function()
+					blackFrame.Visible=false
+					local targetPos = UDim2.new(mainFrame.Position.X.Scale, mainFrame.Position.X.Offset + 125, mainFrame.Position.Y.Scale, mainFrame.Position.Y.Offset + 100)
+
+					local frameMotion = tweenService:Create(mainFrame, TweenInfo.new(0.4), {
+						Size = UDim2.new(0, 0, 0, 0),
+						Position = targetPos
+					})
+					frameMotion:Play()
+					frameMotion.Completed:Connect(function()
+						screenGui:Destroy()
+					end) 
+				end)
+
+				local function removeFakeDemoModel()
+					if fakeDemoModel then
+						fakeDemoModel:Destroy()
+						fakeDemoModel = nil
+
+					end
+				end
+
+				local function displayFakeDemo()
+					if not currentPlot or not cachedDemoClone then return end
+					if fakeDemoModel and fakeDemoModel.Parent == currentPlot then return end
+
+					removeFakeDemoModel()
+
+					cachedDemoClone.Archivable = true
+					fakeDemoModel = cachedDemoClone:Clone()
+
+					if fakeDemoModel then
+
+						for _, part in ipairs(fakeDemoModel:GetDescendants()) do
+							if part:IsA("BasePart") then
+								part.Anchored = true
+							end
+						end
+
+						fakeDemoModel.Parent = currentPlot
+						
+					end
+				end
+
+				local function cacheSourceModel(sourceModel)
+					if not sourceModel then return end
+
+					-- 1. تصفير الـ Cache القديم والـ fakeDemoModel الحالي فوراً
+					if cachedDemoClone then
+						cachedDemoClone:Destroy()
+						cachedDemoClone = nil
+					end
+					removeFakeDemoModel()
+
+					-- 2. تنفيذ التنسيخ بعد التأكد من اكتمال تحكم السيرفر بالـ DemoBuild
+					task.delay(0.1, function()
+						if not sourceModel or not sourceModel.Parent then return end
+
+						-- حلقة تأكيد استقرار عدد الأجزاء لمنع النقص عند البناء الكثيف
+						local previousCount = -1
+						local currentCount = #sourceModel:GetDescendants()
+						local attempts = 0
+
+						-- الانتظار طالما أن السيرفر ما زال يضيف أجزاء جديدة للموديل الاصلي
+						while currentCount ~= previousCount and attempts < 5 do
+							previousCount = currentCount
+							task.wait(0.1) -- مهلة فحص استقرار الأجزاء
+							if sourceModel and sourceModel.Parent then
+								currentCount = #sourceModel:GetDescendants()
+							end
+							attempts = attempts + 1
+						end
+
+						-- بعد استقرار الأجزاء، نبدأ النسخ العميق
+						if sourceModel and sourceModel.Parent then
+							local newFake = dexStyleClone(sourceModel)
+							if newFake and #newFake:GetChildren() > 0 then
+								cachedDemoClone = newFake
+								
+								displayFakeDemo()
+							end
+						end
+					end)
+				end
+
+
+				runService.Heartbeat:Connect(function()
+					-- 1. التأكد من وجود Plot مستقر
+					if currentPlot then
+						if not currentPlot.Parent or not currentPlot:IsDescendantOf(gameFolder) then
+							currentPlot = nil
+							realDemoModel = nil
+							if cachedDemoClone then
+								cachedDemoClone:Destroy()
+								cachedDemoClone = nil
+							end
+							removeFakeDemoModel()
+						
+						else
+							local foundDemo = currentPlot:FindFirstChild("DemoBuild")
+
+							-- 2. فور ظهور DemoBuild أصلي جديد معروض من اللعبة
+							if foundDemo and foundDemo ~= realDemoModel then
+
+								removeFakeDemoModel()
+								realDemoModel = foundDemo
+								cacheSourceModel(realDemoModel)
+							end
+
+							-- 3. إدارة إظهار وإخفاء المزيف بناءً على revealBuildState
+
+							if fakeDemoModel then
+
+								updateFakeDemoVisibility()
+							elseif cachedDemoClone and not fakeDemoModel then
+
+								displayFakeDemo()
+							end
+						end
+					else
+						if cachedDemoClone then
+							cachedDemoClone:Destroy()
+							cachedDemoClone = nil
+						end
+						removeFakeDemoModel()
+					end
+
+					-- 4. البحث عن Plot يملكه اللاعب عند عدم وجود Plot حالي
+					if not currentPlot then
+						for _, child in ipairs(gameFolder:GetChildren()) do
+							if child:IsA("Model") and child.Name == "Plot" then
+								local ownerValue = child:FindFirstChild("Owner")
+								local teammateValue = child:FindFirstChild("Teammate")
+
+								local isOwner = ownerValue and ownerValue.Value == localPlayer
+								local isTeammate = teammateValue and teammateValue.Value == localPlayer
+
+								if isOwner or isTeammate then
+									currentPlot = child
+									break
+								end
+							end
+						end
+					end
+				end)
+
+				toggleJumpBox:GetPropertyChangedSignal("Text"):Connect(function()
+					if not jumpState then return end
+					local cleanText = toggleJumpBox.Text:gsub("[^%d%.]", "")
+					toggleJumpBox.Text = cleanText
+
+					toggleJumpBoxFixed.Text = cleanText
+				end)
+
+				toggleSpeedBox:GetPropertyChangedSignal("Text"):Connect(function()
+					if not speedState then return end
+					local cleanText = toggleSpeedBox.Text:gsub("[^%d%.]", "")
+					toggleSpeedBox.Text = cleanText
+
+					toggleSpeedBoxFixed.Text = cleanText
+				end)
+
+				toggleFlyBox:GetPropertyChangedSignal("Text"):Connect(function()
+					if not flyState then return end
+
+					local cleanText = toggleFlyBox.Text:gsub("[^%d%.]", "")
+					toggleFlyBox.Text = cleanText
+
+					toggleFlyBoxFixed.Text = cleanText
+
+					setFlyState(false)
+					setFlyState(true)
+				end)
+
+				buildSpeedBox_R:GetPropertyChangedSignal("Text"):Connect(function()
+					local cleanText = buildSpeedBox_R.Text:gsub("[^%d%.]", "")
+					buildSpeedBox_R.Text = cleanText
+					buildSpeedBox_RFixed.Text = cleanText
+
+					local num = tonumber(cleanText)
+					if num and num > 0 then
+						currentBuildSpeed = num
+					end
+				end)
+
+				runService.Heartbeat:Connect(function()
+					local human = localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid")
+					if not human then return end
+					if jumpState and tonumber(toggleJumpBoxFixed.Text) then 
+						human.UseJumpPower=true
+						human.JumpPower=toggleJumpBoxFixed.Text
+					end
+					if speedState and tonumber(toggleSpeedBoxFixed.Text) then 
+						human.WalkSpeed=toggleSpeedBoxFixed.Text
+					end
+					if flyState and tonumber(toggleFlyBoxFixed.Text) then 
+						FLY_SPEED=toggleFlyBoxFixed.Text
+					end
+				end)
+
+				runService.RenderStepped:Connect(function()
+					local formattedTime = formatServerTime()
+					serverTimelbl_RFixed.Text=formattedTime
+
+					playerCountlbl_RFixed.Text= #players:GetPlayers().."/"..players.MaxPlayers
+				end)
+
+				runService.Heartbeat:Connect(function()
+
+					if autoBuildState and fakeDemoModel and not isProcessing then
+						task.spawn(executeAutoBuild)
+					end
+				end)
+
+				revealBuildlbl_R.MouseButton1Click:Connect(function()
+					revealBuildState=not revealBuildState
+					if revealBuildState then 
+						revealBuildTerm.BackgroundColor=BrickColor.White()	
+						revealBuildTerm.ImageTransparency=0
+					else
+						revealBuildTerm.BackgroundColor3=Color3.fromRGB(86, 86, 86)
+						revealBuildTerm.ImageTransparency=1
+					end
+				end)
+
+				autoBuildlbl_R.MouseButton1Click:Connect(function()
+					autoBuildState = not autoBuildState
+
+					if autoBuildState then 
+						autoBuildTerm.BackgroundColor = BrickColor.White() 
+						autoBuildTerm.ImageTransparency = 0
+
+						task.spawn(executeAutoBuild)
+					else
+						autoBuildTerm.BackgroundColor3 = Color3.fromRGB(86, 86, 86)
+						autoBuildTerm.ImageTransparency = 1
+					end
+				end)
+
+				flylbl_R.MouseButton1Click:Connect(function()
+					flyState = not flyState
+					setFlyState(flyState)
+					if flyState then 
+						flyTerm.BackgroundColor = BrickColor.White() 
+						flyTerm.ImageTransparency = 0
+
+						toggleFlylbl_LFixed.TextColor=BrickColor.White()
+						toggleFlyBoxFixed.TextColor=BrickColor.White()
+						toggleFlyBox.Active=true
+
+					else
+						flyTerm.BackgroundColor3 = Color3.fromRGB(86, 86, 86)
+						flyTerm.ImageTransparency = 1
+
+						toggleFlylbl_LFixed.TextColor=BrickColor.Gray()
+						toggleFlyBoxFixed.TextColor=BrickColor.Gray()
+						toggleFlyBox.Active=false
+					end
+				end)
+
+				jumplbl_R.MouseButton1Click:Connect(function()
+					jumpState = not jumpState
+
+					if jumpState then 
+						jumpTerm.BackgroundColor = BrickColor.White() 
+						jumpTerm.ImageTransparency = 0
+
+						toggleJumplbl_LFixed.TextColor=BrickColor.White()
+						toggleJumpBoxFixed.TextColor=BrickColor.White()
+						toggleJumpBox.Active=true
+
+					else
+						jumpTerm.BackgroundColor3 = Color3.fromRGB(86, 86, 86)
+						jumpTerm.ImageTransparency = 1
+
+						toggleJumplbl_LFixed.TextColor=BrickColor.Gray()
+						toggleJumpBoxFixed.TextColor=BrickColor.Gray()
+						toggleJumpBox.Active=false
+					end
+				end)
+
+				speedlbl_R.MouseButton1Click:Connect(function()
+					speedState = not speedState
+
+					if speedState then 
+						speedTerm.BackgroundColor = BrickColor.White() 
+						speedTerm.ImageTransparency = 0
+
+						toggleSpeedlbl_LFixed.TextColor=BrickColor.White()
+						toggleSpeedBoxFixed.TextColor=BrickColor.White()
+						toggleSpeedBox.Active=true
+
+					else
+						speedTerm.BackgroundColor3 = Color3.fromRGB(86, 86, 86)
+						speedTerm.ImageTransparency = 1
+
+						toggleSpeedlbl_LFixed.TextColor=BrickColor.Gray()
+						toggleSpeedBoxFixed.TextColor=BrickColor.Gray()
+						toggleSpeedBox.Active=false
+					end
+				end)
+
+			end)
+		end)
+	end)
+end
+
+local function ExistingUI(name)
+	for _, child in ipairs(uiParent:GetDescendants()) do
+		if child:IsA("ScreenGui") and child.Name == name then
+			return child
+		end
+	end
+end
+
+local existingHub = ExistingUI("Phantom Hub")
+local existingMenu = ExistingUI("ExcitScreen")
+
+if not existingHub then warn("Hub not found.")
+else print("Hub found") end
+if existingHub then
+	if existingMenu or existingHub:FindFirstChild("LoadingFrame") then return end
+	local excitscreenGui = Instance.new("ScreenGui")
+	excitscreenGui.Name = "ExcitScreen"
+	excitscreenGui.ResetOnSpawn = false
+	excitscreenGui.Parent = uiParent
+
+	local replaceFrame = Instance.new("Frame")
+	replaceFrame.Size = UDim2.new(0.3, 0, 0.3, 0)
+	replaceFrame.Position = UDim2.new(0.35, 0, 0.35, 0)
+	replaceFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+	replaceFrame.BackgroundTransparency = 0.5
+	replaceFrame.Visible = true
+	replaceFrame.ZIndex = 2
+	replaceFrame.Parent = excitscreenGui 
+
+	local replaceLabel = Instance.new("TextLabel")
+	replaceLabel.Size = UDim2.new(1, 0, 0.4, 0)
+	replaceLabel.Position = UDim2.new(0, 0, 0.15, 0)
+	replaceLabel.BackgroundTransparency = 1
+	replaceLabel.Text = "The original UI already exists"
+	replaceLabel.ZIndex = 2
+	replaceLabel.Parent = replaceFrame
+	local replaceLabelFixed = fixedTxt(replaceLabel, 0.9, 0.05)
+	replaceLabelFixed.Size = UDim2.new(0.9, 0, 0.6, 0)
+	replaceLabelFixed.Position = UDim2.new(0.05, 0, 0.15, 0)
+	replaceLabelFixed.TextColor3 = Color3.fromRGB(255, 255, 255)
+	replaceLabelFixed.ZIndex = 3
+
+	local replacebtn = Instance.new("TextButton")
+	replacebtn.Size = UDim2.new(0.3, 0, 0.2, 0)
+	replacebtn.Position = UDim2.new(0.55, 0, 0.7, 0)
+	replacebtn.BackgroundColor = BrickColor.new("Royal purple")
+	replacebtn.TextColor = BrickColor.White()
+	replacebtn.Text = "Replace"
+	replacebtn.ZIndex = 2
+	replacebtn.Parent = replaceFrame
+	local replacebtnFixed = fixedTxt(replacebtn, 0.8, 0.1)
+	replacebtnFixed.Size = UDim2.new(0.8, 0, 0.8, 0)
+	replacebtnFixed.Position = UDim2.new(0.1, 0, 0.1, 0)
+	replacebtnFixed.ZIndex = 3
+
+	local cancelbtn = Instance.new("TextButton")
+	cancelbtn.Size = UDim2.new(0.3, 0, 0.2, 0)
+	cancelbtn.Position = UDim2.new(0.15, 0, 0.7, 0)
+	cancelbtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+	cancelbtn.TextColor = BrickColor.White()
+	cancelbtn.Text = "Cancel"
+	cancelbtn.ZIndex = 2
+	cancelbtn.Parent = replaceFrame
+	local cancelbtnFixed = fixedTxt(cancelbtn, 0.8, 0.1)
+	cancelbtnFixed.Size = UDim2.new(0.8, 0, 0.8, 0)
+	cancelbtnFixed.Position = UDim2.new(0.1, 0, 0.1, 0)
+	cancelbtnFixed.ZIndex = 3
+
+	-- زر Cancel: إغلاق التنبيه وإيقاف إنشاء الواجهة الجديدة
+	cancelbtn.MouseButton1Click:Connect(function()
+		excitscreenGui:Destroy()
+	end)
+
+	replacebtn.MouseButton1Click:Connect(function()
+		existingHub:Destroy()
+		excitscreenGui:Destroy()
+
+		newHub("Susseccfull Replacing!")
+	end)
+else
+	newHub("Susseccfull Executing!")
+end
