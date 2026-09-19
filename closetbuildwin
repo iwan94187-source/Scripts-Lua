@@ -13,7 +13,6 @@ local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local destroyBlockEvent = remotes:WaitForChild("DestroyBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print(929292)
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -254,7 +253,7 @@ local function newHub(txt)
 				helperTextLabel.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 				helperTextLabel.TextColor=BrickColor.new("White")
 				helperTextLabel.TextScaled=true
-				helperTextLabel.Parent=screenGui
+				helperTextLabel.Parent=nil
 
 				local function printlog(txt,set)
 					if set then 
@@ -1152,7 +1151,7 @@ local function newHub(txt)
 						end
 
 						fakeDemoModel.Parent = currentPlot
-						print("تم إظهار الـ FakeDemoBuild مع كامل أبنائه وبمواقعهم الصحيحة!")
+						
 					end
 				end
 
@@ -1190,8 +1189,7 @@ local function newHub(txt)
 							local newFake = dexStyleClone(sourceModel)
 							if newFake and #newFake:GetChildren() > 0 then
 								cachedDemoClone = newFake
-								print("تم استنساخ الموديل كاملاً بدون نقص! عدد الأجزاء:", #cachedDemoClone:GetChildren())
-
+								
 								displayFakeDemo()
 							end
 						end
@@ -1210,7 +1208,7 @@ local function newHub(txt)
 								cachedDemoClone = nil
 							end
 							removeFakeDemoModel()
-							print("تم مسح الـ Plot وجميع النسخ المخزنة.")
+						
 						else
 							local foundDemo = currentPlot:FindFirstChild("DemoBuild")
 
