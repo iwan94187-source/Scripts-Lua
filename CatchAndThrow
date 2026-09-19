@@ -5,10 +5,11 @@ local UserInputService = game:GetService("UserInputService")
 local tweenService = game:GetService("TweenService")
 local runService = game:GetService("RunService")
 
-print('fdfdfdf')
+print('cxcxc')
 
 local mxx = workspace:WaitForChild("Scriptable", 5)
 local arena = mxx:WaitForChild("Arena", 5)
+
 
 local uiParent = playerGui
 if gethui then
@@ -783,18 +784,20 @@ local function newHub(txt)
 				end)
 				
 				task.spawn(function()
-					while autoFinishObbyState do
-						local obby = mxx:FindFirstChild("ObbyFinish")
-						local character = game.Players.LocalPlayer.Character
-						local hrp = character and character:FindFirstChild("HumanoidRootPart")
+					while true do
+						if autoFinishObbyState then 
+							local obby = mxx:FindFirstChild("ObbyFinish")
+							local character = game.Players.LocalPlayer.Character
+							local hrp = character and character:FindFirstChild("HumanoidRootPart")
 
-						if obby and hrp then
-							printlog("touch...",false)
-							firetouchinterest(hrp, obby, 0)
-							task.wait(0.1)
-							firetouchinterest(hrp, obby, 1)
-						else
-							printlog("not touch yet",true)
+							if obby and hrp then
+								printlog("touch...",false)
+								firetouchinterest(hrp, obby, 0)
+								task.wait(0.1)
+								firetouchinterest(hrp, obby, 1)
+							else
+								printlog("not touch yet",true)
+							end
 						end
 
 						task.wait(0.5)
