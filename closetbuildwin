@@ -10,7 +10,6 @@ print('fdfdfdf')
 local mxx = workspace:WaitForChild("Scriptable", 5)
 local arena = mxx:WaitForChild("Arena", 5)
 
-
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
