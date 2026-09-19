@@ -13,7 +13,7 @@ local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local destroyBlockEvent = remotes:WaitForChild("DestroyBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
-print("232")
+print(121)
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -762,20 +762,46 @@ local function newHub(txt)
 				local function isPositionOnPlayerSide(targetPosition)
 					if not currentPlot then return true end
 
+					-- 1. التحقق الأول من وجود الكائن MixedPlot فقط
+					local mixedPlot = currentPlot:FindFirstChild("MixedPlot")
+
+					if mixedPlot then
+						local ownerValue = currentPlot:FindFirstChild("Owner")
+						local teammateValue = currentPlot:FindFirstChild("Teammate")
+
+						local isOwner = ownerValue and ownerValue.Value == localPlayer
+						local isTeammate = teammateValue and teammateValue.Value == localPlayer
+
+						local duesWall = nil
+						for _, descendant in ipairs(currentPlot:GetDescendants()) do
+							if descendant.Name == "DuosWall" and descendant:IsA("BasePart") and descendant.CanCollide == true then
+								duesWall = descendant
+								break
+							end
+						end
+
+						if duesWall then
+							local blockLocalPos = duesWall.CFrame:PointToObjectSpace(targetPosition)
+
+							-- إذا كنت المالك (Owner): يتجاهل قيم X فوق السالب (X >= 0) ويسمح فقط بالسالب (X < 0)
+							if isOwner then
+								return blockLocalPos.X >= 0
+							end
+
+							-- إذا كنت الزميل (Teammate): يتجاهل قيم X السالبة (X < 0) ويسمح بالموجب والصفر (X >= 0)
+							if isTeammate then
+								return blockLocalPos.X < 0
+							end
+						end
+					end
+
+					-- 2. النمط الطبيعي (في حال عدم وجود MixedPlot): التحقق بناءً على الجدار وموقع شخصية اللاعب
 					local duesWall = nil
 					for _, descendant in ipairs(currentPlot:GetDescendants()) do
 						if descendant.Name == "DuosWall" and descendant:IsA("BasePart") and descendant.CanCollide == true then
 							duesWall = descendant
 							break
 						end
-					end
-
-					local function formatServerTime()
-						local serverTime = workspace:GetServerTimeNow()
-
-						local timeTable = os.date("!*t", serverTime)
-
-						return string.format("%02d:%02d:%02d", timeTable.hour, timeTable.min, timeTable.sec)
 					end
 
 					if not duesWall then return true end
@@ -895,8 +921,8 @@ local function newHub(txt)
 										matchedColor
 									)
 
-									local waitDelay = math.max(0.05, 1 / math.max(1, currentBuildSpeed))
-
+									local waitDelay = math.max(0.016, currentBuildSpeed / 100)
+									printlog(waitDelay,false)
 									task.wait(waitDelay)
 								end
 							end
@@ -1265,7 +1291,7 @@ local function newHub(txt)
 					local cleanText = buildSpeedBox_R.Text:gsub("[^%d%.]", "")
 					buildSpeedBox_R.Text = cleanText
 					buildSpeedBox_RFixed.Text = cleanText
-					printlog(cleanText,false)
+
 					local num = tonumber(cleanText)
 					if num and num > 0 then
 						currentBuildSpeed = num
