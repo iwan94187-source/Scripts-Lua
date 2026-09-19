@@ -5,7 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 local tweenService = game:GetService("TweenService")
 local runService = game:GetService("RunService")
 
-print('cxcxc')
+print('qaa')
 
 local mxx = workspace:WaitForChild("Scriptable", 5)
 local arena = mxx:WaitForChild("Arena", 5)
