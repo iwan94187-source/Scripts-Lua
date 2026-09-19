@@ -13,6 +13,7 @@ local placeBlockEvent = remotes:WaitForChild("PlaceBlock")
 local destroyBlockEvent = remotes:WaitForChild("DestroyBlock")
 local inventoryFolder = localPlayer:WaitForChild("Inventory")
 
+print("232")
 local uiParent = playerGui
 if gethui then
 	uiParent = gethui()
@@ -58,7 +59,7 @@ local function dexStyleClone(sourceModel)
 			table.insert(sourceParts, descendant)
 		end
 	end
-	
+
 	if #sourceParts == 0 then
 		task.wait(0.05)
 		for _, descendant in ipairs(sourceModel:GetDescendants()) do
@@ -253,7 +254,7 @@ local function newHub(txt)
 				helperTextLabel.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 				helperTextLabel.TextColor=BrickColor.new("White")
 				helperTextLabel.TextScaled=true
-				helperTextLabel.Parent=nil
+				helperTextLabel.Parent=screenGui
 
 				local function printlog(txt,set)
 					if set then 
@@ -418,7 +419,7 @@ local function newHub(txt)
 				local playerBtnFixed=fixedTxt(playerBtn,0.6,0.4)
 				playerBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
 				playerBtnFixed.Position=UDim2.new(0.2,0,0.2,0)
-				
+
 				local gameInfoBtn = Instance.new("TextButton")
 				gameInfoBtn.Size = UDim2.new(0.2, 0, 1, 0)
 				gameInfoBtn.Position = UDim2.new(0.4)
@@ -429,7 +430,7 @@ local function newHub(txt)
 				local gameInfoBtnFixed = fixedTxt(gameInfoBtn, 0.6, 0.4)
 				gameInfoBtnFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
 				gameInfoBtnFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
-				
+
 				local frame_1 = Instance.new("ScrollingFrame")
 				frame_1.Size = UDim2.new(1, 0, 0.8, 0)
 				frame_1.Position = UDim2.new(0, 0, 0.2, 0)
@@ -447,7 +448,7 @@ local function newHub(txt)
 				frame_2.AutomaticCanvasSize = Enum.AutomaticSize.Y -- تفعيل التوسع التلقائي عمودياً
 				frame_2.ScrollBarThickness = 6 
 				frame_2.Parent = mainFrame
-				
+
 				local frame_3 = Instance.new("ScrollingFrame")
 				frame_3.Size = UDim2.new(1, 0, 0.8, 0)
 				frame_3.Position = UDim2.new(0, 0, 0.2, 0)
@@ -501,7 +502,7 @@ local function newHub(txt)
 						end
 
 						if targetColor then
-					
+
 							if math.abs(targetColor.R - partColor.R) < 0.01 
 								and math.abs(targetColor.G - partColor.G) < 0.01 
 								and math.abs(targetColor.B - partColor.B) < 0.01 then
@@ -568,7 +569,7 @@ local function newHub(txt)
 				local autoBuildState=false
 				local autoBuildlbl_R = newbtn("", autoBuildPlatform)
 				local autoBuildTerm = newTerm(autoBuildlbl_R)
-				
+
 				local buildSpeedPlatform = Instance.new("Frame")
 				buildSpeedPlatform.Size = UDim2.new(1, 0, 0.125, 0)
 				buildSpeedPlatform.BackgroundTransparency = 1
@@ -587,7 +588,7 @@ local function newHub(txt)
 				buildSpeedBox_RFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
 				buildSpeedBox_RFixed.TextXAlignment = "Left"
 				buildSpeedBox_RFixed.Text="10"
-				
+
 				local flyPlatform = Instance.new("Frame")
 				flyPlatform.Size = UDim2.new(1, 0, 0.125, 0)
 				flyPlatform.BackgroundTransparency = 1
@@ -693,7 +694,7 @@ local function newHub(txt)
 				toggleSpeedBoxFixed.TextColor = BrickColor.Gray()
 				toggleSpeedBoxFixed.TextXAlignment = "Left"
 				toggleSpeedBoxFixed.Text="16"
-				
+
 				local serverTimePlatform = Instance.new("Frame")
 				serverTimePlatform.Size = UDim2.new(1, 0, 0.125, 0)
 				serverTimePlatform.BackgroundTransparency = 1
@@ -714,7 +715,7 @@ local function newHub(txt)
 				serverTimelbl_RFixed.TextColor = BrickColor.Gray()
 				serverTimelbl_RFixed.TextXAlignment = "Left"
 				serverTimelbl_RFixed.Text = "00:00"
-				
+
 				local playerCountPlatform = Instance.new("Frame")
 				playerCountPlatform.Size = UDim2.new(1, 0, 0.125, 0)
 				playerCountPlatform.BackgroundTransparency = 1
@@ -735,7 +736,7 @@ local function newHub(txt)
 				playerCountlbl_RFixed.TextColor = BrickColor.Gray()
 				playerCountlbl_RFixed.TextXAlignment = "Left"
 				playerCountlbl_RFixed.Text = "0/0"
-				
+
 				local switcherLine = Instance.new("Frame")
 				switcherLine.Size=UDim2.new(0.2,0,0.01,0)
 				switcherLine.Position=UDim2.new(0,0,0.19,0)
@@ -746,7 +747,7 @@ local function newHub(txt)
 					frame_1.Visible,frame_2.Visible,frame_3.Visible=false,false,false
 					state.Visible=true
 				end
-				
+
 				local function updateFakeDemoVisibility()
 					if not fakeDemoModel then return end
 
@@ -757,7 +758,7 @@ local function newHub(txt)
 						end
 					end
 				end
-				
+
 				local function isPositionOnPlayerSide(targetPosition)
 					if not currentPlot then return true end
 
@@ -768,7 +769,7 @@ local function newHub(txt)
 							break
 						end
 					end
-					
+
 					local function formatServerTime()
 						local serverTime = workspace:GetServerTimeNow()
 
@@ -786,13 +787,13 @@ local function newHub(txt)
 					local wallCFrame = duesWall.CFrame
 					local playerLocalPos = wallCFrame:PointToObjectSpace(hrp.Position)
 					local blockLocalPos = wallCFrame:PointToObjectSpace(targetPosition)
-			
+
 					local isPlayerPositive = playerLocalPos.X >= 0
 					local isBlockPositive = blockLocalPos.X >= 0
 
 					return isPlayerPositive == isBlockPositive
 				end
-				
+
 				local function isBlockCorrectInDemo(builtPart)
 					if not fakeDemoModel then return true end -- لتجنب المسح العشوائي إذا لم يكن المخطط جاهزاً
 
@@ -812,7 +813,7 @@ local function newHub(txt)
 
 					return false -- لا يوجد أي بارت في المخطط بهذا الموقع (بلوك زائد)
 				end
-				
+
 				local function executeAutoDestroy()
 					-- التحقق من وجود الموديلات والـ Plot
 					if not currentPlot or not fakeDemoModel or not fakeDemoModel.Parent then return end
@@ -847,8 +848,9 @@ local function newHub(txt)
 					end
 				end
 
-				local isBuilding = false -- متغير لمنع تداخل عمليات البناء
-
+				local currentBuildSpeed = 10 
+				local isProcessing = false
+				
 				local function executeAutoBuild()
 					if isProcessing or not autoBuildState or not fakeDemoModel or not fakeDemoModel.Parent then 
 						return 
@@ -893,9 +895,7 @@ local function newHub(txt)
 										matchedColor
 									)
 
-									-- وقت الانتظار حسب السرعة
-									local rawSpeedNumber = tonumber(buildSpeedBox_RFixed.Text) or 10
-									local waitDelay = math.max(0.05, 1 / math.max(1, rawSpeedNumber))
+									local waitDelay = math.max(0.05, 1 / math.max(1, currentBuildSpeed))
 
 									task.wait(waitDelay)
 								end
@@ -921,17 +921,17 @@ local function newHub(txt)
 
 						local camCFrame = camera.CFrame
 
-					
+
 						local forwardVector = camCFrame.LookVector
 						local rightVector = camCFrame.RightVector
 
-					
+
 						local rootPart = humanoid.Parent and humanoid.Parent:FindFirstChild("HumanoidRootPart")
 						if rootPart then
-						
+
 							local localMove = rootPart.CFrame:VectorToObjectSpace(moveDir)
 
-					
+
 							moveDir = (forwardVector * -localMove.Z) + (rightVector * localMove.X)
 						end
 					end
@@ -939,7 +939,7 @@ local function newHub(txt)
 					return moveDir
 				end
 
-				
+
 				local function stopFlying()
 					if renderConnection then
 						renderConnection:Disconnect()
@@ -973,10 +973,10 @@ local function newHub(txt)
 					local humanoid = character:FindFirstChildOfClass("Humanoid")
 					if not hrp or not humanoid then return end
 
-				
+
 					humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
 
-			
+
 					bodyVelocity = Instance.new("BodyVelocity")
 					bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
 					bodyVelocity.Velocity = Vector3.zero
@@ -988,17 +988,17 @@ local function newHub(txt)
 					bodyGyro.CFrame = hrp.CFrame
 					bodyGyro.Parent = hrp
 
-				
+
 					renderConnection = runService.RenderStepped:Connect(function()
 						if not flyState or not hrp or not hrp.Parent then
 							stopFlying()
 							return
 						end
 
-					
+
 						bodyGyro.CFrame = camera.CFrame
 
-					
+
 						local moveDir = getMoveDirection(humanoid)
 						if moveDir.Magnitude > 0 then
 							bodyVelocity.Velocity = moveDir.Unit * FLY_SPEED
@@ -1030,7 +1030,7 @@ local function newHub(txt)
 					motionLine:Play()
 					display(frame_2)
 				end)
-				
+
 				gameInfoBtn.MouseButton1Click:Connect(function()
 
 					local motionLine = tweenService:Create(switcherLine,TweenInfo.new(0.3),{Position=UDim2.new(gameInfoBtn.Position.X.Scale,0,switcherLine.Position.Y.Scale,0)})
@@ -1104,7 +1104,7 @@ local function newHub(txt)
 					if fakeDemoModel then
 						fakeDemoModel:Destroy()
 						fakeDemoModel = nil
-						
+
 					end
 				end
 
@@ -1118,7 +1118,7 @@ local function newHub(txt)
 					fakeDemoModel = cachedDemoClone:Clone()
 
 					if fakeDemoModel then
-					
+
 						for _, part in ipairs(fakeDemoModel:GetDescendants()) do
 							if part:IsA("BasePart") then
 								part.Anchored = true
@@ -1190,7 +1190,7 @@ local function newHub(txt)
 
 							-- 2. فور ظهور DemoBuild أصلي جديد معروض من اللعبة
 							if foundDemo and foundDemo ~= realDemoModel then
-								
+
 								removeFakeDemoModel()
 								realDemoModel = foundDemo
 								cacheSourceModel(realDemoModel)
@@ -1199,7 +1199,7 @@ local function newHub(txt)
 							-- 3. إدارة إظهار وإخفاء المزيف بناءً على revealBuildState
 
 							if fakeDemoModel then
-								
+
 								updateFakeDemoVisibility()
 							elseif cachedDemoClone and not fakeDemoModel then
 
@@ -1260,12 +1260,16 @@ local function newHub(txt)
 					setFlyState(false)
 					setFlyState(true)
 				end)
-				
+
 				buildSpeedBox_R:GetPropertyChangedSignal("Text"):Connect(function()
 					local cleanText = buildSpeedBox_R.Text:gsub("[^%d%.]", "")
 					buildSpeedBox_R.Text = cleanText
-
 					buildSpeedBox_RFixed.Text = cleanText
+					printlog(cleanText,false)
+					local num = tonumber(cleanText)
+					if num and num > 0 then
+						currentBuildSpeed = num
+					end
 				end)
 
 				runService.Heartbeat:Connect(function()
@@ -1282,21 +1286,21 @@ local function newHub(txt)
 						FLY_SPEED=toggleFlyBoxFixed.Text
 					end
 				end)
-				
+
 				runService.RenderStepped:Connect(function()
 					local formattedTime = formatServerTime()
 					serverTimelbl_RFixed.Text=formattedTime
-					
+
 					playerCountlbl_RFixed.Text= #players:GetPlayers().."/"..players.MaxPlayers
 				end)
-				
+
 				runService.Heartbeat:Connect(function()
 
 					if autoBuildState and fakeDemoModel and not isProcessing then
 						task.spawn(executeAutoBuild)
 					end
 				end)
-				
+
 				revealBuildlbl_R.MouseButton1Click:Connect(function()
 					revealBuildState=not revealBuildState
 					if revealBuildState then 
