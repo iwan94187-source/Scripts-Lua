@@ -5,7 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 local tweenService = game:GetService("TweenService")
 local runService = game:GetService("RunService")
 
-print('45r44')
+print('2sw22')
 
 local mxx = workspace:WaitForChild("Scriptable", 5)
 local arena = mxx:WaitForChild("Arena", 5)
@@ -870,13 +870,12 @@ local function newHub(txt)
 					if antiLavaState then 
 						local arenaModel = arena:FindFirstChild("Arena")
 						if arenaModel then 
-							for _, desc in ipairs(arenaModel:GetDescendants()) do
-								if desc.Name == "Lava" then
-									printlog("Lava found",false)
-									desc.CanTouch=false
-								else
-									printlog("Lava not-found",true)
-								end
+							local lava = arenaModel:FindFirstChild("Lava")
+							if lava then 
+								printlog("Lava found",false)
+								lava.CanTouch=false
+							else
+								printlog("Lava not-found",true)
 							end
 						end
 					end
@@ -1192,4 +1191,6 @@ if existingHub then
 else
 	newHub("Susseccfull Executing!")
 end
+
+
 
