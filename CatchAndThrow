@@ -160,7 +160,7 @@ local function newHub(txt)
 				helperTextLabel.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 				helperTextLabel.TextColor=BrickColor.new("White")
 				helperTextLabel.TextScaled=true
-				helperTextLabel.Parent=screenGui
+				helperTextLabel.Parent=nil
 
 				local function printlog(txt,set)
 					if set then 
