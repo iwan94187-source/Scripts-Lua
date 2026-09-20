@@ -5,7 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 local tweenService = game:GetService("TweenService")
 local runService = game:GetService("RunService")
 
-print('qaa')
+print('45r44')
 
 local mxx = workspace:WaitForChild("Scriptable", 5)
 local arena = mxx:WaitForChild("Arena", 5)
@@ -160,7 +160,7 @@ local function newHub(txt)
 				helperTextLabel.BackgroundColor3=Color3.fromRGB(24, 24, 24)
 				helperTextLabel.TextColor=BrickColor.new("White")
 				helperTextLabel.TextScaled=true
-				helperTextLabel.Parent=nil
+				helperTextLabel.Parent=screenGui
 
 				local function printlog(txt,set)
 					if set then 
@@ -500,6 +500,36 @@ local function newHub(txt)
 				local autoFinishObbylbl_R = newbtn("", autoFinishObbyPlatform)
 				local autoFinishObbyTerm = newTerm(autoFinishObbylbl_R)
 				
+				local getKnifePlatform = Instance.new("Frame")
+				getKnifePlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				getKnifePlatform.BackgroundTransparency = 1
+				getKnifePlatform.Parent = frame_1
+
+				local getKnifelbl_L = newlbl("GetKnife", getKnifePlatform)
+				local getKnifelbl_LFixed = fixedTxt(getKnifelbl_L, 0.8, 0.1)
+				getKnifelbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				getKnifelbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				getKnifelbl_LFixed.TextXAlignment = "Left"
+
+				local getKnifeState = false
+				local getKnifelbl_R = newbtn("", getKnifePlatform)
+				local getKnifeTerm = newTerm(getKnifelbl_R)
+				
+				local antiLavaPlatform = Instance.new("Frame")
+				antiLavaPlatform.Size = UDim2.new(1, 0, 0.125, 0)
+				antiLavaPlatform.BackgroundTransparency = 1
+				antiLavaPlatform.Parent = frame_1
+
+				local antiLavalbl_L = newlbl("AntiLava", antiLavaPlatform)
+				local antiLavalbl_LFixed = fixedTxt(antiLavalbl_L, 0.8, 0.1)
+				antiLavalbl_LFixed.Size = UDim2.new(0.7, 0, 0.7, 0)
+				antiLavalbl_LFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
+				antiLavalbl_LFixed.TextXAlignment = "Left"
+
+				local antiLavaState = false
+				local antiLavalbl_R = newbtn("", antiLavaPlatform)
+				local antiLavaTerm = newTerm(antiLavalbl_R)
+				
 				local switcherLine = Instance.new("Frame")
 				switcherLine.Size=UDim2.new(0.2,0,0.01,0)
 				switcherLine.Position=UDim2.new(0,0,0.19,0)
@@ -638,6 +668,15 @@ local function newHub(txt)
 						end
 					end
 
+					return nil
+				end
+				
+				local function findKnife(parent)
+					for _, desc in ipairs(parent:GetDescendants()) do
+						if desc.Name == "Knife" or desc.Name == "TouchPart" then
+							return desc
+						end
+					end
 					return nil
 				end
 				
@@ -780,6 +819,66 @@ local function newHub(txt)
 					end
 					if hipheightState and tonumber(hipheightBox_RFixed.Text) then 
 						human.HipHeight=hipheightBox_RFixed.Text
+					end
+				end)
+
+				local KnifeFounded = nil
+				-- 2. الاتصال بالمسار والمراقبة
+				runService.Heartbeat:Connect(function()
+					local knifeSpawner = arena:FindFirstChild("KnifeSpawner")
+					if not knifeSpawner then
+						KnifeFounded=nil
+						return
+					end
+
+					-- فحص أولي إذا كانت السكين موجودة مسبقاً
+					local foundKnife = findKnife(knifeSpawner)
+					if foundKnife then
+						KnifeFounded=foundKnife
+					else
+						KnifeFounded=nil
+					end
+				end)
+
+				runService.Heartbeat:Connect(function()
+					-- 1. التأكد من تفعيل الميزة ووجود السكين
+					if not getKnifeState or not KnifeFounded then return end
+
+					local myChar = localPlayer.Character
+					local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+					local myHumanoid = myChar and myChar:FindFirstChildOfClass("Humanoid")
+
+					-- 2. التأكد من أن الشخصية حية والسكين ما زال موجوداً في الـ Workspace
+					if myRoot and myHumanoid and myHumanoid.Health > 0 and KnifeFounded:IsDescendantOf(workspace) then
+						-- جلب موقع السكين
+						local targetCFrame = nil
+
+						if KnifeFounded:IsA("BasePart") then
+							targetCFrame = KnifeFounded.CFrame
+						elseif KnifeFounded:IsA("Model") then
+							targetCFrame = KnifeFounded:GetPivot()
+						end
+
+						-- 3. نقل الشخصية فوراً إلى موقع السكين
+						if targetCFrame then
+							myRoot.CFrame = targetCFrame
+						end
+					end
+				end)
+				
+				runService.Heartbeat:Connect(function()
+					if antiLavaState then 
+						local arenaModel = arena:FindFirstChild("Arena")
+						if arenaModel then 
+							for _, desc in ipairs(arenaModel:GetDescendants()) do
+								if desc.Name == "Lava" then
+									printlog("Lava found",false)
+									desc.CanTouch=false
+								else
+									printlog("Lava not-found",true)
+								end
+							end
+						end
 					end
 				end)
 				
@@ -981,6 +1080,30 @@ local function newHub(txt)
 						autoFinishObbyTerm.ImageTransparency = 1
 					end
 				end)
+				
+				getKnifelbl_R.MouseButton1Click:Connect(function()
+					getKnifeState = not getKnifeState
+
+					if getKnifeState then 
+						getKnifeTerm.BackgroundColor = BrickColor.White() 
+						getKnifeTerm.ImageTransparency = 0
+					else
+						getKnifeTerm.BackgroundColor3 = Color3.fromRGB(86, 86, 86)
+						getKnifeTerm.ImageTransparency = 1
+					end
+				end)
+				
+				antiLavalbl_R.MouseButton1Click:Connect(function()
+					antiLavaState = not antiLavaState
+
+					if antiLavaState then 
+						antiLavaTerm.BackgroundColor = BrickColor.White() 
+						antiLavaTerm.ImageTransparency = 0
+					else
+						antiLavaTerm.BackgroundColor3 = Color3.fromRGB(86, 86, 86)
+						antiLavaTerm.ImageTransparency = 1
+					end
+				end)
 
 			end)
 		end)
@@ -1069,6 +1192,4 @@ if existingHub then
 else
 	newHub("Susseccfull Executing!")
 end
-
-
 
