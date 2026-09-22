@@ -4,8 +4,9 @@ local playerGui = localPlayer:WaitForChild("PlayerGui")
 local UserInputService = game:GetService("UserInputService")
 local tweenService = game:GetService("TweenService")
 local runService = game:GetService("RunService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 
-print('ccxcx')
+print('232')
 
 local mxx = workspace:WaitForChild("Scriptable", 5)
 local arena = mxx:WaitForChild("Arena", 5)
@@ -153,7 +154,7 @@ local function newHub(txt)
 				enterHubFrame:Destroy()
 
 				task.wait(0.5)
-				
+
 				local helperTextLabel = Instance.new("TextLabel")
 				helperTextLabel.Size=UDim2.new(0,200,0,50)
 				helperTextLabel.Transparency=0.5
@@ -312,7 +313,7 @@ local function newHub(txt)
 				local mainBtnFixed=fixedTxt(mainBtn,0.6,0.4)
 				mainBtnFixed.Size=UDim2.new(0.6,0,0.6,0)
 				mainBtnFixed.Position=UDim2.new(0.2,0,0.2,0)
-				
+
 				local playerBtn = Instance.new("TextButton")
 				playerBtn.Size = UDim2.new(0.2, 0, 1, 0)
 				playerBtn.Position = UDim2.new(0.2)
@@ -324,7 +325,7 @@ local function newHub(txt)
 				local playerBtnFixed = fixedTxt(playerBtn, 0.6, 0.4)
 				playerBtnFixed.Size = UDim2.new(0.6, 0, 0.6, 0)
 				playerBtnFixed.Position = UDim2.new(0.2, 0, 0.2, 0)
-				
+
 				local frame_1 = Instance.new("ScrollingFrame")
 				frame_1.Size = UDim2.new(1, 0, 0.8, 0)
 				frame_1.Position = UDim2.new(0, 0, 0.2, 0)
@@ -346,7 +347,7 @@ local function newHub(txt)
 				frame_3.BackgroundTransparency=1
 				frame_3.Visible=false
 				frame_3.Parent=mainFrame
-				
+
 				local autoCatchPlatform = Instance.new("Frame")
 				autoCatchPlatform.Size = UDim2.new(1, 0, 0.125, 0)
 				autoCatchPlatform.BackgroundTransparency = 1
@@ -361,7 +362,7 @@ local function newHub(txt)
 				local autoCatchState = false
 				local autoCatchlbl_R = newbtn("", autoCatchPlatform)
 				local autoCatchTerm = newTerm(autoCatchlbl_R)
-				
+
 				local aimbotPlatform = Instance.new("Frame")
 				aimbotPlatform.Size = UDim2.new(1, 0, 0.125, 0)
 				aimbotPlatform.BackgroundTransparency = 1
@@ -376,7 +377,7 @@ local function newHub(txt)
 				local aimbotState = false
 				local aimbotlbl_R = newbtn("", aimbotPlatform)
 				local aimbotTerm = newTerm(aimbotlbl_R)
-				
+
 				local toggleHipheightPlatform = Instance.new("Frame")
 				toggleHipheightPlatform.Size = UDim2.new(1, 0, 0.125, 0)
 				toggleHipheightPlatform.BackgroundTransparency = 1
@@ -391,7 +392,7 @@ local function newHub(txt)
 				local toggleHipheightState = false
 				local toggleHipheightlbl_R = newbtn("", toggleHipheightPlatform)
 				local toggleHipheightTerm = newTerm(toggleHipheightlbl_R)
-				
+
 				local hipheightPlatform = Instance.new("Frame")
 				hipheightPlatform.Size = UDim2.new(1, 0, 0.125, 0)
 				hipheightPlatform.BackgroundTransparency = 1
@@ -412,7 +413,7 @@ local function newHub(txt)
 				hipheightBox_RFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
 				hipheightBox_RFixed.TextXAlignment = "Left"
 				hipheightBox_RFixed.Text = "15"
-				
+
 				local speedPlatform = Instance.new("Frame")
 				speedPlatform.Size = UDim2.new(1, 0, 0.125, 0)
 				speedPlatform.BackgroundTransparency = 1
@@ -448,7 +449,7 @@ local function newHub(txt)
 				toggleSpeedBox_RFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
 				toggleSpeedBox_RFixed.TextXAlignment = "Left"
 				toggleSpeedBox_RFixed.Text = "22"
-				
+
 				local jumpPlatform = Instance.new("Frame")
 				jumpPlatform.Size = UDim2.new(1, 0, 0.125, 0)
 				jumpPlatform.BackgroundTransparency = 1
@@ -484,7 +485,7 @@ local function newHub(txt)
 				toggleJumpBox_RFixed.Position = UDim2.new(0.15, 0, 0.15, 0)
 				toggleJumpBox_RFixed.TextXAlignment = "Left"
 				toggleJumpBox_RFixed.Text = "100"
-				
+
 				local autoFinishObbyPlatform = Instance.new("Frame")
 				autoFinishObbyPlatform.Size = UDim2.new(1, 0, 0.125, 0)
 				autoFinishObbyPlatform.BackgroundTransparency = 1
@@ -499,7 +500,7 @@ local function newHub(txt)
 				local autoFinishObbyState = false
 				local autoFinishObbylbl_R = newbtn("", autoFinishObbyPlatform)
 				local autoFinishObbyTerm = newTerm(autoFinishObbylbl_R)
-				
+
 				local getKnifePlatform = Instance.new("Frame")
 				getKnifePlatform.Size = UDim2.new(1, 0, 0.125, 0)
 				getKnifePlatform.BackgroundTransparency = 1
@@ -514,7 +515,7 @@ local function newHub(txt)
 				local getKnifeState = false
 				local getKnifelbl_R = newbtn("", getKnifePlatform)
 				local getKnifeTerm = newTerm(getKnifelbl_R)
-				
+
 				local antiLavaPlatform = Instance.new("Frame")
 				antiLavaPlatform.Size = UDim2.new(1, 0, 0.125, 0)
 				antiLavaPlatform.BackgroundTransparency = 1
@@ -529,7 +530,7 @@ local function newHub(txt)
 				local antiLavaState = false
 				local antiLavalbl_R = newbtn("", antiLavaPlatform)
 				local antiLavaTerm = newTerm(antiLavalbl_R)
-				
+
 				local switcherLine = Instance.new("Frame")
 				switcherLine.Size=UDim2.new(0.2,0,0.01,0)
 				switcherLine.Position=UDim2.new(0,0,0.19,0)
@@ -540,7 +541,7 @@ local function newHub(txt)
 					frame_1.Visible,frame_2.Visible=false,false
 					state.Visible=true
 				end
-				
+
 				local function listOff(parent)
 					local listLayout = Instance.new("UIListLayout")
 					listLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -556,7 +557,7 @@ local function newHub(txt)
 						parent.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
 					end)
 				end
-				
+
 				local function getTargetButton()
 					local hud = playerGui:FindFirstChild("HUD")
 					if hud then
@@ -670,7 +671,7 @@ local function newHub(txt)
 
 					return nil
 				end
-				
+
 				local function findKnife(parent)
 					for _, desc in ipairs(parent:GetDescendants()) do
 						if desc.Name == "Knife" or desc.Name == "TouchPart" then
@@ -679,9 +680,9 @@ local function newHub(txt)
 					end
 					return nil
 				end
-				
+
 				local bolt = false
-				
+
 				toggleJumpBox_R:GetPropertyChangedSignal("Text"):Connect(function()
 					if not jumpState or bolt then return end
 					local cleanText = toggleJumpBox_R.Text:gsub("[^%d%.]", "")
@@ -707,33 +708,46 @@ local function newHub(txt)
 
 					hipheightBox_RFixed.Text = cleanText
 				end)
-				
+
 				listOff(frame_1)
 				listOff(frame_2)
 				
+				local isPC = UserInputService.KeyboardEnabled
+				
 				local cooldown1, cooldown2 = false, false
 				runService.Heartbeat:Connect(function()
-					-- تنفيذ الكود فقط إذا كانت AutoCatchState متحطمة (تساوي true)
+					-- تنفيذ الكود فقط إذا كانت autoCatchState مفعلة (تساوي true)
 					if not autoCatchState then return end
 
 					local char = localPlayer.Character
 					local myRoot = char and char:FindFirstChild("HumanoidRootPart")
 
+					if not myRoot then return end
+
 					local touchPart = findTouchPart()
 
 					if touchPart then
 						local distance = (myRoot.Position - touchPart.Position).Magnitude
-						local roundedDist = math.floor(distance)
 
 						if distance <= 10 then
-
 							if not cooldown1 then
 								cooldown1 = true
-								local targetBtn = getTargetButton()
-								if targetBtn then
-									clickButton(targetBtn)
-									print("AutoCatch: تم تفعيل الزر تلقائياً!")
+
+								if isPC then
+								
+									VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
+									task.wait(0.05)
+									VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+									
+								else
+									
+									local targetBtn = getTargetButton()
+									if targetBtn then
+										clickButton(targetBtn)
+										
+									end
 								end
+
 								task.wait(0.3)
 								cooldown1 = false
 							end
@@ -743,7 +757,7 @@ local function newHub(txt)
 
 				-- دالة CFrame أفقية تماماً تلغي تأثير المحور Y
 				local originalY = nil
-				
+
 				runService.Heartbeat:Connect(function()
 					if not aimbotState or cooldown2 then return end
 					local myChar = localPlayer.Character
@@ -760,7 +774,7 @@ local function newHub(txt)
 						local rightGrip = rightArm and rightArm:FindFirstChild("RightGrip")
 
 						if rightGrip then
-							
+
 							bolt=true
 							local closest = getClosestPlayer()
 
@@ -804,11 +818,11 @@ local function newHub(txt)
 						end
 					end
 				end)
-				
+
 				runService.Heartbeat:Connect(function()
 					local human = localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid")
 					if bolt then human.HipHeight=0 end
-						
+
 					if not human then return end
 					if jumpState and tonumber(toggleJumpBox_RFixed.Text) then 
 						human.UseJumpPower=true
@@ -865,7 +879,7 @@ local function newHub(txt)
 						end
 					end
 				end)
-				
+
 				runService.Heartbeat:Connect(function()
 					if antiLavaState then 
 						local arenaModel = arena:FindFirstChild("Arena")
@@ -880,7 +894,7 @@ local function newHub(txt)
 						end
 					end
 				end)
-				
+
 				task.spawn(function()
 					while true do
 						if autoFinishObbyState then 
@@ -908,7 +922,7 @@ local function newHub(txt)
 					motionLine:Play()
 					display(frame_1)
 				end)
-				
+
 				playerBtn.MouseButton1Click:Connect(function()
 
 					local motionLine = tweenService:Create(switcherLine,TweenInfo.new(0.3),{Position=UDim2.new(playerBtn.Position.X.Scale,0,switcherLine.Position.Y.Scale,0)})
@@ -977,10 +991,10 @@ local function newHub(txt)
 						screenGui:Destroy()
 					end) 
 				end)
-				
+
 				toggleHipheightlbl_R.MouseButton1Click:Connect(function()
 					hipheightState = not hipheightState
-					
+
 					if hipheightState then 
 						toggleHipheightTerm.BackgroundColor = BrickColor.White() 
 						toggleHipheightTerm.ImageTransparency = 0
@@ -1042,7 +1056,7 @@ local function newHub(txt)
 						toggleSpeedBox_R.Active=false
 					end
 				end)
-				
+
 				autoCatchlbl_R.MouseButton1Click:Connect(function()
 					autoCatchState = not autoCatchState
 
@@ -1055,7 +1069,7 @@ local function newHub(txt)
 						autoCatchTerm.ImageTransparency = 1
 					end
 				end)
-				
+
 				aimbotlbl_R.MouseButton1Click:Connect(function()
 					aimbotState = not aimbotState
 
@@ -1067,7 +1081,7 @@ local function newHub(txt)
 						aimbotTerm.ImageTransparency = 1
 					end
 				end)
-				
+
 				autoFinishObbylbl_R.MouseButton1Click:Connect(function()
 					autoFinishObbyState = not autoFinishObbyState
 
@@ -1079,7 +1093,7 @@ local function newHub(txt)
 						autoFinishObbyTerm.ImageTransparency = 1
 					end
 				end)
-				
+
 				getKnifelbl_R.MouseButton1Click:Connect(function()
 					getKnifeState = not getKnifeState
 
@@ -1091,7 +1105,7 @@ local function newHub(txt)
 						getKnifeTerm.ImageTransparency = 1
 					end
 				end)
-				
+
 				antiLavalbl_R.MouseButton1Click:Connect(function()
 					antiLavaState = not antiLavaState
 
