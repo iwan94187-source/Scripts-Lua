@@ -1,0 +1,252 @@
+local players = game:GetService("Players")
+local localplayer = players.LocalPlayer
+local playerGui = localplayer.PlayerGui
+
+-- 1. الدوال المساعدة
+local function newUi(parent, radius) 
+	local ui = Instance.new("UICorner")
+	ui.CornerRadius = UDim.new(0, radius or 10)
+	ui.Parent = parent
+	return ui
+end
+
+local function newStroke(clr, siz, parent) 
+	local uiStroke = Instance.new("UIStroke")
+	uiStroke.Color = clr
+	uiStroke.Thickness = siz
+	uiStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	uiStroke.Parent = parent
+end
+
+local function newCustomUi(parent, rb, lb, ru, lu) 
+	local ui = Instance.new("UICorner")
+	ui.BottomLeftRadius = UDim.new(0, lb)
+	ui.BottomRightRadius = UDim.new(0, rb)
+	ui.TopLeftRadius = UDim.new(0, lu)
+	ui.TopRightRadius = UDim.new(0, ru)
+	ui.Parent = parent
+	return ui
+end
+
+-- 2. الشاشة والنافذة الرئيسية
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "PhantomHubGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+local iconFrame = Instance.new("ImageButton")
+iconFrame.Size=UDim2.new(0,0,0,0)
+iconFrame.Position=UDim2.new(0,0,0,0)
+iconFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+iconFrame.BackgroundTransparency,iconFrame.ImageTransparency=1,0.25
+iconFrame.Image = "rbxassetid://74932065323886"
+iconFrame.Visible=false
+iconFrame.Active=true
+iconFrame.Draggable=true
+iconFrame.Parent=screenGui
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 520, 0, 320)
+mainFrame.Position = UDim2.new(0.5, -260, 0.5, -160) -- تمييز الموضع في سنتر الشاشة
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+-- 3. الظل الناعم المتناسق مع الانحناء
+local shadow = Instance.new("ImageLabel")
+shadow.Name = "Shadow"
+shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+shadow.Position = UDim2.new(0.5, 0, 0.5, 2)
+shadow.Size = UDim2.new(1, 45, 1, 45)
+shadow.BackgroundTransparency = 1
+shadow.Image = "rbxassetid://6015897843" 
+shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+shadow.ImageTransparency = 0.6
+shadow.ScaleType = Enum.ScaleType.Slice
+shadow.SliceCenter = Rect.new(49, 49, 151, 151)
+shadow.ZIndex = mainFrame.ZIndex - 1
+shadow.Parent = mainFrame
+
+-- 4. شريط العنوان (Title Bar)
+local frameTitle = Instance.new("TextLabel")
+frameTitle.Size = UDim2.new(1, 0, 0.1, 0)
+frameTitle.BackgroundColor3 = Color3.fromRGB(42, 42, 42)
+frameTitle.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+frameTitle.Text = "  Infinity Hub"
+frameTitle.TextXAlignment = Enum.TextXAlignment.Left
+frameTitle.TextColor3 = Color3.fromRGB(220, 220, 220)
+frameTitle.TextSize = 14
+frameTitle.Parent = mainFrame
+
+local destroyBtn = Instance.new("TextButton")
+destroyBtn.Size = UDim2.new(0, 35, 1, 0)
+destroyBtn.Position = UDim2.new(1, -35, 0, 0)
+destroyBtn.BackgroundTransparency = 1
+destroyBtn.FontFace = Font.fromEnum(Enum.Font.GothamBold)
+destroyBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+destroyBtn.BackgroundColor3 = Color3.fromRGB(230, 50, 50)
+destroyBtn.AutoButtonColor = false
+destroyBtn.Text = "×"
+destroyBtn.TextSize = 18
+destroyBtn.Parent = frameTitle
+
+local hideBtn = Instance.new("TextButton")
+hideBtn.Size = UDim2.new(0, 35, 1, 0)
+hideBtn.Position = UDim2.new(1, -70, 0, 0)
+hideBtn.BackgroundTransparency = 1
+hideBtn.FontFace = Font.fromEnum(Enum.Font.GothamBold)
+hideBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+hideBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+hideBtn.AutoButtonColor = false
+hideBtn.Text = "-"
+hideBtn.TextSize = 18
+hideBtn.Parent = frameTitle
+
+-- 5. القائمة الجانبية (Sidebar)
+local liftFrame = Instance.new("Frame")
+liftFrame.Size = UDim2.new(0, 130, 1, -32)
+liftFrame.Position = UDim2.new(0, 0, 0, 32)
+liftFrame.BackgroundColor3 = Color3.fromRGB(36, 36, 36)
+liftFrame.BorderSizePixel = 0
+liftFrame.Parent = mainFrame
+
+local optionlbl = Instance.new("TextLabel")
+optionlbl.Size = UDim2.new(1, -15, 0, 25)
+optionlbl.Position = UDim2.new(0, 15, 0, 5)
+optionlbl.BackgroundTransparency = 1
+optionlbl.TextColor3 = Color3.fromRGB(120, 120, 120)
+optionlbl.FontFace = Font.fromEnum(Enum.Font.Ubuntu)
+optionlbl.TextXAlignment = Enum.TextXAlignment.Left
+optionlbl.TextSize = 11
+optionlbl.Text = "CATEGORIES"
+optionlbl.Parent = liftFrame
+
+local listFrame = Instance.new("ScrollingFrame")
+listFrame.Size = UDim2.new(1, 0, 1, -35)
+listFrame.Position = UDim2.new(0, 0, 0, 30)
+listFrame.BackgroundTransparency = 1
+listFrame.ScrollBarThickness = 3
+listFrame.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
+listFrame.Parent = liftFrame
+
+-- 6. إنشاء الأزرار والـ Layouts
+local function newBtn(name, ImageID)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(1, -15, 0, 32)
+	btn.BackgroundTransparency = 1
+	btn.BackgroundColor3 = Color3.fromRGB(0, 89, 255)
+	btn.AutoButtonColor = false
+	btn.Text = ""
+	btn.Parent = listFrame
+
+	newUi(btn, 6)
+
+	local icon = Instance.new("ImageLabel")
+	icon.Size = UDim2.new(0, 18, 0, 18)
+	icon.Position = UDim2.new(0, 10, 0.5, -9)
+	icon.BackgroundTransparency = 1
+	icon.ImageColor3 = Color3.fromRGB(220, 220, 220)
+	icon.Image = ImageID
+	icon.Parent = btn
+
+	local lbl = Instance.new("TextLabel")
+	lbl.Size = UDim2.new(1, -35, 1, 0)
+	lbl.Position = UDim2.new(0, 35, 0, 0)
+	lbl.BackgroundTransparency = 1
+	lbl.Text = name
+	lbl.TextXAlignment = Enum.TextXAlignment.Left
+	lbl.FontFace = Font.fromEnum(Enum.Font.Ubuntu)
+	lbl.TextSize = 13
+	lbl.TextColor3 = Color3.fromRGB(220, 220, 220)
+	lbl.Parent = btn
+
+	return btn, lbl, icon
+end
+
+local function setupLayout(parent)
+	local listLayout = Instance.new("UIListLayout")
+	listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	listLayout.Padding = UDim.new(0, 6)
+	listLayout.Parent = parent
+
+	local uipadding = Instance.new("UIPadding")
+	uipadding.PaddingLeft = UDim.new(0, 8)
+	uipadding.PaddingRight = UDim.new(0, 8)
+	uipadding.PaddingTop = UDim.new(0, 6)
+	uipadding.PaddingBottom = UDim.new(0, 6)
+	uipadding.Parent = parent
+
+	listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		parent.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 12)
+	end)
+end
+
+-- 7. الفريمات المحتواة (Pages)
+local function createContentFrame()
+	local sf = Instance.new("ScrollingFrame")
+	sf.Size = UDim2.new(1, -130, 1, -32)
+	sf.Position = UDim2.new(0, 130, 0, 32)
+	sf.BackgroundTransparency = 1
+	sf.Visible = false
+	sf.ScrollBarThickness = 4
+	sf.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
+	sf.Parent = mainFrame
+	setupLayout(sf)
+	return sf
+end
+
+local frame_1 = createContentFrame()
+local frame_2 = createContentFrame()
+local frame_3 = createContentFrame()
+
+frame_1.Visible = true
+
+-- 8. ربط الأزرار والصفحات
+local mainBtn, mainLbl, mainIcon = newBtn("Info", "rbxassetid://6771547001")
+local gameBtn, gameLbl, gameIcon = newBtn("Game", "rbxassetid://76578801302055")
+local playerBtn, playerLbl, playerIcon = newBtn("Player", "rbxassetid://84822678364928")
+
+mainBtn.BackgroundTransparency = 0.75
+
+local selectedBtn = mainBtn
+local selectedFrame = frame_1
+
+local function display(btn, frame)
+	if selectedBtn == btn then return end
+	selectedBtn.BackgroundTransparency = 1
+	selectedFrame.Visible = false
+
+	btn.BackgroundTransparency = 0
+	frame.Visible = true
+
+	selectedBtn = btn
+	selectedFrame = frame
+end
+
+mainBtn.MouseButton1Click:Connect(function() display(mainBtn, frame_1) end)
+gameBtn.MouseButton1Click:Connect(function() display(gameBtn, frame_2) end)
+playerBtn.MouseButton1Click:Connect(function() display(playerBtn, frame_3) end)
+
+-- 9. تأثيرات تفاعل أزرار الإغلاق والتصغير
+destroyBtn.MouseEnter:Connect(function() destroyBtn.BackgroundTransparency = 0 end)
+destroyBtn.MouseLeave:Connect(function() destroyBtn.BackgroundTransparency = 1 end)
+destroyBtn.MouseButton1Click:Connect(function() screenGui:Destroy() end)
+
+local isHidden = false
+hideBtn.MouseEnter:Connect(function() hideBtn.BackgroundTransparency = 0 end)
+hideBtn.MouseLeave:Connect(function() hideBtn.BackgroundTransparency = 1 end)
+hideBtn.MouseButton1Click:Connect(function()
+	isHidden = not isHidden
+	frame_1.Visible = selectedFrame == frame_1
+	frame_2.Visible = selectedFrame == frame_2
+	frame_3.Visible = selectedFrame == frame_3
+end)
+
+-- 10. الحواف والإنحناءات النهائية
+newStroke(Color3.fromRGB(55, 55, 55), 1, mainFrame)
+newUi(mainFrame, 10)
+newCustomUi(frameTitle, 0, 0, 10, 10)
+newCustomUi(destroyBtn, 0, 0, 10, 0)
+
+setupLayout(listFrame)
