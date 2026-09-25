@@ -1,6 +1,16 @@
 local players = game:GetService("Players")
 local localplayer = players.LocalPlayer
 local playerGui = localplayer.PlayerGui
+local tweenService = game:GetService("TweenService")
+
+local uiParent = playerGui
+if gethui then
+	uiParent = gethui()
+elseif game:GetService("CoreGui") then
+	pcall(function()
+		uiParent = game:GetService("CoreGui")
+	end)
+end
 
 -- 1. الدوال المساعدة
 local function newUi(parent, radius) 
@@ -28,225 +38,598 @@ local function newCustomUi(parent, rb, lb, ru, lu)
 	return ui
 end
 
--- 2. الشاشة والنافذة الرئيسية
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "PhantomHubGui"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = playerGui
-
-local iconFrame = Instance.new("ImageButton")
-iconFrame.Size=UDim2.new(0,0,0,0)
-iconFrame.Position=UDim2.new(0,0,0,0)
-iconFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
-iconFrame.BackgroundTransparency,iconFrame.ImageTransparency=1,0.25
-iconFrame.Image = "rbxassetid://74932065323886"
-iconFrame.Visible=false
-iconFrame.Active=true
-iconFrame.Draggable=true
-iconFrame.Parent=screenGui
-
-local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 520, 0, 320)
-mainFrame.Position = UDim2.new(0.5, -260, 0.5, -160) -- تمييز الموضع في سنتر الشاشة
-mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-mainFrame.Active = true
-mainFrame.Draggable = true
-mainFrame.Parent = screenGui
-
--- 3. الظل الناعم المتناسق مع الانحناء
-local shadow = Instance.new("ImageLabel")
-shadow.Name = "Shadow"
-shadow.AnchorPoint = Vector2.new(0.5, 0.5)
-shadow.Position = UDim2.new(0.5, 0, 0.5, 2)
-shadow.Size = UDim2.new(1, 45, 1, 45)
-shadow.BackgroundTransparency = 1
-shadow.Image = "rbxassetid://6015897843" 
-shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-shadow.ImageTransparency = 0.6
-shadow.ScaleType = Enum.ScaleType.Slice
-shadow.SliceCenter = Rect.new(49, 49, 151, 151)
-shadow.ZIndex = mainFrame.ZIndex - 1
-shadow.Parent = mainFrame
-
--- 4. شريط العنوان (Title Bar)
-local frameTitle = Instance.new("TextLabel")
-frameTitle.Size = UDim2.new(1, 0, 0.1, 0)
-frameTitle.BackgroundColor3 = Color3.fromRGB(42, 42, 42)
-frameTitle.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
-frameTitle.Text = "  Infinity Hub"
-frameTitle.TextXAlignment = Enum.TextXAlignment.Left
-frameTitle.TextColor3 = Color3.fromRGB(220, 220, 220)
-frameTitle.TextSize = 14
-frameTitle.Parent = mainFrame
-
-local destroyBtn = Instance.new("TextButton")
-destroyBtn.Size = UDim2.new(0, 35, 1, 0)
-destroyBtn.Position = UDim2.new(1, -35, 0, 0)
-destroyBtn.BackgroundTransparency = 1
-destroyBtn.FontFace = Font.fromEnum(Enum.Font.GothamBold)
-destroyBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-destroyBtn.BackgroundColor3 = Color3.fromRGB(230, 50, 50)
-destroyBtn.AutoButtonColor = false
-destroyBtn.Text = "×"
-destroyBtn.TextSize = 18
-destroyBtn.Parent = frameTitle
-
-local hideBtn = Instance.new("TextButton")
-hideBtn.Size = UDim2.new(0, 35, 1, 0)
-hideBtn.Position = UDim2.new(1, -70, 0, 0)
-hideBtn.BackgroundTransparency = 1
-hideBtn.FontFace = Font.fromEnum(Enum.Font.GothamBold)
-hideBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-hideBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-hideBtn.AutoButtonColor = false
-hideBtn.Text = "-"
-hideBtn.TextSize = 18
-hideBtn.Parent = frameTitle
-
--- 5. القائمة الجانبية (Sidebar)
-local liftFrame = Instance.new("Frame")
-liftFrame.Size = UDim2.new(0, 130, 1, -32)
-liftFrame.Position = UDim2.new(0, 0, 0, 32)
-liftFrame.BackgroundColor3 = Color3.fromRGB(36, 36, 36)
-liftFrame.BorderSizePixel = 0
-liftFrame.Parent = mainFrame
-
-local optionlbl = Instance.new("TextLabel")
-optionlbl.Size = UDim2.new(1, -15, 0, 25)
-optionlbl.Position = UDim2.new(0, 15, 0, 5)
-optionlbl.BackgroundTransparency = 1
-optionlbl.TextColor3 = Color3.fromRGB(120, 120, 120)
-optionlbl.FontFace = Font.fromEnum(Enum.Font.Ubuntu)
-optionlbl.TextXAlignment = Enum.TextXAlignment.Left
-optionlbl.TextSize = 11
-optionlbl.Text = "CATEGORIES"
-optionlbl.Parent = liftFrame
-
-local listFrame = Instance.new("ScrollingFrame")
-listFrame.Size = UDim2.new(1, 0, 1, -35)
-listFrame.Position = UDim2.new(0, 0, 0, 30)
-listFrame.BackgroundTransparency = 1
-listFrame.ScrollBarThickness = 3
-listFrame.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
-listFrame.Parent = liftFrame
-
--- 6. إنشاء الأزرار والـ Layouts
-local function newBtn(name, ImageID)
-	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(1, -15, 0, 32)
-	btn.BackgroundTransparency = 1
-	btn.BackgroundColor3 = Color3.fromRGB(0, 89, 255)
-	btn.AutoButtonColor = false
-	btn.Text = ""
-	btn.Parent = listFrame
-
-	newUi(btn, 6)
-
-	local icon = Instance.new("ImageLabel")
-	icon.Size = UDim2.new(0, 18, 0, 18)
-	icon.Position = UDim2.new(0, 10, 0.5, -9)
-	icon.BackgroundTransparency = 1
-	icon.ImageColor3 = Color3.fromRGB(220, 220, 220)
-	icon.Image = ImageID
-	icon.Parent = btn
+local function fixedTxt(parent, siz, pos)
+	parent.TextTransparency = 1
 
 	local lbl = Instance.new("TextLabel")
-	lbl.Size = UDim2.new(1, -35, 1, 0)
-	lbl.Position = UDim2.new(0, 35, 0, 0)
+	lbl.Size = UDim2.new(siz, 0, 0.8, 0)
+	lbl.Position = UDim2.new(pos, 0, 0.1, 0)
+	lbl.TextColor = BrickColor.new("White")
+	lbl.TextStrokeTransparency = 0
+	lbl.TextStrokeColor3 = Color3.fromRGB(24, 24, 24)
+	lbl.FontFace=Font.fromEnum(Enum.Font.Roboto)
 	lbl.BackgroundTransparency = 1
-	lbl.Text = name
-	lbl.TextXAlignment = Enum.TextXAlignment.Left
-	lbl.FontFace = Font.fromEnum(Enum.Font.Ubuntu)
-	lbl.TextSize = 13
-	lbl.TextColor3 = Color3.fromRGB(220, 220, 220)
-	lbl.Parent = btn
-
-	return btn, lbl, icon
+	lbl.Text = parent.Text
+	lbl.TextScaled = true
+	lbl.Parent = parent
+	return lbl
 end
 
-local function setupLayout(parent)
-	local listLayout = Instance.new("UIListLayout")
-	listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	listLayout.Padding = UDim.new(0, 6)
-	listLayout.Parent = parent
+local function newHub()
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "InfinityHubGui"
+	screenGui.ResetOnSpawn = false
+	screenGui.Parent = playerGui
 
-	local uipadding = Instance.new("UIPadding")
-	uipadding.PaddingLeft = UDim.new(0, 8)
-	uipadding.PaddingRight = UDim.new(0, 8)
-	uipadding.PaddingTop = UDim.new(0, 6)
-	uipadding.PaddingBottom = UDim.new(0, 6)
-	uipadding.Parent = parent
+	local iconFrame_pos = UDim2.new(0,50,0,50)
+	local iconFrame = Instance.new("ImageButton")
+	iconFrame.Size=UDim2.new(0,50,0,50)
+	iconFrame.Position=UDim2.new(0,0,0,0)
+	iconFrame.BackgroundColor3=Color3.fromRGB(24, 24, 24)
+	iconFrame.BackgroundTransparency,iconFrame.ImageTransparency=0,0
+	iconFrame.Image = "rbxassetid://106228093490180"
+	iconFrame.Visible=false
+	iconFrame.Active=true
+	iconFrame.Draggable=true
+	iconFrame.ZIndex=2
+	iconFrame.Parent=screenGui
 
-	listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-		parent.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 12)
+	local mainFrame_pos = UDim2.new(0, 520, 0, 320)
+	local mainFrame = Instance.new("Frame")
+	mainFrame.Size = mainFrame_pos
+	mainFrame.Position = UDim2.new(0, 0, 0, 0) -- تمييز الموضع في سنتر الشاشة
+	mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+	mainFrame.Active = true
+	mainFrame.Draggable = true
+	mainFrame.Parent = screenGui
+
+	-- 3. الظل الناعم المتناسق مع الانحناء
+
+	local function newShadow(parent, isSmallButton)
+		local shadow = Instance.new("ImageLabel")
+		shadow.Name = "Shadow"
+		shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+		shadow.BackgroundTransparency = 1
+		shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+		shadow.ZIndex = math.max(1, parent.ZIndex - 1)
+
+		if isSmallButton then
+			-- إعدادات متناسقة وناعمة للأزرار الصغيرة (50x50)
+			shadow.Image = "rbxassetid://1316045217" -- صورة ظل ذات حواف فائقة النعومة
+			shadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+			shadow.Size = UDim2.new(1, 12, 1, 12)
+			shadow.ImageTransparency = 0.8 
+			shadow.ScaleType = Enum.ScaleType.Slice
+			shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+		else
+			shadow.Image = "rbxassetid://6015897843"
+			shadow.Position = UDim2.new(0.5, 0, 0.5, 2)
+			shadow.Size = UDim2.new(1, 45, 1, 45)
+			shadow.ImageTransparency = 0.7
+			shadow.ScaleType = Enum.ScaleType.Slice
+			shadow.SliceCenter = Rect.new(49, 49, 151, 151)
+		end
+
+		shadow.Parent = parent
+		return shadow
+	end
+
+	local s1 = newShadow(mainFrame, false)
+
+	local s2 = newShadow(iconFrame, true)
+
+	-- 4. شريط العنوان (Title Bar)
+	local frameTitle = Instance.new("TextLabel")
+	frameTitle.Size = UDim2.new(1, 0, 0.1, 0)
+	frameTitle.BackgroundColor3 = Color3.fromRGB(42, 42, 42)
+	frameTitle.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+	frameTitle.Text = ""
+	frameTitle.TextXAlignment = Enum.TextXAlignment.Left
+	frameTitle.TextColor3 = Color3.fromRGB(220, 220, 220)
+	frameTitle.TextSize = 14
+	frameTitle.Parent = mainFrame
+	
+	local imb = {
+		Scale={Size=UDim2.new(UDim2.new(0.2,0,1,0)), Position=UDim2.new()},
+		Offset={Size=UDim2.new(UDim2.new(0.2,0,1,27.5)), Position=UDim2.new(UDim2.new(0,0,0,-17.5))}
+	}
+	
+	local frameImageTitle = Instance.new("ImageLabel")
+	frameImageTitle.Size=UDim2.new(0.2,0,1,27.5)
+	frameImageTitle.Position=UDim2.new(0,0,0,-17.5)
+	frameImageTitle.BackgroundTransparency=1
+	frameImageTitle.Image="rbxassetid://102422013785944"
+	frameImageTitle.Parent=frameTitle
+
+	local destroyBtn = Instance.new("TextButton")
+	destroyBtn.Size = UDim2.new(0.1, 0, 1, 0)
+	destroyBtn.Position = UDim2.new(0.9, 0, 0, 0)
+	destroyBtn.BackgroundTransparency = 1
+	destroyBtn.FontFace = Font.fromEnum(Enum.Font.GothamBold)
+	destroyBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+	destroyBtn.BackgroundColor3 = Color3.fromRGB(230, 50, 50)
+	destroyBtn.AutoButtonColor = false
+	destroyBtn.Text = "×"
+	destroyBtn.TextSize = 18
+	destroyBtn.Parent = frameTitle
+	local destroyBtnFixed = fixedTxt(destroyBtn, 0,0)
+	destroyBtnFixed.Size=UDim2.new(1,0,0.75,0)
+	destroyBtnFixed.Position=UDim2.new(0,0,0.15,0)
+
+	local hideBtn = Instance.new("TextButton")
+	hideBtn.Size = UDim2.new(0.1, 0, 1, 0)
+	hideBtn.Position = UDim2.new(0.8, 0, 0, 0)
+	hideBtn.BackgroundTransparency = 1
+	hideBtn.FontFace = Font.fromEnum(Enum.Font.GothamBold)
+	hideBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+	hideBtn.BackgroundColor3 = Color3.fromRGB(0, 136, 204)
+	hideBtn.AutoButtonColor = false
+	hideBtn.Text = "-"
+	hideBtn.TextSize = 18
+	hideBtn.Parent = frameTitle
+	local hideBtnFixed = fixedTxt(hideBtn)
+	hideBtnFixed.Size=UDim2.new(1,0,0.75,0)
+	hideBtnFixed.Position=UDim2.new(0,0,0.15,0)
+	-- 5. القائمة الجانبية (Sidebar)
+	local liftFrame = Instance.new("Frame")
+	liftFrame.Size = UDim2.new(0.25, 0, 0.8975, 0)
+	liftFrame.Position = UDim2.new(0, 0, 0.1025, 0)
+	liftFrame.BackgroundColor3 = Color3.fromRGB(36, 36, 36)
+	liftFrame.BorderSizePixel = 0
+	liftFrame.Parent = mainFrame
+
+	local optionlbl = Instance.new("TextLabel")
+	optionlbl.Size = UDim2.new(1, 0, 0.1, 0)
+	optionlbl.Position = UDim2.new(0.1, 0, 0, 0.05)
+	optionlbl.BackgroundTransparency = 1
+	optionlbl.TextColor3 = Color3.fromRGB(120, 120, 120)
+	optionlbl.FontFace = Font.fromEnum(Enum.Font.Ubuntu)
+	optionlbl.TextXAlignment = Enum.TextXAlignment.Left
+	optionlbl.TextSize = 11
+	optionlbl.Text = "CATEGORIES"
+	optionlbl.Parent = liftFrame
+	local optionlblFixed = fixedTxt(optionlbl,0.35,0.025)
+	optionlblFixed.TextColor3=Color3.fromRGB(120, 120, 120)
+
+	local switcherLine = Instance.new("Frame")
+	switcherLine.Size=UDim2.new(0.025,0,0.1,0)
+	switcherLine.Position=UDim2.new(0.075)
+	switcherLine.BackgroundColor3=Color3.fromRGB(45, 110, 255)
+	switcherLine.Parent=liftFrame
+
+	local blackScreen = Instance.new("Frame")
+	blackScreen.Size=UDim2.new(1,0,1,0)
+	blackScreen.Position=UDim2.new(0,0,0,0)
+	blackScreen.BackgroundColor3=Color3.fromRGB()
+	blackScreen.BackgroundTransparency=0.75
+	blackScreen.Visible=false
+	blackScreen.ZIndex=3
+	blackScreen.Parent = mainFrame
+
+	local warnFrame = Instance.new("Frame")
+	warnFrame.Size=UDim2.new(0.5,0,0.5,0)
+	warnFrame.Position=UDim2.new(0.25,0,0.25,0)
+	warnFrame.BackgroundColor3=Color3.fromRGB(32, 32, 32)
+	warnFrame.ZIndex=4
+
+	warnFrame.Parent=blackScreen
+	local warntxtLbl = Instance.new("TextLabel")
+	warntxtLbl.Size=UDim2.new(1,0,0.5,0)
+	warntxtLbl.Position=UDim2.new(0,0,0.1,0)
+	warntxtLbl.BackgroundColor3=Color3.fromRGB(64, 64, 64)
+	warntxtLbl.BackgroundTransparency=1
+	warntxtLbl.Text="This action will kill the Gui"
+	warntxtLbl.ZIndex=5
+	warntxtLbl.Parent=warnFrame
+	local warntxtLblFix = fixedTxt(warntxtLbl)
+	warntxtLblFix.Size = UDim2.new(0.75,0,0.4,0)
+	warntxtLblFix.Position=UDim2.new(0.125,0,0.25,0)
+	warntxtLblFix.ZIndex=6
+
+	local killFrameBtn = Instance.new("TextButton")
+	killFrameBtn.Size=UDim2.new(0.25,0,0.2,0)
+	killFrameBtn.Position=UDim2.new(0.625,0,0.7,0)
+	killFrameBtn.BackgroundColor3=Color3.fromRGB(32, 32, 32)
+	killFrameBtn.TextColor=BrickColor.Blue()
+	killFrameBtn.ZIndex=5
+	killFrameBtn.Text = "KILL"
+	killFrameBtn.Parent=warnFrame
+	local killFrameBtnFix = fixedTxt(killFrameBtn)
+	killFrameBtnFix.Size = UDim2.new(0.5,0,0.5,0)
+	killFrameBtnFix.Position=UDim2.new(0.25,0,0.25,0)
+	killFrameBtnFix.TextColor3=Color3.fromRGB(255, 165, 165)
+	killFrameBtnFix.ZIndex=6
+
+
+	local CancelFrameBtn = Instance.new("TextButton")
+	CancelFrameBtn.Size=UDim2.new(0.25,0,0.2,0)
+	CancelFrameBtn.Position=UDim2.new(0.125,0,0.7,0)
+	CancelFrameBtn.BackgroundColor3=Color3.fromRGB(32, 32, 32)
+	CancelFrameBtn.TextColor3=Color3.fromRGB(170, 255, 255)
+	CancelFrameBtn.ZIndex=5
+	CancelFrameBtn.Text = "CANCEL"
+	CancelFrameBtn.Parent=warnFrame
+	local CancelFrameBtnFix = fixedTxt(CancelFrameBtn)
+	CancelFrameBtnFix.Size = UDim2.new(0.625,0,0.625,0)
+	CancelFrameBtnFix.Position=UDim2.new(0.175,0,0.175,0)
+	CancelFrameBtnFix.TextColor3=Color3.fromRGB(170, 255, 255)
+	CancelFrameBtnFix.ZIndex=6
+
+	-- 6. إنشاء الأزرار والـ Layouts
+	local function newBtn(name, ImageID, siz)
+		local btn = Instance.new("TextButton")
+		btn.Size = UDim2.new(1, 0, 0.1, 0)
+		btn.BackgroundTransparency = 1
+		btn.BackgroundColor3 = Color3.fromRGB(0, 89, 255)
+		btn.AutoButtonColor = false
+		btn.Text = ""
+		btn.Parent = liftFrame
+
+		newUi(btn, 6)
+
+		local icon = Instance.new("ImageLabel")
+		icon.Size = UDim2.new(0.18, 0, 0.55, 0)
+		icon.Position = UDim2.new(0.06, 0, 0.25, 0)
+		icon.BackgroundTransparency = 1
+		icon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+		icon.ZIndex=2
+		icon.Image = ImageID
+		icon.Parent = btn
+
+		local lbl = Instance.new("TextLabel")
+		lbl.Size = UDim2.new(siz, 0, 1, 0)
+		lbl.Position = UDim2.new(0.3, 0, 0.05, 0)
+		lbl.BackgroundTransparency = 1
+		lbl.Text = name
+		lbl.TextXAlignment = Enum.TextXAlignment.Left
+		lbl.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
+		lbl.ZIndex=2
+		lbl.TextScaled = true
+		lbl.TextColor3 = Color3.fromRGB(220, 220, 220)
+		lbl.Parent = btn
+		
+		return btn, lbl, icon
+	end
+
+	local function setupLayout(parent)
+		local listLayout = Instance.new("UIListLayout")
+		listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		listLayout.Padding = UDim.new(0, 6)
+		listLayout.Parent = parent
+
+		local uipadding = Instance.new("UIPadding")
+		uipadding.PaddingLeft = UDim.new(0, 8)
+		uipadding.PaddingRight = UDim.new(0, 8)
+		uipadding.PaddingTop = UDim.new(0, 6)
+		uipadding.PaddingBottom = UDim.new(0, 6)
+		uipadding.Parent = parent
+
+		listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			parent.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 12)
+		end)
+	end
+
+	-- 7. الفريمات المحتواة (Pages)
+	local function createContentFrame()
+		local sf = Instance.new("ScrollingFrame")
+		sf.Size = UDim2.new(0.8, 0, 0.9, 0)
+		sf.Position = UDim2.new(0.2, 0, 0.1, 0)
+		sf.BackgroundTransparency = 1
+		sf.Visible = false
+		sf.ScrollBarThickness = 6
+		sf.ScrollBarImageColor3 = Color3.fromRGB(64, 64, 64)
+		sf.Parent = mainFrame
+		setupLayout(sf)
+		return sf
+	end
+
+	local frame_1 = createContentFrame()
+	local frame_2 = createContentFrame()
+	local frame_3 = createContentFrame()
+	local frame_4 = createContentFrame()
+	local frame_5 = createContentFrame()
+
+	frame_1.Visible = true
+
+	-- 8. ربط الأزرار والصفحات
+	local mainBtn, mainLbl, mainIcon = newBtn("INFO", "rbxassetid://15828140488", 0.25)
+	mainBtn.Size = UDim2.new(0.7, 0, 0.1, 0)
+	mainBtn.Position = UDim2.new(0.125, 0, 0.1, 0)
+	mainIcon.Size = UDim2.new(0.18, 0, 0.6, 0)
+	mainIcon.Position = UDim2.new(0.05, 0, 0.225, 0)
+
+	local playerBtn, playerLbl, playerIcon = newBtn("PLAYER", "rbxassetid://7992557358", 0.4)
+	playerBtn.Size = UDim2.new(0.7, 0, 0.1, 0)
+	playerBtn.Position = UDim2.new(0.1175, 0, 0.225, 0)
+	playerIcon.Size = UDim2.new(0.275, 0, 0.7, 0)
+	playerIcon.Position = UDim2.new(0.0225, 0, 0.175, 0)
+
+	local targetbtn, targetLbl, targetIcon = newBtn("TARGET", "rbxassetid://139650104834071", 0.45)
+	targetbtn.Size = UDim2.new(0.7, 0, 0.1, 0)
+	targetbtn.Position = UDim2.new(0.125, 0, 0.35, 0)
+	targetIcon.Size = UDim2.new(0.2, 0, 0.65, 0)
+	targetIcon.Position = UDim2.new(0.05, 0, 0.2125, 0)
+	targetLbl.Position = UDim2.new(0.3, 0, 0.025, 0)
+
+	local gameBtn, gameLbl, gameIcon = newBtn("GAME", "rbxassetid://16538185173", 0.3)
+	gameBtn.Size = UDim2.new(0.7, 0, 0.1, 0)
+	gameBtn.Position = UDim2.new(0.125, 0, 0.475, 0)
+	gameIcon.Size = UDim2.new(0.18, 0, 0.65, 0)
+	gameIcon.Position = UDim2.new(0.05, 0, 0.225, 0)
+
+	local universalbtn, universalLbl, universalIcon = newBtn("UNIVERSAL", "rbxassetid://91025921570971", 0.5)
+	universalbtn.Size = UDim2.new(0.7, 0, 0.1, 0)
+	universalbtn.Position = UDim2.new(0.125, 0, 0.6, 0)
+	universalIcon.Size = UDim2.new(0.2, 0, 0.65, 0)
+	universalIcon.Position = UDim2.new(0.05, 0, 0.2125, 0)
+	--gameLbl.Size = UDim2.new(0.3, 0, 1, 0)
+	--gameLbl.Position = UDim2.new(0.3, 0, 0.1, 0)
+
+
+	local selectedBtn = mainBtn
+	local selectedFrame = frame_1
+
+	switcherLine.Position=UDim2.new(switcherLine.Position.X.Scale,0,mainBtn.Position.Y.Scale,0)
+
+	local mainMio = Instance.new("ImageLabel")
+	mainMio.Size=UDim2.new(1,0,1,0)
+	mainMio.Image="rbxassetid://77991129754373"
+	mainMio.ImageColor3=Color3.fromRGB(0, 255, 225)
+	mainMio.BackgroundTransparency=1
+	mainMio.ImageTransparency=0.7
+	mainMio.Parent=mainBtn
+
+	local gameMio = Instance.new("ImageLabel")
+	gameMio.Size=UDim2.new(0,0,1,0)
+	gameMio.Image="rbxassetid://77991129754373"
+	gameMio.ImageColor3=Color3.fromRGB(0, 255, 225)
+	gameMio.BackgroundTransparency=1
+	gameMio.ImageTransparency=0.7
+	gameMio.Parent=gameBtn
+
+	local playerMio = Instance.new("ImageLabel")
+	playerMio.Size=UDim2.new(0,0,1,0)
+	playerMio.Image="rbxassetid://77991129754373"
+	playerMio.ImageColor3=Color3.fromRGB(0, 255, 225)
+	playerMio.BackgroundTransparency=1
+	playerMio.ImageTransparency=0.7
+	playerMio.Parent=playerBtn
+
+	local universalMio = Instance.new("ImageLabel")
+	universalMio.Size=UDim2.new(0,0,1,0)
+	universalMio.Image="rbxassetid://77991129754373"
+	universalMio.ImageColor3=Color3.fromRGB(0, 255, 225)
+	universalMio.BackgroundTransparency=1
+	universalMio.ImageTransparency=0.75
+	universalMio.Parent=universalbtn
+
+	local targetMio = Instance.new("ImageLabel")
+	targetMio.Size=UDim2.new(0,0,1,0)
+	targetMio.Image="rbxassetid://77991129754373"
+	targetMio.ImageColor3=Color3.fromRGB(0, 255, 225)
+	targetMio.BackgroundTransparency=1
+	targetMio.ImageTransparency=0.75
+	targetMio.Parent=targetbtn
+
+	local mioSelecteion = false
+	local function display(btn, frame)
+		if selectedBtn == btn then return end
+		mioSelecteion=false
+		local alt, elf = nil, nil
+		if selectedBtn == mainBtn then alt=mainMio
+		elseif selectedBtn == gameBtn then alt=gameMio
+		elseif selectedBtn == playerBtn then alt=playerMio
+		elseif selectedBtn == universalbtn then alt=universalMio
+		elseif selectedBtn == targetbtn then alt=targetMio
+		end
+		
+		if btn == mainBtn then elf=mainMio
+		elseif btn == gameBtn then elf=gameMio
+		elseif btn == playerBtn then elf=playerMio
+		elseif btn == universalbtn then elf=universalMio
+		elseif btn == targetbtn then elf=targetMio
+		end
+		
+		if alt then 
+			local motion = tweenService:Create(alt, TweenInfo.new(0.2), {Size=UDim2.new(0,0,alt.Size.Y.Scale,0)})
+			motion:Play()
+		end
+		
+		local motion = tweenService:Create(elf, TweenInfo.new(0.2), {Size=UDim2.new(1,0,elf.Size.Y.Scale,0)})
+		motion:Play()
+		
+		selectedFrame.Visible = false
+		
+		
+		
+		tweenService:Create(switcherLine, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Position = UDim2.new(switcherLine.Position.X.Scale,0, btn.Position.Y.Scale, 0),
+			Size = UDim2.new(switcherLine.Size.X.Scale, 0, btn.Size.Y.Scale, 0)
+		}):Play()
+		
+		frame.Visible = true
+		
+		selectedBtn = btn
+		selectedFrame = frame
+	end
+
+	mainBtn.MouseButton1Click:Connect(function() display(mainBtn, frame_1) end)
+	gameBtn.MouseButton1Click:Connect(function() display(gameBtn, frame_2) end)
+	playerBtn.MouseButton1Click:Connect(function() display(playerBtn, frame_3) end)
+	universalbtn.MouseButton1Click:Connect(function() display(universalbtn, frame_4) end)
+	targetbtn.MouseButton1Click:Connect(function() display(targetbtn, frame_5) end)
+
+	-- 9. تأثيرات تفاعل أزرار الإغلاق والتصغير
+	destroyBtn.MouseEnter:Connect(function() destroyBtn.BackgroundTransparency = 0 end)
+	destroyBtn.MouseLeave:Connect(function() destroyBtn.BackgroundTransparency = 1 end)
+	destroyBtn.MouseButton1Click:Connect(function()blackScreen.Visible=true end)
+	killFrameBtn.MouseButton1Click:Connect(function()screenGui:Destroy()end)
+	CancelFrameBtn.MouseButton1Click:Connect(function() blackScreen.Visible=false end)
+	local menuAppearState = false
+	local isHidden = false
+	hideBtn.MouseEnter:Connect(function() hideBtn.BackgroundTransparency = 0 end)
+	hideBtn.MouseLeave:Connect(function() hideBtn.BackgroundTransparency = 1 end)
+	iconFrame.MouseButton1Click:Connect(function()
+		s2.Visible=false
+		frameImageTitle.Size=UDim2.new(frameImageTitle.Size.X.Scale,0,frameImageTitle.Size.Y.Scale,27.5)
+		frameImageTitle.Position=UDim2.new(0,0,0,-17.5)
+		local oldpos = iconFrame.Position
+		local targetPos = UDim2.new(iconFrame.Position.X.Scale, iconFrame.Position.X.Offset + 25, iconFrame.Position.Y.Scale, iconFrame.Position.Y.Offset + 25)
+		local iconMotion = tweenService:Create(iconFrame,TweenInfo.new(0.3),{Size=UDim2.new(),Position=targetPos})
+		iconMotion:Play()
+		iconMotion.Completed:Connect(function()
+			iconFrame.Visible=false
+			mainFrame.Visible=true
+			mainFrame.Position=oldpos
+			local frameMotion = tweenService:Create(mainFrame,TweenInfo.new(0.4),{Size=mainFrame_pos})
+			frameMotion:Play()
+			frameMotion.Completed:Connect(function()
+				s1.Visible=true
+			end)
+		end)
+
 	end)
+
+	hideBtn.MouseButton1Click:Connect(function()
+		menuAppearState=true
+		s1.Visible=false
+		frameImageTitle.Size=UDim2.new(frameImageTitle.Size.X.Scale,0,1,0)
+		frameImageTitle.Position=UDim2.new(0,0,0,0)
+		local frameMotion = tweenService:Create(mainFrame,TweenInfo.new(0.4),{Size=UDim2.new(0,0,0,0)})
+		frameMotion:Play()
+		frameMotion.Completed:Connect(function()
+			mainFrame.Visible = false
+
+			-- 1. الموضع النهائي الذي نريد أن تستقر فيه الأيقونة (موضع القائمة)
+			local finalPos = mainFrame.Position
+
+			-- 2. حساب موضع البداية (بحيث يكون الحجم 0 في منتصف الموضع النهائي تماماً)
+			local startPos = UDim2.new(
+				finalPos.X.Scale, finalPos.X.Offset + (iconFrame_pos.X.Offset / 2),
+				finalPos.Y.Scale, finalPos.Y.Offset + (iconFrame_pos.Y.Offset / 2)
+			)
+
+			iconFrame.Size = UDim2.new(0, 0, 0, 0)
+			iconFrame.Position = startPos
+			iconFrame.Visible = true
+
+			-- 4. التكبير والانزلاق إلى الموضع النهائي المحدد بنفس الوقت ليعطي تأثير التكبير من المنتصف
+			local iconMotion = tweenService:Create(iconFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+				Size = iconFrame_pos,
+				Position = finalPos
+			})
+			iconMotion:Play()
+			iconMotion.Completed:Connect(function()
+				s2.Visible=true
+			end)
+		end)
+	end)
+
+	-- 10. الحواف والإنحناءات النهائية
+	newUi(mainFrame, 10)
+	newUi(switcherLine, 10)
+	newUi(iconFrame,10)
+	newUi(blackScreen,10)
+	newUi(warnFrame,10)
+	newUi(killFrameBtn,10)
+	newUi(CancelFrameBtn,10)
+
+	newCustomUi(frameTitle, 0, 0, 10, 10)
+	newCustomUi(destroyBtn, 0, 0, 10, 0)
+	newCustomUi(liftFrame,0,10,0,0)
+	
+	newStroke(Color3.fromRGB(75, 151, 226), 2, iconFrame)
+	newStroke(Color3.fromRGB(75, 151, 226), 2, mainFrame)
+	newStroke(Color3.fromRGB(75, 151, 226), 1, liftFrame)
+	newStroke(Color3.fromRGB(75, 151, 226), 1, frameTitle)
+	newStroke(Color3.fromRGB(75, 151, 226), 1, warnFrame)
+	newStroke(Color3.fromRGB(75, 151, 226), 1, killFrameBtn)
+	newStroke(Color3.fromRGB(75, 151, 226), 1, CancelFrameBtn)
+	print(mainBtn.Position)
 end
 
--- 7. الفريمات المحتواة (Pages)
-local function createContentFrame()
-	local sf = Instance.new("ScrollingFrame")
-	sf.Size = UDim2.new(1, -130, 1, -32)
-	sf.Position = UDim2.new(0, 130, 0, 32)
-	sf.BackgroundTransparency = 1
-	sf.Visible = false
-	sf.ScrollBarThickness = 4
-	sf.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
-	sf.Parent = mainFrame
-	setupLayout(sf)
-	return sf
+local function ExistingUI(name)
+	for _, child in ipairs(uiParent:GetDescendants()) do
+		if child:IsA("ScreenGui") and child.Name == name then
+			return child
+		end
+	end
 end
 
-local frame_1 = createContentFrame()
-local frame_2 = createContentFrame()
-local frame_3 = createContentFrame()
+local existingHub = ExistingUI("InfinityHubGui")
 
-frame_1.Visible = true
+if not existingHub then warn("Hub not found.")
+else print("Hub found") end
+if existingHub then
+	local excitscreenGui = Instance.new("ScreenGui")
+	excitscreenGui.Name = "ExcitScreen"
+	excitscreenGui.ResetOnSpawn = false
+	excitscreenGui.Parent = uiParent
 
--- 8. ربط الأزرار والصفحات
-local mainBtn, mainLbl, mainIcon = newBtn("Info", "rbxassetid://6771547001")
-local gameBtn, gameLbl, gameIcon = newBtn("Game", "rbxassetid://76578801302055")
-local playerBtn, playerLbl, playerIcon = newBtn("Player", "rbxassetid://84822678364928")
+	local replaceFrame = Instance.new("Frame")
+	replaceFrame.Size = UDim2.new(0.3, 0, 0.3, 0)
+	replaceFrame.Position = UDim2.new(0.35, 0, 0.35, 0)
+	replaceFrame.BackgroundColor3 = Color3.fromRGB(64, 64, 64)
+	replaceFrame.BackgroundTransparency = 0.5
+	replaceFrame.Visible = true
+	replaceFrame.ZIndex = 2
+	replaceFrame.Parent = excitscreenGui 
 
-mainBtn.BackgroundTransparency = 0.75
+	local replaceLabel = Instance.new("TextLabel")
+	replaceLabel.Size = UDim2.new(1, 0, 0.4, 0)
+	replaceLabel.Position = UDim2.new(0, 0, 0.15, 0)
+	replaceLabel.BackgroundTransparency = 1
+	replaceLabel.Text = "The original UI already exists"
+	replaceLabel.ZIndex = 2
+	replaceLabel.Parent = replaceFrame
+	local replaceLabelFixed = fixedTxt(replaceLabel, 0.9, 0.05)
+	replaceLabelFixed.Size = UDim2.new(0.9, 0, 0.6, 0)
+	replaceLabelFixed.Position = UDim2.new(0.05, 0, 0.15, 0)
+	replaceLabelFixed.TextColor3 = Color3.fromRGB(255, 255, 255)
+	replaceLabelFixed.ZIndex = 3
 
-local selectedBtn = mainBtn
-local selectedFrame = frame_1
+	local replacebtn = Instance.new("TextButton")
+	replacebtn.Size = UDim2.new(0.3, 0, 0.2, 0)
+	replacebtn.Position = UDim2.new(0.55, 0, 0.7, 0)
+	replacebtn.BackgroundColor = BrickColor.new("Royal purple")
+	replacebtn.TextColor = BrickColor.White()
+	replacebtn.Text = "Replace"
+	replacebtn.ZIndex = 2
+	replacebtn.Parent = replaceFrame
+	local replacebtnFixed = fixedTxt(replacebtn, 0.8, 0.1)
+	replacebtnFixed.Size = UDim2.new(0.8, 0, 0.8, 0)
+	replacebtnFixed.Position = UDim2.new(0.1, 0, 0.1, 0)
+	replacebtnFixed.ZIndex = 3
 
-local function display(btn, frame)
-	if selectedBtn == btn then return end
-	selectedBtn.BackgroundTransparency = 1
-	selectedFrame.Visible = false
+	local cancelbtn = Instance.new("TextButton")
+	cancelbtn.Size = UDim2.new(0.3, 0, 0.2, 0)
+	cancelbtn.Position = UDim2.new(0.15, 0, 0.7, 0)
+	cancelbtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+	cancelbtn.TextColor = BrickColor.White()
+	cancelbtn.Text = "Cancel"
+	cancelbtn.ZIndex = 2
+	cancelbtn.Parent = replaceFrame
+	local cancelbtnFixed = fixedTxt(cancelbtn, 0.8, 0.1)
+	cancelbtnFixed.Size = UDim2.new(0.8, 0, 0.8, 0)
+	cancelbtnFixed.Position = UDim2.new(0.1, 0, 0.1, 0)
+	cancelbtnFixed.ZIndex = 3
 
-	btn.BackgroundTransparency = 0
-	frame.Visible = true
+	-- زر Cancel: إغلاق التنبيه وإيقاف إنشاء الواجهة الجديدة
+	cancelbtn.MouseButton1Click:Connect(function()
+		excitscreenGui:Destroy()
+	end)
 
-	selectedBtn = btn
-	selectedFrame = frame
+	replacebtn.MouseButton1Click:Connect(function()
+		excitscreenGui:Destroy()
+		task.wait(0.5)
+		existingHub:Destroy()
+
+		newHub()
+	end)
+	
+	newStroke(Color3.fromRGB(75, 151, 226), 1, replaceFrame)
+	newStroke(Color3.fromRGB(75, 151, 226), 1, replacebtn)
+	newStroke(Color3.fromRGB(75, 151, 226), 1, cancelbtn)
+else
+	newHub()
 end
-
-mainBtn.MouseButton1Click:Connect(function() display(mainBtn, frame_1) end)
-gameBtn.MouseButton1Click:Connect(function() display(gameBtn, frame_2) end)
-playerBtn.MouseButton1Click:Connect(function() display(playerBtn, frame_3) end)
-
--- 9. تأثيرات تفاعل أزرار الإغلاق والتصغير
-destroyBtn.MouseEnter:Connect(function() destroyBtn.BackgroundTransparency = 0 end)
-destroyBtn.MouseLeave:Connect(function() destroyBtn.BackgroundTransparency = 1 end)
-destroyBtn.MouseButton1Click:Connect(function() screenGui:Destroy() end)
-
-local isHidden = false
-hideBtn.MouseEnter:Connect(function() hideBtn.BackgroundTransparency = 0 end)
-hideBtn.MouseLeave:Connect(function() hideBtn.BackgroundTransparency = 1 end)
-hideBtn.MouseButton1Click:Connect(function()
-	isHidden = not isHidden
-	frame_1.Visible = selectedFrame == frame_1
-	frame_2.Visible = selectedFrame == frame_2
-	frame_3.Visible = selectedFrame == frame_3
-end)
-
--- 10. الحواف والإنحناءات النهائية
-newStroke(Color3.fromRGB(55, 55, 55), 1, mainFrame)
-newUi(mainFrame, 10)
-newCustomUi(frameTitle, 0, 0, 10, 10)
-newCustomUi(destroyBtn, 0, 0, 10, 0)
-
-setupLayout(listFrame)
