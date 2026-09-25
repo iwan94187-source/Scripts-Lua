@@ -59,7 +59,7 @@ local function newHub()
 	local screenGui = Instance.new("ScreenGui")
 	screenGui.Name = "InfinityHubGui"
 	screenGui.ResetOnSpawn = false
-	screenGui.Parent = playerGui
+	screenGui.Parent = uiParent
 
 	local iconFrame_pos = UDim2.new(0,50,0,50)
 	local iconFrame = Instance.new("ImageButton")
@@ -128,12 +128,12 @@ local function newHub()
 	frameTitle.TextColor3 = Color3.fromRGB(220, 220, 220)
 	frameTitle.TextSize = 14
 	frameTitle.Parent = mainFrame
-	
+
 	local imb = {
 		Scale={Size=UDim2.new(UDim2.new(0.2,0,1,0)), Position=UDim2.new()},
 		Offset={Size=UDim2.new(UDim2.new(0.2,0,1,27.5)), Position=UDim2.new(UDim2.new(0,0,0,-17.5))}
 	}
-	
+
 	local frameImageTitle = Instance.new("ImageLabel")
 	frameImageTitle.Size=UDim2.new(0.2,0,1,27.5)
 	frameImageTitle.Position=UDim2.new(0,0,0,-17.5)
@@ -240,7 +240,6 @@ local function newHub()
 	killFrameBtnFix.TextColor3=Color3.fromRGB(255, 165, 165)
 	killFrameBtnFix.ZIndex=6
 
-
 	local CancelFrameBtn = Instance.new("TextButton")
 	CancelFrameBtn.Size=UDim2.new(0.25,0,0.2,0)
 	CancelFrameBtn.Position=UDim2.new(0.125,0,0.7,0)
@@ -287,7 +286,7 @@ local function newHub()
 		lbl.TextScaled = true
 		lbl.TextColor3 = Color3.fromRGB(220, 220, 220)
 		lbl.Parent = btn
-		
+
 		return btn, lbl, icon
 	end
 
@@ -323,11 +322,23 @@ local function newHub()
 		return sf
 	end
 
+	local function newMio(parent)
+		local mio = Instance.new("ImageLabel")
+		mio.Size=UDim2.new(0,0,1,0)
+		mio.Image="rbxassetid://77991129754373"
+		mio.ImageColor3=Color3.fromRGB(0, 255, 225)
+		mio.BackgroundTransparency=1
+		mio.ImageTransparency=0.7
+		mio.Parent=parent
+		return mio
+	end
+
 	local frame_1 = createContentFrame()
 	local frame_2 = createContentFrame()
 	local frame_3 = createContentFrame()
 	local frame_4 = createContentFrame()
 	local frame_5 = createContentFrame()
+	local frame_6 = createContentFrame()
 
 	frame_1.Visible = true
 
@@ -335,7 +346,7 @@ local function newHub()
 	local mainBtn, mainLbl, mainIcon = newBtn("INFO", "rbxassetid://15828140488", 0.25)
 	mainBtn.Size = UDim2.new(0.7, 0, 0.1, 0)
 	mainBtn.Position = UDim2.new(0.125, 0, 0.1, 0)
-	mainIcon.Size = UDim2.new(0.18, 0, 0.6, 0)
+	mainIcon.Size = UDim2.new(0.2, 0, 0.6, 0)
 	mainIcon.Position = UDim2.new(0.05, 0, 0.225, 0)
 
 	local playerBtn, playerLbl, playerIcon = newBtn("PLAYER", "rbxassetid://7992557358", 0.4)
@@ -354,7 +365,7 @@ local function newHub()
 	local gameBtn, gameLbl, gameIcon = newBtn("GAME", "rbxassetid://16538185173", 0.3)
 	gameBtn.Size = UDim2.new(0.7, 0, 0.1, 0)
 	gameBtn.Position = UDim2.new(0.125, 0, 0.475, 0)
-	gameIcon.Size = UDim2.new(0.18, 0, 0.65, 0)
+	gameIcon.Size = UDim2.new(0.2, 0, 0.65, 0)
 	gameIcon.Position = UDim2.new(0.05, 0, 0.225, 0)
 
 	local universalbtn, universalLbl, universalIcon = newBtn("UNIVERSAL", "rbxassetid://91025921570971", 0.5)
@@ -362,8 +373,12 @@ local function newHub()
 	universalbtn.Position = UDim2.new(0.125, 0, 0.6, 0)
 	universalIcon.Size = UDim2.new(0.2, 0, 0.65, 0)
 	universalIcon.Position = UDim2.new(0.05, 0, 0.2125, 0)
-	--gameLbl.Size = UDim2.new(0.3, 0, 1, 0)
-	--gameLbl.Position = UDim2.new(0.3, 0, 0.1, 0)
+
+	local settingbtn, settingLbl, settingIcon = newBtn("SETTING", "rbxassetid://9405931578", 0.5)
+	settingbtn.Size = UDim2.new(0.7, 0, 0.1, 0)
+	settingbtn.Position = UDim2.new(0.125, 0, 0.725, 0)
+	settingIcon.Size = UDim2.new(0.2, 0, 0.65, 0)
+	settingIcon.Position = UDim2.new(0.05, 0, 0.2125, 0)
 
 
 	local selectedBtn = mainBtn
@@ -371,45 +386,13 @@ local function newHub()
 
 	switcherLine.Position=UDim2.new(switcherLine.Position.X.Scale,0,mainBtn.Position.Y.Scale,0)
 
-	local mainMio = Instance.new("ImageLabel")
+	local mainMio = newMio(mainBtn)
 	mainMio.Size=UDim2.new(1,0,1,0)
-	mainMio.Image="rbxassetid://77991129754373"
-	mainMio.ImageColor3=Color3.fromRGB(0, 255, 225)
-	mainMio.BackgroundTransparency=1
-	mainMio.ImageTransparency=0.7
-	mainMio.Parent=mainBtn
-
-	local gameMio = Instance.new("ImageLabel")
-	gameMio.Size=UDim2.new(0,0,1,0)
-	gameMio.Image="rbxassetid://77991129754373"
-	gameMio.ImageColor3=Color3.fromRGB(0, 255, 225)
-	gameMio.BackgroundTransparency=1
-	gameMio.ImageTransparency=0.7
-	gameMio.Parent=gameBtn
-
-	local playerMio = Instance.new("ImageLabel")
-	playerMio.Size=UDim2.new(0,0,1,0)
-	playerMio.Image="rbxassetid://77991129754373"
-	playerMio.ImageColor3=Color3.fromRGB(0, 255, 225)
-	playerMio.BackgroundTransparency=1
-	playerMio.ImageTransparency=0.7
-	playerMio.Parent=playerBtn
-
-	local universalMio = Instance.new("ImageLabel")
-	universalMio.Size=UDim2.new(0,0,1,0)
-	universalMio.Image="rbxassetid://77991129754373"
-	universalMio.ImageColor3=Color3.fromRGB(0, 255, 225)
-	universalMio.BackgroundTransparency=1
-	universalMio.ImageTransparency=0.75
-	universalMio.Parent=universalbtn
-
-	local targetMio = Instance.new("ImageLabel")
-	targetMio.Size=UDim2.new(0,0,1,0)
-	targetMio.Image="rbxassetid://77991129754373"
-	targetMio.ImageColor3=Color3.fromRGB(0, 255, 225)
-	targetMio.BackgroundTransparency=1
-	targetMio.ImageTransparency=0.75
-	targetMio.Parent=targetbtn
+	local gameMio = newMio(gameBtn)
+	local playerMio = newMio(playerBtn)
+	local universalMio = newMio(universalbtn)
+	local targetMio = newMio(targetbtn)
+	local settingMio = newMio(settingbtn)
 
 	local mioSelecteion = false
 	local function display(btn, frame)
@@ -421,34 +404,34 @@ local function newHub()
 		elseif selectedBtn == playerBtn then alt=playerMio
 		elseif selectedBtn == universalbtn then alt=universalMio
 		elseif selectedBtn == targetbtn then alt=targetMio
+		elseif selectedBtn == settingbtn then alt=settingMio
 		end
-		
+
 		if btn == mainBtn then elf=mainMio
 		elseif btn == gameBtn then elf=gameMio
 		elseif btn == playerBtn then elf=playerMio
 		elseif btn == universalbtn then elf=universalMio
 		elseif btn == targetbtn then elf=targetMio
+		elseif btn == settingbtn then elf=settingMio
 		end
-		
+
 		if alt then 
 			local motion = tweenService:Create(alt, TweenInfo.new(0.2), {Size=UDim2.new(0,0,alt.Size.Y.Scale,0)})
 			motion:Play()
 		end
-		
+
 		local motion = tweenService:Create(elf, TweenInfo.new(0.2), {Size=UDim2.new(1,0,elf.Size.Y.Scale,0)})
 		motion:Play()
-		
+
 		selectedFrame.Visible = false
-		
-		
-		
+
 		tweenService:Create(switcherLine, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 			Position = UDim2.new(switcherLine.Position.X.Scale,0, btn.Position.Y.Scale, 0),
 			Size = UDim2.new(switcherLine.Size.X.Scale, 0, btn.Size.Y.Scale, 0)
 		}):Play()
-		
+
 		frame.Visible = true
-		
+
 		selectedBtn = btn
 		selectedFrame = frame
 	end
@@ -458,7 +441,7 @@ local function newHub()
 	playerBtn.MouseButton1Click:Connect(function() display(playerBtn, frame_3) end)
 	universalbtn.MouseButton1Click:Connect(function() display(universalbtn, frame_4) end)
 	targetbtn.MouseButton1Click:Connect(function() display(targetbtn, frame_5) end)
-
+	settingbtn.MouseButton1Click:Connect(function() display(settingbtn, frame_6) end)
 	-- 9. تأثيرات تفاعل أزرار الإغلاق والتصغير
 	destroyBtn.MouseEnter:Connect(function() destroyBtn.BackgroundTransparency = 0 end)
 	destroyBtn.MouseLeave:Connect(function() destroyBtn.BackgroundTransparency = 1 end)
@@ -537,7 +520,7 @@ local function newHub()
 	newCustomUi(frameTitle, 0, 0, 10, 10)
 	newCustomUi(destroyBtn, 0, 0, 10, 0)
 	newCustomUi(liftFrame,0,10,0,0)
-	
+
 	newStroke(Color3.fromRGB(75, 151, 226), 2, iconFrame)
 	newStroke(Color3.fromRGB(75, 151, 226), 2, mainFrame)
 	newStroke(Color3.fromRGB(75, 151, 226), 1, liftFrame)
@@ -570,7 +553,7 @@ if existingHub then
 	replaceFrame.Size = UDim2.new(0.3, 0, 0.3, 0)
 	replaceFrame.Position = UDim2.new(0.35, 0, 0.35, 0)
 	replaceFrame.BackgroundColor3 = Color3.fromRGB(64, 64, 64)
-	replaceFrame.BackgroundTransparency = 0.5
+	replaceFrame.BackgroundTransparency = 0.25
 	replaceFrame.Visible = true
 	replaceFrame.ZIndex = 2
 	replaceFrame.Parent = excitscreenGui 
@@ -626,7 +609,10 @@ if existingHub then
 
 		newHub()
 	end)
-	
+
+	newUi(replaceFrame,10)
+	newUi(replacebtn,10)
+	newUi(cancelbtn,10)
 	newStroke(Color3.fromRGB(75, 151, 226), 1, replaceFrame)
 	newStroke(Color3.fromRGB(75, 151, 226), 1, replacebtn)
 	newStroke(Color3.fromRGB(75, 151, 226), 1, cancelbtn)
