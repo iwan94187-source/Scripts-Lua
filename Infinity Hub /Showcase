@@ -385,25 +385,6 @@ local function newHub()
 	local frame_4 = createContentFrame()
 	local frame_5 = createContentFrame()
 	local frame_6 = createContentFrame()
-
-	frame_1.Visible = true
-	
-	local userIntoFrame = Instance.new("Frame")
-	userIntoFrame.Size=UDim2.new(0.85,0,0.2,0)
-	userIntoFrame.Position=UDim2.new(0.1,0,0.025,0)
-	userIntoFrame.BackgroundColor3=Color3.fromRGB(48, 48, 48)
-	userIntoFrame.BackgroundTransparency=0.75
-	userIntoFrame.Parent=frame_1
-	
-	local gameinfoFrame = Instance.new("Frame")
-	gameinfoFrame.Size=UDim2.new(0.85,0,0.175,0)
-	gameinfoFrame.Position=UDim2.new(0.1,0,0.25,0)
-	gameinfoFrame.BackgroundColor3=Color3.fromRGB(48, 48, 48)
-	gameinfoFrame.BackgroundTransparency=0.75
-	gameinfoFrame.Parent=frame_1
-	
-	newshadowForce(userIntoFrame,0.75,Color3.fromRGB(125, 125, 125))
-	newshadowForce(gameinfoFrame,0.75,Color3.fromRGB(125, 125, 125))
 	
 	local function newCapLbl(parent,name,img)
 		local lbl = Instance.new("TextLabel")
@@ -420,6 +401,58 @@ local function newHub()
 		icon.Image=img
 		return lbl,icon
 	end
+
+
+	local function counterFixes(parent,title,value)
+		local fix = fixedTxt(parent)
+		fix.Size=UDim2.new(0.4,0,0.8,0)
+		fix.Position=UDim2.new(0,0,0.3,0)
+		fix.TextXAlignment=Enum.TextXAlignment.Left
+		fix.FontFace=Font.new("rbxasset://fonts/families/Roboto.json",Enum.FontWeight.Bold,Enum.FontStyle.Normal)
+		fix.Text=title
+		local fix2 = fixedTxt(parent)
+		fix2.Size=UDim2.new(0.55,0,0.8,0)
+		fix2.Position=UDim2.new(0.5,0,0.3,0)
+		fix2.TextXAlignment=Enum.TextXAlignment.Right
+		fix2.FontFace=Font.new("rbxasset://fonts/families/Roboto.json",Enum.FontWeight.Bold,Enum.FontStyle.Normal)
+		fix2.TextColor3=Color3.fromRGB(85, 173, 255)
+		fix2.Text=value
+		return fix, fix2
+	end
+
+	local function newCopyBtn(pos, parent)
+		local btn = Instance.new("ImageButton")
+		btn.Size=UDim2.new(0.04,0,0.1,0)
+		btn.Position=UDim2.new(0.925,0,pos,0)
+		btn.BackgroundTransparency=1
+		btn.Image="rbxassetid://18751598717"
+		btn.ImageColor3=Color3.fromRGB(150, 255, 255)
+		btn.Parent=parent
+	end
+	local function newTitlelbl(parent,pos)
+		local lbl = Instance.new("TextLabel")
+		lbl.Size=UDim2.new(0.8,0,0.125,0)
+		lbl.Position=UDim2.new(0.05,0,pos,0)
+		lbl.BackgroundTransparency=1
+		lbl.Name="usrLbl"
+		lbl.Parent=parent
+		return lbl
+	end
+	
+	frame_1.Visible = true
+	
+	local userIntoFrame = Instance.new("Frame")
+	userIntoFrame.Size=UDim2.new(0.85,0,0.2,0)
+	userIntoFrame.Position=UDim2.new(0.1,0,0.025,0)
+	userIntoFrame.BackgroundColor3=Color3.fromRGB(48, 48, 48)
+	userIntoFrame.BackgroundTransparency=0.75
+	userIntoFrame.Parent=frame_1
+	local gameinfoFrame = Instance.new("Frame")
+	gameinfoFrame.Size=UDim2.new(0.85,0,0.175,0)
+	gameinfoFrame.Position=UDim2.new(0.1,0,0.25,0)
+	gameinfoFrame.BackgroundColor3=Color3.fromRGB(48, 48, 48)
+	gameinfoFrame.BackgroundTransparency=0.75
+	gameinfoFrame.Parent=frame_1
 	
 	local userCapLbl,userImageIcon = newCapLbl(userIntoFrame,"USER INFO","rbxassetid://84822678364928")
 	userCapLbl.Size=UDim2.new(0.35,0,0.175,0)
@@ -441,41 +474,45 @@ local function newHub()
 	gameInfoCapLblFixed.FontFace=Font.new("rbxasset://fonts/families/Roboto.json",Enum.FontWeight.Bold,Enum.FontStyle.Normal)
 	gameInfoCapLblFixed.Position=UDim2.new(0.3,0,0,0)
 	
-	local function counterFixes(parent,title,value)
-		local fix = fixedTxt(parent)
-		fix.Size=UDim2.new(0.4,0,0.8,0)
-		fix.Position=UDim2.new(0,0,0.3,0)
-		fix.TextXAlignment=Enum.TextXAlignment.Left
-		fix.FontFace=Font.new("rbxasset://fonts/families/Roboto.json",Enum.FontWeight.Bold,Enum.FontStyle.Normal)
-		fix.Text=title
-		local fix2 = fixedTxt(parent)
-		fix2.Size=UDim2.new(0.55,0,0.8,0)
-		fix2.Position=UDim2.new(0.5,0,0.3,0)
-		fix2.TextXAlignment=Enum.TextXAlignment.Right
-		fix2.FontFace=Font.new("rbxasset://fonts/families/Roboto.json",Enum.FontWeight.Bold,Enum.FontStyle.Normal)
-		fix2.TextColor3=Color3.fromRGB(85, 173, 255)
-		fix2.Text=value
-		return fix, fix2
-	end
+	local playerInfoFrame = Instance.new("Frame")
+	playerInfoFrame.Size=UDim2.new(0.85,0,0.175,0)
+	playerInfoFrame.Position=UDim2.new(0.1,0,0.025,0)
+	playerInfoFrame.BackgroundColor3=Color3.fromRGB(48, 48, 48)
+	playerInfoFrame.BackgroundTransparency=0.75
+	playerInfoFrame.Parent=frame_2
+	local playerInfoCapLbl,playerInfoImageIcon = newCapLbl(playerInfoFrame,"CHARACTER INFO","rbxassetid://84681188457139")
+	playerInfoCapLbl.Size=UDim2.new(0.4,0,0.2,0)
+	playerInfoCapLbl.Position=UDim2.new(0,0,0,0)
+	playerInfoImageIcon.Size=UDim2.new(0.15,0,0.8,0)
+	playerInfoImageIcon.Position=UDim2.new(0.075,0,0.1,0)
+	local playerInfoCapLblFixed = fixedTxt(playerInfoCapLbl)
+	playerInfoCapLblFixed.Size=UDim2.new(0.65,0,0.75,0)
+	playerInfoCapLblFixed.FontFace=Font.new("rbxasset://fonts/families/Roboto.json",Enum.FontWeight.Bold,Enum.FontStyle.Normal)
+	playerInfoCapLblFixed.Position=UDim2.new(0.275,0,0.15,0)
 	
-	local function newCopyBtn(pos)
-		local btn = Instance.new("ImageButton")
-		btn.Size=UDim2.new(0.04,0,0.1,0)
-		btn.Position=UDim2.new(0.925,0,pos,0)
-		btn.BackgroundTransparency=1
-		btn.Image="rbxassetid://18751598717"
-		btn.ImageColor3=Color3.fromRGB(150, 255, 255)
-		btn.Parent=userIntoFrame
-	end
-	local function newTitlelbl(parent,pos)
-		local lbl = Instance.new("TextLabel")
-		lbl.Size=UDim2.new(0.8,0,0.125,0)
-		lbl.Position=UDim2.new(0.05,0,pos,0)
-		lbl.BackgroundTransparency=1
-		lbl.Name="usrLbl"
-		lbl.Parent=parent
-		return lbl
-	end
+	local movementFrame = Instance.new("Frame")
+	movementFrame.Size = UDim2.new(0.85, 0, 0.175, 0)
+	movementFrame.Position = UDim2.new(0.1, 0, 0.225, 0)
+	movementFrame.BackgroundColor3 = Color3.fromRGB(48, 48, 48)
+	movementFrame.BackgroundTransparency = 0.75
+	movementFrame.Parent = frame_2
+
+	local movementCapLbl, movementImageIcon = newCapLbl(movementFrame, "MOVEMENT", "rbxassetid://123918686535571")
+	movementCapLbl.Size = UDim2.new(0.375, 0, 0.2, 0)
+	movementCapLbl.Position = UDim2.new(0, 0, 0, 0)
+	movementImageIcon.Size = UDim2.new(0.175, 0, 0.775, 0)
+	movementImageIcon.Position = UDim2.new(0.075, 0, 0.095, 0)
+
+	local movementCapLblFixed = fixedTxt(movementCapLbl)
+	movementCapLblFixed.Size = UDim2.new(0.625, 0, 0.75, 0)
+	movementCapLblFixed.FontFace = Font.new("rbxasset://fonts/families/Roboto.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+	movementCapLblFixed.Position = UDim2.new(0.3, 0, 0.2, 0)
+	
+	newshadowForce(userIntoFrame,0.75,Color3.fromRGB(125, 125, 125))
+	newshadowForce(gameinfoFrame,0.75,Color3.fromRGB(125, 125, 125))
+	
+	newshadowForce(playerInfoFrame,0.75,Color3.fromRGB(125, 125, 125))
+	newshadowForce(movementFrame,0.75,Color3.fromRGB(125, 125, 125))
 	
 	local function getExecutorDetails()
 		local name, version = "Unknown", "N/A"
@@ -494,10 +531,10 @@ local function newHub()
 	local usernameTitleLbl,userIdTitleLbl,ageAccountTitleLbl,executerTitleLbl=newTitlelbl(userIntoFrame,0.2),newTitlelbl(userIntoFrame,0.4),newTitlelbl(userIntoFrame,0.6),newTitlelbl(userIntoFrame,0.8)
 	local gameTitleLbl,playersCountTitleLbl,serverTimeTitleLbl=newTitlelbl(gameinfoFrame,0.28),newTitlelbl(gameinfoFrame,0.525),newTitlelbl(gameinfoFrame,0.775)
 	gameTitleLbl.Size=UDim2.new(0.8,0,0.125,0)
-	local usernameCopyBtn = newCopyBtn(0.25)
-	local userIdCopyBtn = newCopyBtn(0.45)
-	local ageAccountCopyBtn = newCopyBtn(0.65)
-	local executerCopyBtn = newCopyBtn(0.85)
+	local usernameCopyBtn = newCopyBtn(0.25,userIntoFrame)
+	local userIdCopyBtn = newCopyBtn(0.45,userIntoFrame)
+	local ageAccountCopyBtn = newCopyBtn(0.65,userIntoFrame)
+	local executerCopyBtn = newCopyBtn(0.85,userIntoFrame)
 	
 	local usernameTitleLblFix, usernameTitleLblFix2 = counterFixes(usernameTitleLbl,"Username:",localplayer.DisplayName.." @"..localplayer.Name)
 	local userIdTitleLblFix, userIdTitleLblFix2 = counterFixes(userIdTitleLbl,"UserID:",localplayer.UserId)
@@ -511,6 +548,14 @@ local function newHub()
 	playersCountTitleLblFix.Size,playersCountTitleLblFix2.Size=UDim2.new(0.4,0,0.9,0),UDim2.new(0.625,0,0.9,0)
 	serverTimeTitleLblFix.Size,serverTimeTitleLblFix2.Size=UDim2.new(0.4,0,0.9,0),UDim2.new(0.625,0,0.9,0)
 	
+	local playerHpTitleLbl,playerRigTitleLbl,playerPosTitleLbl=newTitlelbl(playerInfoFrame,0.28),newTitlelbl(playerInfoFrame,0.525),newTitlelbl(playerInfoFrame,0.775)
+	
+	local playerHpTitleLblFix, playerHpTitleLblFix2 = counterFixes(playerHpTitleLbl,"Health:","N/A")
+	local playerRigTitleLblFix, playerRigTitleLblFix2 = counterFixes(playerRigTitleLbl,"RigType:","N/A")
+	local playerPosTitleLblFix, playerPosTitleLblFix2 = counterFixes(playerPosTitleLbl,"Position:","N/A")
+	playerHpTitleLblFix.Size,playerHpTitleLblFix2.Size=UDim2.new(0.4,0,0.9,0),UDim2.new(0.625,0,0.9,0)
+	playerRigTitleLblFix.Size,playerRigTitleLblFix2.Size=UDim2.new(0.4,0,0.9,0),UDim2.new(0.625,0,0.9,0)
+	playerPosTitleLblFix.Size,playerPosTitleLblFix2.Size=UDim2.new(0.4,0,0.9,0),UDim2.new(0.625,0,0.9,0)
 	--[[local usernameTitleLblFix = fixedTxt(usernameTitleLbl)
 	usernameTitleLblFix.Size=UDim2.new(0.2,0,0.8,0)
 	usernameTitleLblFix.Position=UDim2.new(0,0,0.3,0)
@@ -526,9 +571,11 @@ local function newHub()
 	newCrossSide(userIntoFrame,0.35,0.84)
 	newCrossSide(userIntoFrame,0.55,0.84)
 	newCrossSide(userIntoFrame,0.75,0.84)
-	
 	newCrossSide(gameinfoFrame,0.45,0.9)
 	newCrossSide(gameinfoFrame,0.7,0.9)
+	
+	newCrossSide(playerInfoFrame,0.45,0.9)
+	newCrossSide(playerInfoFrame,0.7,0.9)
 	
 	-- 8. ربط الأزرار والصفحات
 	local mainBtn, mainLbl, mainIcon = newBtn("INFO", "rbxassetid://15828140488", 0.275)
@@ -633,25 +680,42 @@ local function newHub()
 			task.wait(0.1)
 		end
 	end)
+	task.spawn(function()
+		while true do 
+			local human=localplayer.Character and localplayer.Character:FindFirstChild("Humanoid")
+			local hrp = localplayer.Character and localplayer.Character:FindFirstChild("HumanoidRootPart")
+			if human then
+				playerHpTitleLblFix2.Text=string.format("%d",human.Health).." / "..human.MaxHealth
+				playerRigTitleLblFix2.Text=human.RigType.Name
+			else playerHpTitleLblFix2.Text,playerRigTitleLblFix2.Text="N/A","N/A"
+			end
+			if hrp then 
+				local posX,posY,posZ=string.format("%.2f",hrp.Position.X),string.format("%.2f",hrp.Position.Y),string.format("%.2f",hrp.Position.Z)
+				playerPosTitleLblFix2.Text=posX..", "..posY..", "..posZ
+			else playerPosTitleLblFix2.Text="N/A"
+			end
+			task.wait(0.1)
+		end
+	end)
 	gameTitleLblFix2:GetPropertyChangedSignal("Text"):Connect(function()gameTitleLblFix2.Text=getGameName()end)
 	
 	mainBtn.MouseEnter:Connect(function()if selectedBtn == mainBtn then return end mainLbl.TextTransparency,mainIcon.ImageTransparency=0,0 end)
 	mainBtn.MouseLeave:Connect(function()if selectedBtn == mainBtn then return end mainLbl.TextTransparency,mainIcon.ImageTransparency=0.5,0.5 end)
 	mainBtn.MouseButton1Click:Connect(function()display(mainBtn, frame_1) mainLbl.TextTransparency,mainIcon.ImageTransparency=0,0 end)
 	
-	gameBtn.MouseButton1Click:Connect(function() display(gameBtn, frame_2) end)
+	gameBtn.MouseButton1Click:Connect(function() display(gameBtn, frame_4) end)
 	gameBtn.MouseEnter:Connect(function()if selectedBtn == gameBtn then return end gameLbl.TextTransparency,gameIcon.ImageTransparency=0,0 end)
 	gameBtn.MouseLeave:Connect(function()if selectedBtn == gameBtn then return end gameLbl.TextTransparency,gameIcon.ImageTransparency=0.5,0.5 end)
 	
-	playerBtn.MouseButton1Click:Connect(function() display(playerBtn, frame_3) end)
+	playerBtn.MouseButton1Click:Connect(function() display(playerBtn, frame_2) end)
 	playerBtn.MouseEnter:Connect(function() if selectedBtn == playerBtn then return end playerLbl.TextTransparency, playerIcon.ImageTransparency = 0, 0 end)
 	playerBtn.MouseLeave:Connect(function() if selectedBtn == playerBtn then return end playerLbl.TextTransparency, playerIcon.ImageTransparency = 0.5, 0.5 end)
 	
-	universalBtn.MouseButton1Click:Connect(function() display(universalBtn, frame_4) end)
+	universalBtn.MouseButton1Click:Connect(function() display(universalBtn, frame_5) end)
 	universalBtn.MouseEnter:Connect(function() if selectedBtn == universalBtn then return end universalLbl.TextTransparency, universalIcon.ImageTransparency = 0, 0 end)
 	universalBtn.MouseLeave:Connect(function() if selectedBtn == universalBtn then return end universalLbl.TextTransparency, universalIcon.ImageTransparency = 0.5, 0.5 end)
 	
-	targetBtn.MouseButton1Click:Connect(function() display(targetBtn, frame_5) end)
+	targetBtn.MouseButton1Click:Connect(function() display(targetBtn, frame_3) end)
 	targetBtn.MouseEnter:Connect(function() if selectedBtn == targetBtn then return end targetLbl.TextTransparency, targetIcon.ImageTransparency = 0, 0 end)
 	targetBtn.MouseLeave:Connect(function() if selectedBtn == targetBtn then return end targetLbl.TextTransparency, targetIcon.ImageTransparency = 0.5, 0.5 end)
 	
@@ -745,6 +809,16 @@ local function newHub()
 	newStroke(Color3.fromRGB(75, 151, 226), 1, gameinfoFrame)
 	newCustomUi(gameInfoCapLbl, 10, 0, 0, 10)
 	newStroke(Color3.fromRGB(75, 151, 226), 1, gameInfoCapLbl)
+	
+	newUi(playerInfoFrame)
+	newStroke(Color3.fromRGB(75, 151, 226), 1, playerInfoFrame)
+	newCustomUi(playerInfoCapLbl, 10, 0, 0, 10)
+	newStroke(Color3.fromRGB(75, 151, 226), 1, playerInfoCapLbl)
+	
+	newUi(movementFrame)
+	newStroke(Color3.fromRGB(75, 151, 226), 1, movementFrame)
+	newCustomUi(movementCapLbl, 10, 0, 0, 10)
+	newStroke(Color3.fromRGB(75, 151, 226), 1, movementCapLbl)
 	
 	newCustomUi(frameTitle, 0, 0, 10, 10)
 	newCustomUi(destroyBtn, 0, 0, 10, 0)
