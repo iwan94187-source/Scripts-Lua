@@ -3,6 +3,7 @@ local localplayer = players.LocalPlayer
 local playerGui = localplayer.PlayerGui
 local tweenService = game:GetService("TweenService")
 local MarketplaceService = game:GetService("MarketplaceService")
+local UserInputService = game:GetService("UserInputService")
 
 local uiParent = playerGui
 if gethui then
@@ -601,6 +602,7 @@ local function newHub()
 	local playerJumpPwrTitleBtn = newTitleBtn(movementFrame,"JumpPower",0.525,0.15)
 	
 	local playerWalkSpdPlate,playerWalkSpdKnob,playerWalkSpdShadow = newToggleBtn(playerWalkSpdTitleBtn)
+	local WalkSpeedState = true
 	local playerWalkSpdBaseCase=Instance.new("Frame")
 	playerWalkSpdBaseCase.Size=UDim2.new(0.4,0,0.075,0)
 	playerWalkSpdBaseCase.Position=UDim2.new(0.05,0,0.275,0)
@@ -612,6 +614,60 @@ local function newHub()
 	playerWalkSpdFillCase.BackgroundColor3=Color3.fromRGB(85, 170, 255)
 	playerWalkSpdFillCase.Image="rbxassetid://77991129754373"
 	playerWalkSpdFillCase.Parent=playerWalkSpdBaseCase
+	local playerWalkSpdValueCase=Instance.new("TextLabel")
+	playerWalkSpdValueCase.BackgroundTransparency=1
+	playerWalkSpdValueCase.Text="25 / 100"
+	playerWalkSpdValueCase.Size,playerWalkSpdValueCase.Position=UDim2.new(1,0,1,0),UDim2.new(0,0,0,0)
+	playerWalkSpdValueCase.Parent=playerWalkSpdBaseCase
+	local playerWalkSpdValueCaseFix = fixedTxt(playerWalkSpdValueCase)
+	playerWalkSpdValueCaseFix.Size=UDim2.new(1,0,0.8,0)
+	
+	local walkSpeedSetting={minVal=0,maxVal=200}
+	local dragging=false
+	local function updateSlider(input,fillBtn,btnFix,btn,spd)
+		local baseAbsPos = btn.AbsolutePosition.X
+		local baseAbsSize = btn.AbsoluteSize.X
+
+		if baseAbsSize == 0 then return end
+
+		local percent = math.clamp((input.Position.X - baseAbsPos) / baseAbsSize, 0, 1)
+		fillBtn.Size = UDim2.new(percent, 0, 1, 0)
+
+		local currentSpeed = math.floor(spd.minVal + (spd.maxVal - spd.minVal) * percent)
+		btnFix.Text = string.format("%d / %d", currentSpeed, spd.maxVal)
+		
+		if btn == playerWalkSpdBaseCase and WalkSpeedState then
+			local char = game.Players.LocalPlayer.Character
+			if char then
+				local hum = char:FindFirstChildOfClass("Humanoid")
+				if hum then
+					hum.WalkSpeed = currentSpeed
+				end
+			end
+		end
+	end
+	
+	playerWalkSpdBaseCase.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			updateSlider(input,
+				playerWalkSpdFillCase,playerWalkSpdValueCaseFix,playerWalkSpdBaseCase,walkSpeedSetting)
+		end
+	end)
+
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = false
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+			updateSlider(input,
+				playerWalkSpdFillCase,playerWalkSpdValueCaseFix,playerWalkSpdBaseCase,walkSpeedSetting)
+		end
+	end)
+	
 	--[[local usernameTitleLblFix = fixedTxt(usernameTitleLbl)
 	usernameTitleLblFix.Size=UDim2.new(0.2,0,0.8,0)
 	usernameTitleLblFix.Position=UDim2.new(0,0,0.3,0)
@@ -848,18 +904,18 @@ local function newHub()
 			end)
 		end)
 	end)
-	local speedState = false
+	
 	playerWalkSpdTitleBtn.MouseButton1Click:Connect(function()
-		if speedState then 
+		if WalkSpeedState then 
 			playerWalkSpdShadow.ImageTransparency=0.3
 			local motion = tweenService:Create(playerWalkSpdKnob,TweenInfo.new(0.3),{Position=UDim2.new(0.5,0,0.05,0)})
 			motion:Play()
-			motion.Completed:Connect(function()speedState=false end)
+			motion.Completed:Connect(function()WalkSpeedState=false end)
 		else
 			playerWalkSpdShadow.ImageTransparency=0.6
 			local motion = tweenService:Create(playerWalkSpdKnob,TweenInfo.new(0.3),{Position=UDim2.new(0.05,0,0.05,0)})
 			motion:Play()
-			motion.Completed:Connect(function()speedState=true end)
+			motion.Completed:Connect(function()WalkSpeedState=true end)
 		end
 	end)
 
