@@ -1,0 +1,34 @@
+local function counterFixes(parent,title,value)
+		local fix = fixedTxt(parent)
+		fix.Size=UDim2.new(0.4,0,0.8,0)
+		fix.Position=UDim2.new(0,0,0.3,0)
+		fix.TextXAlignment=Enum.TextXAlignment.Left
+		fix.FontFace=Font.new("rbxasset://fonts/families/Roboto.json",Enum.FontWeight.Bold,Enum.FontStyle.Normal)
+		fix.Text=title
+		local fix2 = fixedTxt(parent)
+		fix2.Size=UDim2.new(0.55,0,0.8,0)
+		fix2.Position=UDim2.new(0.5,0,0.3,0)
+		fix2.TextXAlignment=Enum.TextXAlignment.Right
+		fix2.FontFace=Font.new("rbxasset://fonts/families/Roboto.json",Enum.FontWeight.Bold,Enum.FontStyle.Normal)
+		fix2.TextColor3=Color3.fromRGB(85, 173, 255)
+		fix2.Text=value
+		return fix, fix2
+	end
+
+local function newTitlelbl(parent,pos)
+		local lbl = Instance.new("TextLabel")
+		lbl.Size=UDim2.new(0.8,0,0.125,0)
+		lbl.Position=UDim2.new(0.05,0,pos,0)
+		lbl.BackgroundTransparency=1
+		lbl.Name="usrLbl"
+		lbl.Parent=parent
+		return lbl
+	end
+
+local title1,title2,title3,title4=
+  newTitlelbl(frame,0.2),
+  newTitlelbl(frame,0.4),
+  newTitlelbl(frame,0.6),
+  newTitlelbl(frame,0.8)
+
+local titlefix, titlefix2 = counterFixes(titleLbl,"Username:",localplayer.DisplayName.." @"..localplayer.Name)
